@@ -1,4 +1,5 @@
 import inertia from '@inertiajs/vite';
+import typefinder from '@pentacore/vite-plugin-laravel-typefinder';
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
@@ -30,6 +31,7 @@ export default defineConfig({
         wayfinder({
             formVariants: true,
         }),
+        typefinder(),
     ]),
     server: {
         watch: {
@@ -53,6 +55,7 @@ export default defineConfig({
             'resources/js/components/ui/*',
             'resources/js/routes/**',
             'resources/js/wayfinder/**',
+            'resources/js/typefinder/**',
         ],
         options: {
             denyWarnings: true,
@@ -71,6 +74,7 @@ export default defineConfig({
             'composer.json',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
+            'resources/js/typefinder/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

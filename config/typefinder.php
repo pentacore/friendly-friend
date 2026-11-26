@@ -1,0 +1,185 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Output Path
+    |--------------------------------------------------------------------------
+    |
+    | The directory where generated .d.ts files will be written.
+    |
+    */
+    'output_path' => resource_path('js/typefinder'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auto .gitignore
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the generator appends the output path to the project
+    | root .gitignore (if present) on every run so generated .d.ts files
+    | stay out of version control. Idempotent — adds the line at most once.
+    |
+    | Set this to false if you commit the generated output, which is what
+    | `typefinder:generate --check` needs as a CI gate. With ignored output,
+    | generate in CI before the TypeScript build instead.
+    |
+    */
+    'gitignore_generated' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Models
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for model type generation.
+    |
+    */
+    'models' => [
+        'enabled' => true,
+        'paths' => [app_path('Models')],
+        // When false, models emit no relationship fields, and no pivot
+        // types are derived from belongsToMany / morphToMany relations.
+        'include_relationships' => true,
+
+        // When enabled, each model emits {Model}Create and {Model}Update
+        // companion types alongside the canonical read shape.
+        'emit_write_shapes' => true,
+
+        // Respect $fillable/$guarded when building write shapes.
+        // Override per model with
+        // #[TypefinderWriteShape(respectMassAssignment: true|false)].
+        'respect_mass_assignment' => true,
+
+        // Columns excluded from the Update shape. Merged with each model's
+        // #[TypefinderWriteShape(immutableOnUpdate: [...])] list.
+        'immutable_on_update' => ['id', 'created_at', 'updated_at', 'deleted_at'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Enums
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for enum type generation.
+    |
+    */
+    'enums' => [
+        'enabled' => true,
+        'paths' => [app_path('Enums')],
+
+        /*
+         | When true, enums emit to `.ts` files containing an `as const`
+         | object paired with the derived union type:
+         |
+         |   export const PostStatus = { Draft: 'draft', ... } as const;
+         |   export type PostStatus = typeof PostStatus[keyof typeof PostStatus];
+         |
+         | This gives consumers a runtime value for iteration plus the union
+         | type. When false (default), enums emit to `.d.ts` as a bare union.
+         */
+        'emit_values' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Requests
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for form request type generation.
+    |
+    | A string key on a path is a type-name prefix for the requests under it,
+    | so requests with the same short name in different directories can both
+    | be emitted: ['Api' => app_path('Http/Requests/Api'), 'Web' => ...]
+    | emits ApiStoreUserRequest and WebStoreUserRequest. List entries keep
+    | the short name; keyed and list entries can be mixed.
+    |
+    */
+    'requests' => [
+        'enabled' => true,
+        'paths' => [app_path('Http/Requests')],
+        'extract_nested' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Casts
+    |--------------------------------------------------------------------------
+    |
+    | Override or extend the built-in cast-to-TypeScript type mappings.
+    |
+    */
+    'casts' => [
+        'type_map' => [
+            // 'datetime' => 'Date',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resources
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for JsonResource type generation. Default-on: ships with
+    | Laravel core, no external dependency. Empty directory = no output.
+    |
+    */
+    'resources' => [
+        'enabled' => true,
+        'paths' => [app_path('Http/Resources')],
+
+        // A resource without #[TypefinderResource] or a PHPDoc
+        // `@return array{…}` on toArray() is typed as the model with the
+        // same name (UserResource → User). Turn this off when your
+        // resources reshape their output: undeclared resources are then
+        // skipped with a warning instead of getting the model's type.
+        'infer_from_model_name' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Inertia (opt-in)
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the generator scans controller methods for
+    | #[Pentacore\Typefinder\Attributes\TypefinderPage] attributes and emits a
+    | consolidated pages.d.ts describing the PageProps map.
+    |
+    */
+    'inertia' => [
+        'enabled' => true,
+        'paths' => [app_path('Http/Controllers')],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Broadcasting (opt-in)
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, classes implementing ShouldBroadcast in the configured
+    | paths are scanned and emitted into broadcasting.d.ts as a set of
+    | channel → event → payload maps.
+    |
+    */
+    'broadcasting' => [
+        'enabled' => true,
+        'paths' => [app_path('Events')],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Watch
+    |--------------------------------------------------------------------------
+    |
+    | `typefinder:watch` (the Vite plugin) answers each regeneration in a
+    | worker process. A worker that has not answered after this many seconds
+    | (say, a model that blocks on a network call while it is extracted) is
+    | stopped and the regeneration reported as failed. 0 waits forever.
+    |
+    */
+    'watch' => [
+        'worker_timeout' => 300,
+    ],
+];

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Pentacore\Typefinder\Rector\TypefinderSetList;
 use Rector\Config\RectorConfig;
 
 return RectorConfig::configure()
@@ -15,6 +16,10 @@ return RectorConfig::configure()
     ])
     ->withComposerBased(laravel: true)
     ->withPhpSets()
+    ->withSets([
+        TypefinderSetList::TYPEFINDER,
+        TypefinderSetList::INERTIA,
+    ])
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,

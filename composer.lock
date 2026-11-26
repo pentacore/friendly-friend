@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4e145f861bbfd1c865c196b8715979ac",
+    "content-hash": "cb3d7c59825746f8e3748b36388c4f10",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3099,6 +3099,81 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2026-11-18T13:55:22+00:00"
+        },
+        {
+            "name": "pentacore/laravel-typefinder",
+            "version": "8.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pentacore/Laravel-Typefinder.git",
+                "reference": "d5c00174351910b75477ad0ad749d57764fb708a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pentacore/Laravel-Typefinder/zipball/d5c00174351910b75477ad0ad749d57764fb708a",
+                "reference": "d5c00174351910b75477ad0ad749d57764fb708a",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^12.0|^13.0",
+                "illuminate/database": "^12.0|^13.0",
+                "illuminate/filesystem": "^12.0|^13.0",
+                "illuminate/support": "^12.0|^13.0",
+                "illuminate/validation": "^12.0|^13.0",
+                "nikic/php-parser": "^5.0",
+                "php": "^8.4",
+                "phpstan/phpdoc-parser": "^2.0"
+            },
+            "require-dev": {
+                "laravel/boost": "^2.4",
+                "laravel/pint": "^1.21",
+                "orchestra/testbench": "^10.1|^11.0",
+                "phpstan/phpstan": "^2.3",
+                "phpunit/phpunit": "^13.0",
+                "rector/rector": "^2.8",
+                "symfony/translation": "^6.4.8|^7.0|^8.0"
+            },
+            "suggest": {
+                "rector/rector": "Run Typefinder's Rector rules (Pentacore\\Typefinder\\Rector\\TypefinderSetList) (^2.8)"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Pentacore\\Typefinder\\TypefinderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Pentacore\\Typefinder\\": "packages/laravel-typefinder/src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Martin Claesson",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Auto-generate TypeScript type definitions from Laravel Models, Enums, Casts, and Requests.",
+            "homepage": "https://github.com/pentacore/laravel-typefinder",
+            "keywords": [
+                "enums",
+                "laravel",
+                "models",
+                "php",
+                "types",
+                "typescript"
+            ],
+            "support": {
+                "issues": "https://github.com/pentacore/laravel-typefinder/issues",
+                "source": "https://github.com/pentacore/laravel-typefinder"
+            },
+            "time": "2026-11-26T07:56:11+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
