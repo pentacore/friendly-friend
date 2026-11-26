@@ -25,6 +25,42 @@ services:
             - pgsql
             - redis
             - mailpit
+    horizon:
+        image: 'sail-8.5/app'
+        command: ['php', '/var/www/html/artisan', 'horizon']
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+            SUPERVISOR_PHP_USER: sail
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
+            - redis
+    reverb:
+        image: 'sail-8.5/app'
+        command:
+            [
+                'php',
+                '/var/www/html/artisan',
+                'reverb:start',
+                '--host=0.0.0.0',
+                '--port=8080',
+                '--debug',
+            ]
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        ports:
+            - '${REVERB_PORT:-8080}:8080'
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
     pgsql:
         image: 'postgres:18-alpine'
         ports:
