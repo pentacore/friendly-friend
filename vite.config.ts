@@ -75,6 +75,11 @@ export default defineConfig({
             'resources/js/components/ui/*',
             'resources/views/mail/*',
             'resources/js/typefinder/**',
+            '.agents/**',
+            '.claude/**',
+            'AGENTS.md',
+            'CLAUDE.md',
+            'boost.json',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

@@ -15,16 +15,16 @@ Browser (Vue/Inertia) ──► web ──► PostgreSQL / Redis
 
 ## Services
 
-| Service | Dev (Sail, `compose.yaml`) | Prod (`compose.prod.yaml`) | Command |
-|---|---|---|---|
-| Web | `laravel.test` | `web` (FrankenPHP) | built-in server / `frankenphp php-server` |
-| Queue workers | `horizon` | `horizon` | `php artisan horizon` |
-| WebSockets | `reverb` (port 8080) | `reverb` | `php artisan reverb:start` |
-| Scheduler | n/a (run `sail artisan schedule:work` when needed) | `scheduler` | `php artisan schedule:work` |
-| Discord bot | added in Phase 3 | `bot` | `php artisan bot:run` |
-| Database | `pgsql` (Postgres 18) | `postgres` | |
-| Cache, queue, session | `redis` | `redis` | |
-| Mail catcher | `mailpit` (UI on :8025) | n/a | |
+| Service               | Dev (Sail, `compose.yaml`)                         | Prod (`compose.prod.yaml`) | Command                                   |
+| --------------------- | -------------------------------------------------- | -------------------------- | ----------------------------------------- |
+| Web                   | `laravel.test`                                     | `web` (FrankenPHP)         | built-in server / `frankenphp php-server` |
+| Queue workers         | `horizon`                                          | `horizon`                  | `php artisan horizon`                     |
+| WebSockets            | `reverb` (port 8080)                               | `reverb`                   | `php artisan reverb:start`                |
+| Scheduler             | n/a (run `sail artisan schedule:work` when needed) | `scheduler`                | `php artisan schedule:work`               |
+| Discord bot           | added in Phase 3                                   | `bot`                      | `php artisan bot:run`                     |
+| Database              | `pgsql` (Postgres 18)                              | `postgres`                 |                                           |
+| Cache, queue, session | `redis`                                            | `redis`                    |                                           |
+| Mail catcher          | `mailpit` (UI on :8025)                            | n/a                        |                                           |
 
 ## Dashboards
 
