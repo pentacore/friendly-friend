@@ -1,8 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+declare(strict_types=1);
 
-Artisan::command('inspire', function (): void {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+use App\Access\Jobs\SyncGuildMembers;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+Artisan::command('discord:sync-members', function (): void {
+    dispatch_sync(new SyncGuildMembers);
+    $this->info('Guild members synced.');
+})->purpose('Refresh all Discord guild members now (bot token)');
+
+Schedule::job(new SyncGuildMembers)->cron('0 */3 * * *')->withoutOverlapping();

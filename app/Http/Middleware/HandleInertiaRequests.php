@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
+use App\Access\GuildAccess;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Override;
@@ -37,7 +41,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @typefinder-return array{
      *     name: string,
-     *     auth: array{user: \App\Models\User|null},
+     *     auth: array{user: array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool}|null},
      *     sidebarOpen: bool,
      * }
      */
@@ -47,9 +51,33 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $this->currentUser($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * The logged-in user as the frontend sees them: Discord identity only.
+     *
+     * @return array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool}|null
+     */
+    private function currentUser(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        $member = $user->discordMember;
+
+        return [
+            'id' => $user->id,
+            'discord_id' => $member->discord_id,
+            'name' => $member->display_name,
+            'avatar_url' => $member->avatarUrl(),
+            'is_admin' => app(GuildAccess::class)->isAdmin($member),
         ];
     }
 }

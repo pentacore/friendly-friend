@@ -1,5 +1,5 @@
 import type { Directive } from 'vue';
-import type { Auth } from '@/types/auth';
+import type { SharedPageProps } from '@/typefinder';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -16,10 +16,7 @@ declare module 'vite/client' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
-        sharedPageProps: {
-            name: string;
-            auth: Auth;
-            sidebarOpen: boolean;
+        sharedPageProps: SharedPageProps & {
             [key: string]: unknown;
         };
     }

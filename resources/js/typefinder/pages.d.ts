@@ -4,17 +4,17 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
-import type { User } from './models';
+import type { AccessDeniedReason } from './enums';
 
 export type SharedPageProps = {
   errors: Record<string, string>;
   name: string;
-  auth: { user: User | null };
+  auth: { user: { id: number; discord_id: string; name: string; avatar_url: string; is_admin: boolean } | null };
   sidebarOpen: boolean;
 };
 
 export type PageProps = {
-  'settings/Profile': { mustVerifyEmail: boolean; status: string | null };
+  'auth/Login': { error: AccessDeniedReason | null };
 };
 
 export type PageName = keyof PageProps;

@@ -4,4 +4,5 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+export type { DiscordMember, DiscordMemberCreate, DiscordMemberUpdate } from './DiscordMember';
 export type { User, UserCreate, UserUpdate } from './User';

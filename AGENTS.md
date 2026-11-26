@@ -7,7 +7,7 @@ A private site and Discord bot for **one** Discord server of friends: quotes (ca
 
 ## Stack
 
-Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, Redis, Horizon, Reverb, Fortify (sessions only; login is Discord OAuth via Socialite), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data), DiscordPHP (bot), laravel/ai (OpenAI, Anthropic or Gemini, chosen in `.env`).
+Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, Redis, Horizon, Reverb, Socialite with socialiteproviders/discord (the only login), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data), DiscordPHP (bot), laravel/ai (OpenAI, Anthropic or Gemini, chosen in `.env`).
 
 ## Where code goes (each part has one job)
 
@@ -17,7 +17,9 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 - `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
 - `App\Ai\QuoteNormalizer`: an interface whose implementation uses laravel/ai structured output. Tests use the fake.
 - `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
-- `App\Access`: server membership and role checks (`VerifyGuildAccess`, `SyncGuildMembers`).
+- `App\Access`: who gets in. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\UpsertDiscordMember`, `Jobs\SyncGuildMembers`, `Exceptions\AccessDeniedException`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
+- `App\Discord\DiscordUserApi` (OAuth user token) and `App\Discord\DiscordBotApi` (bot token): the HTTP clients for Discord REST, returning `App\Discord\Data\*` DTOs. Fake them with `Http::fake()` in tests.
+- `App\Enums`: backed enums. Typefinder emits them as `as const` objects plus union types.
 - Controllers stay thin: validate (FormRequest), call an action, render Inertia.
 
 ## Runtime services
@@ -28,7 +30,7 @@ Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`
 
 ## Dashboards
 
-Horizon and Telescope are open in `local` only. Telescope is never registered outside `local`. The Horizon gate opens to Discord admins in Phase 2.
+Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `admin` gate. Telescope is never registered outside `local`.
 
 === .ai/domain-rules rules ===
 
@@ -55,7 +57,13 @@ Horizon and Telescope are open in `local` only. Telescope is never registered ou
 
 ## Access
 
-- Login is Discord OAuth only. Access requires membership of `DISCORD_GUILD_ID` and a role in `DISCORD_ALLOWED_ROLE_IDS`. Admins are members with a role in `DISCORD_ADMIN_ROLE_IDS`. Access is re-checked regularly, and sessions are dropped when someone loses access.
+- Login is Discord OAuth only (Socialite, scopes `identify` and `guilds.members.read`). There are no passwords, no email and no registration. Fortify is not installed, so don't add it back.
+- Every access decision goes through `App\Access\GuildAccess` (`allows()`, `isAdmin()`). Don't compare role IDs anywhere else. Use the `admin` gate (`Gate::allows('admin')`, `@can('admin')`) for admin-only features.
+- Allowed means in the guild **and** (a role in `DISCORD_ALLOWED_ROLE_IDS`, **or** an admin role, **or** the allowed list is empty). Admin means in the guild with a role in `DISCORD_ADMIN_ROLE_IDS`.
+- Every app route uses `['auth', 'guild.access']`. The middleware re-checks the stored member row on each request and logs out anyone who has lost access.
+- Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS.
+- Members without access are still stored in `discord_members`. Only allowed members get a `users` row.
+- The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin}`). Never send `discord_members` or `users` models straight to the frontend.
 
 === .ai/typefinder rules ===
 
@@ -197,16 +205,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
     - Execute Node commands: `vendor/bin/sail npm run dev`
     - Execute PHP scripts: `vendor/bin/sail php [script]`
 - View all available Sail commands by running `vendor/bin/sail` without arguments.
-
-=== tests rules ===
-
-# Test Enforcement
-
-- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
-- Pure copy, styling, and layout-only changes do not require new or updated tests.
-- When test coverage applies, run the affected tests and ensure they pass.
-- Test the changed behavior and its important failure modes, but do not add tests beyond them.
-- Read the `testing-best-practices` skill before writing tests.
 
 === inertia-laravel/core rules ===
 

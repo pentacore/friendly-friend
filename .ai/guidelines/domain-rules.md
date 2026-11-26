@@ -21,4 +21,10 @@
 
 ## Access
 
-- Login is Discord OAuth only. Access requires membership of `DISCORD_GUILD_ID` and a role in `DISCORD_ALLOWED_ROLE_IDS`. Admins are members with a role in `DISCORD_ADMIN_ROLE_IDS`. Access is re-checked regularly, and sessions are dropped when someone loses access.
+- Login is Discord OAuth only (Socialite, scopes `identify` and `guilds.members.read`). There are no passwords, no email and no registration. Fortify is not installed, so don't add it back.
+- Every access decision goes through `App\Access\GuildAccess` (`allows()`, `isAdmin()`). Don't compare role IDs anywhere else. Use the `admin` gate (`Gate::allows('admin')`, `@can('admin')`) for admin-only features.
+- Allowed means in the guild **and** (a role in `DISCORD_ALLOWED_ROLE_IDS`, **or** an admin role, **or** the allowed list is empty). Admin means in the guild with a role in `DISCORD_ADMIN_ROLE_IDS`.
+- Every app route uses `['auth', 'guild.access']`. The middleware re-checks the stored member row on each request and logs out anyone who has lost access.
+- Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS.
+- Members without access are still stored in `discord_members`. Only allowed members get a `users` row.
+- The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin}`). Never send `discord_members` or `users` models straight to the frontend.

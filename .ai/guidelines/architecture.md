@@ -4,7 +4,7 @@ A private site and Discord bot for **one** Discord server of friends: quotes (ca
 
 ## Stack
 
-Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, Redis, Horizon, Reverb, Fortify (sessions only; login is Discord OAuth via Socialite), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data), DiscordPHP (bot), laravel/ai (OpenAI, Anthropic or Gemini, chosen in `.env`).
+Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, Redis, Horizon, Reverb, Socialite with socialiteproviders/discord (the only login), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data), DiscordPHP (bot), laravel/ai (OpenAI, Anthropic or Gemini, chosen in `.env`).
 
 ## Where code goes (each part has one job)
 
@@ -14,7 +14,9 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 - `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
 - `App\Ai\QuoteNormalizer`: an interface whose implementation uses laravel/ai structured output. Tests use the fake.
 - `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
-- `App\Access`: server membership and role checks (`VerifyGuildAccess`, `SyncGuildMembers`).
+- `App\Access`: who gets in. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\UpsertDiscordMember`, `Jobs\SyncGuildMembers`, `Exceptions\AccessDeniedException`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
+- `App\Discord\DiscordUserApi` (OAuth user token) and `App\Discord\DiscordBotApi` (bot token): the HTTP clients for Discord REST, returning `App\Discord\Data\*` DTOs. Fake them with `Http::fake()` in tests.
+- `App\Enums`: backed enums. Typefinder emits them as `as const` objects plus union types.
 - Controllers stay thin: validate (FormRequest), call an action, render Inertia.
 
 ## Runtime services
@@ -25,4 +27,4 @@ Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`
 
 ## Dashboards
 
-Horizon and Telescope are open in `local` only. Telescope is never registered outside `local`. The Horizon gate opens to Discord admins in Phase 2.
+Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `admin` gate. Telescope is never registered outside `local`.

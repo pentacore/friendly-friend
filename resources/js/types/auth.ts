@@ -1,14 +1,7 @@
-export type User = {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown;
-};
+import type { SharedPageProps } from '@/typefinder';
 
-export type Auth = {
-    user: User;
-};
+/** Shared `auth` prop (see HandleInertiaRequests::share()). */
+export type Auth = SharedPageProps['auth'];
+
+/** The logged-in user: Discord identity only, no email or password. */
+export type User = NonNullable<Auth['user']>;

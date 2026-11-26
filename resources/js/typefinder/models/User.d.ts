@@ -4,23 +4,23 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+import type { DiscordMember } from './DiscordMember';
+
 export type User = {
   id: number;
-  name: string;
-  email: string;
-  email_verified_at: string | null;
+  discord_member_id: number;
+  last_access_check_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  discord_member?: DiscordMember | null;
 };
 
 export type UserCreate = {
-  name: string;
-  email: string;
-  password: string;
+  discord_member_id: number;
+  last_access_check_at?: string | null;
 };
 
 export type UserUpdate = {
-  name?: string;
-  email?: string;
-  password?: string;
+  discord_member_id?: number;
+  last_access_check_at?: string | null;
 };

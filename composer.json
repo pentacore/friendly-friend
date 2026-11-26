@@ -12,13 +12,14 @@
         "php": "^8.5",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/chisel": "^0.1.0",
-        "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.52",
         "laravel/reverb": "^1.0",
+        "laravel/socialite": "^5.33",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "pentacore/laravel-typefinder": "^8.5"
+        "pentacore/laravel-typefinder": "^8.5",
+        "socialiteproviders/discord": "^4.2"
     },
     "require-dev": {
         "driftingly/rector-laravel": "^2.7",

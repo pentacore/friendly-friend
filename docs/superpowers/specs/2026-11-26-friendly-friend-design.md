@@ -156,7 +156,7 @@ All Inertia controller actions carry `#[TypefinderPage]` (kept current by Rector
 - OAuth scopes: `identify`, `guilds.members.read`.
 - At login: fetch the member record for `DISCORD_GUILD_ID`. Access is denied unless the user is a member and has at least one role in `DISCORD_ALLOWED_ROLE_IDS`. Their `discord_member` and `user` rows are created or updated.
 - The `guild.access` middleware rejects users with `in_guild = false` or no allowed role, using the bot-synced `discord_members` data.
-- `SyncGuildMembers` runs every 3 hours (and the bot updates members in real time on member join, update and leave). Users who lose access have their sessions deleted.
+- `SyncGuildMembers` runs every 3 hours (and the bot updates members in real time on member join, update and leave). _Implementation note (Phase 2):_ sessions live in Redis, so they aren't deleted. Instead `guild.access` re-checks the stored member row on every request and logs out anyone who lost access. Admin roles always count as allowed, and an empty allowed list means every guild member may log in.
 
 ## 8. Statistics and opt-out
 
