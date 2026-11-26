@@ -10,9 +10,9 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Discord REST calls made with the bot token.
+ * DiscordClient over Discord's REST API with the bot token.
  */
-final readonly class DiscordBotApi
+final readonly class HttpDiscordClient implements DiscordClient
 {
     private const int PAGE_SIZE = 1000;
 
@@ -45,6 +45,13 @@ final readonly class DiscordBotApi
                 yield $member;
             }
         } while (count($rows) === self::PAGE_SIZE);
+    }
+
+    public function sendMessage(string $channelId, string $content): void
+    {
+        $this->request()
+            ->post("channels/{$channelId}/messages", ['content' => $content])
+            ->throw();
     }
 
     private function request(): PendingRequest

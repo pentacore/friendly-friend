@@ -8,21 +8,23 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 
 ## Where code goes (each part has one job)
 
-- `App\Discord\Gateway`: listeners in the bot process. They check the opt-out cache, build a small data object and **queue a job**. They hold **no business logic** and make no DB writes beyond the member cache.
+- `App\Discord\Gateway`: the bot process. `RunBot` (`bot:run`) forwards raw gateway dispatches to `GatewayEventRouter::route($type, $payload)`, which filters to our guild, builds a DTO and **queues a job**. Never put DB queries, HTTP calls or business logic in the router or the command. Add new gateway events as router branches with a JSON fixture in `tests/Fixtures/gateway/` and a test. The opt-out check (Phase 6) also lives in the router.
 - `App\Discord\Interactions`: slash commands, the message context menu, buttons and forms. They call actions and build replies.
-- `App\Discord\DiscordClient`: an interface over the Discord REST calls we use, with a real implementation and an in-memory fake for tests. Never call Discord REST directly from elsewhere.
+- `App\Discord\DiscordClient`: interface for **bot-token** REST calls (`HttpDiscordClient`; tests use `Testing\FakeDiscordClient`). Add methods there instead of calling Discord's HTTP API elsewhere. `DiscordUserApi` is only for the OAuth user token at login.
 - `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
 - `App\Ai\QuoteNormalizer`: an interface whose implementation uses laravel/ai structured output. Tests use the fake.
 - `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
 - `App\Access`: who gets in. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\UpsertDiscordMember`, `Jobs\SyncGuildMembers`, `Exceptions\AccessDeniedException`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
-- `App\Discord\DiscordUserApi` (OAuth user token) and `App\Discord\DiscordBotApi` (bot token): the HTTP clients for Discord REST, returning `App\Discord\Data\*` DTOs. Fake them with `Http::fake()` in tests.
+- Discord REST returns `App\Discord\Data\*` DTOs. Test the HTTP clients themselves with `Http::fake()`.
 - `App\Enums`: backed enums. Typefinder emits them as `as const` objects plus union types.
 - Controllers stay thin: validate (FormRequest), call an action, render Inertia.
 
 ## Runtime services
 
 Dev (Sail, `compose.yaml`): `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis`, `mailpit`.
-Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): `web`, `horizon`, `scheduler`, `reverb`, plus `bot` from Phase 3, `postgres` and `redis`.
+Dev also has `bot` behind the compose profile `bot` (`COMPOSE_PROFILES=bot`).
+Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): `web`, `horizon`, `scheduler`, `reverb`, `bot`, `postgres`, `redis`.
+The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
 Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
 
 ## Dashboards

@@ -2,15 +2,15 @@
 
 One image (`Dockerfile`, FrankenPHP on PHP 8.5) runs every app service with a different command. Stack: `compose.prod.yaml`.
 
-| Service     | Command                     | Notes                                                                                                      |
-| ----------- | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `web`       | `frankenphp php-server`     | Runs `migrate --force` on start (`RUN_MIGRATIONS=true`). Port `${WEB_PORT:-80}`                            |
-| `horizon`   | `php artisan horizon`       | Queue workers. Autoscales; "Worker STOPPED Interrupted" lines while it scales down idle workers are normal |
-| `scheduler` | `php artisan schedule:work` |                                                                                                            |
-| `reverb`    | `php artisan reverb:start`  | WebSockets. Port `${REVERB_PUBLIC_PORT:-8080}`                                                             |
-| `bot`       | `php artisan bot:run`       | Added in Phase 3                                                                                           |
-| `postgres`  | Postgres 18                 | Volume `postgres`                                                                                          |
-| `redis`     | Redis                       | Volume `redis`                                                                                             |
+| Service     | Command                     | Notes                                                                                                                           |
+| ----------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `web`       | `frankenphp php-server`     | Runs `migrate --force` on start (`RUN_MIGRATIONS=true`). Port `${WEB_PORT:-80}`                                                 |
+| `horizon`   | `php artisan horizon`       | Queue workers. Autoscales; "Worker STOPPED Interrupted" lines while it scales down idle workers are normal                      |
+| `scheduler` | `php artisan schedule:work` |                                                                                                                                 |
+| `reverb`    | `php artisan reverb:start`  | WebSockets. Port `${REVERB_PUBLIC_PORT:-8080}`                                                                                  |
+| `bot`       | `php artisan bot:run`       | Discord gateway. Exits on a dead connection (watchdog) and Docker restarts it. `docker compose exec bot php artisan bot:status` |
+| `postgres`  | Postgres 18                 | Volume `postgres`                                                                                                               |
+| `redis`     | Redis                       | Volume `redis`                                                                                                                  |
 
 Every app container runs `php artisan optimize` on start (`docker/entrypoint.sh`).
 

@@ -61,6 +61,21 @@ services:
             - sail
         depends_on:
             - laravel.test
+    bot:
+        image: 'sail-8.5/app'
+        command: ['php', '/var/www/html/artisan', 'bot:run']
+        profiles: ['bot']
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
+            - redis
     pgsql:
         image: 'postgres:18-alpine'
         ports:

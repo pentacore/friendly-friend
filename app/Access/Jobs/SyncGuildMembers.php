@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Access\Jobs;
 
 use App\Access\Actions\UpsertDiscordMember;
-use App\Discord\DiscordBotApi;
+use App\Discord\DiscordClient;
 use App\Models\DiscordMember;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,7 +33,7 @@ final class SyncGuildMembers implements ShouldBeUnique, ShouldQueue
         return [30, 120];
     }
 
-    public function handle(DiscordBotApi $discord, UpsertDiscordMember $upsert): void
+    public function handle(DiscordClient $discord, UpsertDiscordMember $upsert): void
     {
         $guildId = config()->string('discord.guild_id');
 

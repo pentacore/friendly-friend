@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Discord\Data\GuildMemberData;
-use App\Discord\DiscordBotApi;
+use App\Discord\DiscordClient;
 use App\Discord\DiscordUserApi;
+use App\Discord\HttpDiscordClient;
+use App\Discord\Testing\FakeDiscordClient;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -66,10 +68,37 @@ it('pages through all guild members with the bot token', function (): void {
         'discord.com/api/v10/guilds/555/members?limit=1000&after=2000' => Http::response($second),
     ]);
 
-    $members = iterator_to_array(app(DiscordBotApi::class)->guildMembers('555'), false);
+    $members = iterator_to_array(app(HttpDiscordClient::class)->guildMembers('555'), false);
 
     expect($members)->toHaveCount(1002)
         ->and($members[1001]->discordId)->toBe('5001');
 
     Http::assertSent(fn (Request $request): bool => $request->hasHeader('Authorization', 'Bot bot-token'));
+});
+
+it('sends a channel message with the bot token', function (): void {
+    Http::fake(['discord.com/api/v10/channels/777/messages' => Http::response(['id' => '1'])]);
+
+    app(HttpDiscordClient::class)->sendMessage('777', 'hello');
+
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+        && $request->url() === 'https://discord.com/api/v10/channels/777/messages'
+        && $request['content'] === 'hello'
+        && $request->hasHeader('Authorization', 'Bot bot-token'));
+});
+
+it('resolves the discord client interface to the http client', function (): void {
+    expect(app(DiscordClient::class))->toBeInstanceOf(HttpDiscordClient::class);
+});
+
+it('provides a fake client for tests', function (): void {
+    $fake = new FakeDiscordClient;
+    $member = GuildMemberData::fromPayload(memberPayload('1'));
+    $fake->withMembers([$member]);
+
+    $fake->sendMessage('777', 'hi');
+
+    expect(iterator_to_array($fake->guildMembers('555'), false))->toBe([$member])
+        ->and($fake->configured())->toBeTrue()
+        ->and($fake->sentMessages())->toBe([['channel_id' => '777', 'content' => 'hi']]);
 });

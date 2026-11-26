@@ -44,6 +44,13 @@ services:
         ports:
             - '${REVERB_PUBLIC_PORT:-8080}:8080'
 
+    bot:
+        <<: *app
+        healthcheck:
+            disable: true
+        command: ['php', 'artisan', 'bot:run']
+        stop_signal: SIGTERM
+
     postgres:
         image: postgres:18-alpine
         restart: unless-stopped

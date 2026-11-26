@@ -3,12 +3,12 @@
 Full design: [`docs/superpowers/specs/2026-11-26-friendly-friend-design.md`](superpowers/specs/2026-11-26-friendly-friend-design.md).
 
 ```
-Discord gateway ──► bot (php artisan bot:run, DiscordPHP)        [Phase 3]
+Discord gateway ──► bot (php artisan bot:run, DiscordPHP)
                        │  turns each event into a small data object and queues a job; no business logic
                        ▼
                   Redis ◄──► Horizon workers ──► PostgreSQL
                                    │──► AI provider (laravel/ai)  [Phase 4]
-                                   └──► Discord REST              [Phase 3]
+                                   └──► Discord REST
 Browser (Vue/Inertia) ──► web ──► PostgreSQL / Redis
                        ◄── Reverb (WebSockets, Echo)
 ```
@@ -21,7 +21,7 @@ Browser (Vue/Inertia) ──► web ──► PostgreSQL / Redis
 | Queue workers         | `horizon`                                          | `horizon`                  | `php artisan horizon`                     |
 | WebSockets            | `reverb` (port 8080)                               | `reverb`                   | `php artisan reverb:start`                |
 | Scheduler             | n/a (run `sail artisan schedule:work` when needed) | `scheduler`                | `php artisan schedule:work`               |
-| Discord bot           | added in Phase 3                                   | `bot`                      | `php artisan bot:run`                     |
+| Discord bot           | `bot` (profile `bot`, see [bot.md](bot.md))        | `bot`                      | `php artisan bot:run`                     |
 | Database              | `pgsql` (Postgres 18)                              | `postgres`                 |                                           |
 | Cache, queue, session | `redis`                                            | `redis`                    |                                           |
 | Mail catcher          | `mailpit` (UI on :8025)                            | n/a                        |                                           |

@@ -19,7 +19,8 @@
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
         "pentacore/laravel-typefinder": "^8.5",
-        "socialiteproviders/discord": "^4.2"
+        "socialiteproviders/discord": "^4.2",
+        "team-reflex/discord-php": "^10.73"
     },
     "require-dev": {
         "driftingly/rector-laravel": "^2.7",

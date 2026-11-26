@@ -1,0 +1,17 @@
+{
+    "guild_id": "555",
+    "user": {
+        "id": "42",
+        "username": "martin",
+        "global_name": "Martin",
+        "avatar": "abc",
+        "bot": false
+    },
+    "nick": null,
+    "avatar": null,
+    "roles": ["100"],
+    "joined_at": "2026-11-26T20:00:00.000000+00:00",
+    "deaf": false,
+    "mute": false,
+    "flags": 0
+}

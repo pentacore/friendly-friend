@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Discord;
+
+use App\Discord\Data\GuildMemberData;
+
+/**
+ * Discord REST calls made as the bot. Everything outside App\Discord talks to
+ * Discord through this interface; tests swap in Testing\FakeDiscordClient.
+ */
+interface DiscordClient
+{
+    /**
+     * Whether a bot token is configured.
+     */
+    public function configured(): bool;
+
+    /**
+     * Every member of the guild.
+     *
+     * @return iterable<int, GuildMemberData>
+     */
+    public function guildMembers(string $guildId): iterable;
+
+    public function sendMessage(string $channelId, string $content): void;
+}
