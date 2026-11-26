@@ -31,7 +31,11 @@ export default defineConfig({
         wayfinder({
             formVariants: true,
         }),
-        typefinder(),
+        // Types are committed. Image builds have no database to read the
+        // schema from, so generation is skipped there (see Dockerfile).
+        typefinder(
+            process.env.TYPEFINDER_SKIP_BUILD ? { buildCommand: false } : {},
+        ),
     ]),
     server: {
         watch: {
