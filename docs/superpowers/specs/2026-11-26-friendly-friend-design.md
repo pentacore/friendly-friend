@@ -8,6 +8,7 @@ A private website and Discord bot for one Discord server of friends. It captures
 ## 1. Goals and non-goals
 
 **Goals**
+
 - Discord-only login, restricted to members of one configured server who have an allowed role.
 - Capture quotes from Discord in four ways, normalize them with AI, and let the submitter preview and edit them before saving.
 - Import past quotes from an existing channel (backfill), with an admin review queue.
@@ -18,29 +19,30 @@ A private website and Discord bot for one Discord server of friends. It captures
 - Everything typed end to end (Typefinder and Wayfinder). AI rules and docs are updated in every commit.
 
 **Non-goals (YAGNI)**
+
 - Supporting more than one server.
 - Storing message content for stats (counts only).
 - Quote tags or categories, comments, public or anonymous access, mobile apps.
-- Backfilling *statistics* from channel history. Stats start when the bot joins, and only quotes can be imported.
+- Backfilling _statistics_ from channel history. Stats start when the bot joins, and only quotes can be imported.
 - Opt-out does **not** cover quotes. People can always be quoted.
 
 ## 2. Stack
 
-| Concern | Choice |
-|---|---|
-| Framework | Laravel 13 (latest), `"php": "^8.5"` |
-| Frontend | Official Vue starter kit: Inertia 2, Vue 3, TypeScript, Tailwind 4, shadcn-vue |
-| Types | `pentacore/laravel-typefinder` + `@pentacore/vite-plugin-laravel-typefinder` (data types), Laravel Wayfinder (routes) |
-| Database | PostgreSQL |
-| Queue/cache/session | Redis, Laravel Horizon |
-| Realtime | Laravel Reverb + Echo (vote counts, new quotes) |
-| Auth | Laravel Socialite + Discord provider (`socialiteproviders/discord`) |
-| Discord gateway/REST | DiscordPHP (`team-reflex/discord-php`) inside an artisan command |
-| AI | Laravel AI SDK (`laravel/ai`). The provider (OpenAI, Anthropic or Gemini) and model are set in `.env`, with a fallback provider |
-| Dev env | Laravel Sail (PHP 8.5 runtime), with Docker Desktop WSL integration turned on |
-| Prod | Docker Compose on a home server, using a custom PHP 8.5 image (FrankenPHP) |
-| Quality | Pest 4 (incl. browser tests), Larastan (max level), Pint, Rector (with Typefinder sets), ESLint, Prettier, vue-tsc, Telescope (local only) |
-| AI rules | Laravel Boost (`CLAUDE.md`/`AGENTS.md` + guidelines), project guidelines in `.ai/guidelines/`, Typefinder Claude skill |
+| Concern              | Choice                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework            | Laravel 13 (latest), `"php": "^8.5"`                                                                                                       |
+| Frontend             | Official Vue starter kit: Inertia 2, Vue 3, TypeScript, Tailwind 4, shadcn-vue                                                             |
+| Types                | `pentacore/laravel-typefinder` + `@pentacore/vite-plugin-laravel-typefinder` (data types), Laravel Wayfinder (routes)                      |
+| Database             | PostgreSQL                                                                                                                                 |
+| Queue/cache/session  | Redis, Laravel Horizon                                                                                                                     |
+| Realtime             | Laravel Reverb + Echo (vote counts, new quotes)                                                                                            |
+| Auth                 | Laravel Socialite + Discord provider (`socialiteproviders/discord`)                                                                        |
+| Discord gateway/REST | DiscordPHP (`team-reflex/discord-php`) inside an artisan command                                                                           |
+| AI                   | Laravel AI SDK (`laravel/ai`). The provider (OpenAI, Anthropic or Gemini) and model are set in `.env`, with a fallback provider            |
+| Dev env              | Laravel Sail (PHP 8.5 runtime), with Docker Desktop WSL integration turned on                                                              |
+| Prod                 | Docker Compose on a home server, using a custom PHP 8.5 image (FrankenPHP)                                                                 |
+| Quality              | Pest 4 (incl. browser tests), Larastan (max level), Pint, Rector (with Typefinder sets), ESLint, Prettier, vue-tsc, Telescope (local only) |
+| AI rules             | Laravel Boost (`CLAUDE.md`/`AGENTS.md` + guidelines), project guidelines in `.ai/guidelines/`, Typefinder Claude skill                     |
 
 Exact package versions are checked at install time against current docs (via context7). Anything that turns out to be unavailable for Laravel 13 or PHP 8.5 is flagged then, not worked around silently.
 
@@ -60,6 +62,7 @@ Browser (Vue/Inertia) ──► web (FrankenPHP) ──► PostgreSQL / Redis
 **Compose services (prod):** `web`, `bot`, `horizon`, `scheduler`, `reverb`, `postgres`, `redis`. The five app services share one image and run different commands. Sail runs the equivalent set in development.
 
 **Code organization** (each part has one job and its own tests):
+
 - `App\Discord\Gateway`: event listeners. They check the opt-out cache, build a small data object and queue a job. Nothing else.
 - `App\Discord\Interactions`: slash commands, message context menu, buttons, forms. They call actions and build replies.
 - `App\Discord\DiscordClient`: an interface over the REST calls we use, with a real implementation and an in-memory fake for tests.
@@ -73,12 +76,14 @@ Browser (Vue/Inertia) ──► web (FrankenPHP) ──► PostgreSQL / Redis
 Configured in `.env`: `DISCORD_GUILD_ID`, `DISCORD_ALLOWED_ROLE_IDS`, `DISCORD_ADMIN_ROLE_IDS`, `DISCORD_QUOTES_CHANNEL_ID`.
 
 **Identity**
+
 - `discord_members`: id, discord_id (unique), username, global_name, guild_nick, avatar, role_ids (jsonb), in_guild (bool), tracking_opted_out_at (nullable), timestamps. Synced by the bot for **every** member.
 - `users`: id, discord_member_id (FK, unique), remember_token, last_access_check_at, timestamps. Admin status comes from `role_ids` ∩ admin roles.
 - `people`: id, display_name, slug (unique), discord_member_id (nullable FK, unique), timestamps. An outsider is a person with no `discord_member_id`.
 - `person_aliases`: id, person_id, alias (case-insensitive unique).
 
 **Quotes**
+
 - `quotes`: id, status (`QuoteStatus`: draft, pending_review, published, removed), context (nullable), said_at (nullable), said_at_precision (`exact`, `day`, `approximate`), source (`QuoteSource`: reply_mention, context_menu, slash_command, mention_freetext, channel_import), source_message_id (nullable, unique), source_message_url (nullable), import_id (nullable FK), channel_id (nullable), submitted_by_member_id (FK), raw_input (text), ai_output (jsonb, nullable), score (int, cached up minus down), elo (int, default 1000), matchup_count, published_at, timestamps, plus a Postgres full-text `tsvector` generated column over the lines and context.
 - `quote_lines`: id, quote_id, person_id, position, text.
 - `quote_revisions`: id, quote_id, editor_member_id, snapshot (jsonb of the lines, context and said_at), created_at.
@@ -88,6 +93,7 @@ Configured in `.env`: `DISCORD_GUILD_ID`, `DISCORD_ALLOWED_ROLE_IDS`, `DISCORD_A
 - `quote_imports`: id, channel_id, requested_by_member_id, status (queued, running, done, failed), before_message_id cursor, messages_scanned, quotes_found, started_at, finished_at.
 
 **Stats** (keyed by `discord_member_id`, so members who never log in are counted too)
+
 - `stat_messages`: member_id, channel_id, hour (timestamptz, truncated), count. Unique (member, channel, hour). Updated by upsert.
 - `stat_voice_sessions`: id, member_id, channel_id, started_at, ended_at (nullable).
 - `stat_reactions`: reactor_member_id, target_member_id (nullable), emoji (unicode or custom id:name), day, count. Unique on all but count.
@@ -98,12 +104,12 @@ Configured in `.env`: `DISCORD_GUILD_ID`, `DISCORD_ALLOWED_ROLE_IDS`, `DISCORD_A
 
 All four input methods produce a **draft quote**, then a **private preview**, then the submitter **confirms**.
 
-| Method | Trigger | Speaker/text source |
-|---|---|---|
-| Reply + mention | Reply to a message and @bot | The replied-to message's author and content are known for certain. The AI only normalizes formatting (resolves `<@id>` mentions to names, joins multi-line text) and suggests context. |
-| Context menu | Right-click a message → Apps → "Save quote" | Same as above |
-| Slash | `/quote text:<str> who:<user or free text>? context:<str>? when:<str>?` | The given values. The AI normalizes them and parses `when`. |
-| Free-text mention | `@bot Martin said "x" to his uncle yesterday` | The AI extracts speakers, lines, context and said_at |
+| Method            | Trigger                                                                 | Speaker/text source                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reply + mention   | Reply to a message and @bot                                             | The replied-to message's author and content are known for certain. The AI only normalizes formatting (resolves `<@id>` mentions to names, joins multi-line text) and suggests context. |
+| Context menu      | Right-click a message → Apps → "Save quote"                             | Same as above                                                                                                                                                                          |
+| Slash             | `/quote text:<str> who:<user or free text>? context:<str>? when:<str>?` | The given values. The AI normalizes them and parses `when`.                                                                                                                            |
+| Free-text mention | `@bot Martin said "x" to his uncle yesterday`                           | The AI extracts speakers, lines, context and said_at                                                                                                                                   |
 
 1. The interaction or listener calls `DraftQuote`, which saves a `draft` quote immediately (so nothing is lost) and queues the normalization job.
 2. The normalization job calls `QuoteNormalizer` (timeout 15 s, primary then fallback provider). On failure or low confidence it uses the raw text as a single line.
@@ -156,12 +162,12 @@ All Inertia controller actions carry `#[TypefinderPage]` (kept current by Rector
 
 **Gateway intents:** GUILDS, GUILD_MEMBERS, GUILD_MESSAGES, MESSAGE_CONTENT (for mention-based capture only, never stored for stats), GUILD_MESSAGE_REACTIONS, GUILD_VOICE_STATES, GUILD_PRESENCES.
 
-| Event | Job | Write |
-|---|---|---|
-| MESSAGE_CREATE (non-bot) | `IngestMessage` | upsert `stat_messages` +1 |
-| MESSAGE_REACTION_ADD | `IngestReaction` | upsert `stat_reactions` +1 (target = message author when known) |
-| VOICE_STATE_UPDATE | `IngestVoiceState` | close the open session, open a new one if the member joined or moved |
-| PRESENCE_UPDATE | `IngestPresence` | close or open `stat_activity_sessions` for playing-type activities |
+| Event                    | Job                | Write                                                                |
+| ------------------------ | ------------------ | -------------------------------------------------------------------- |
+| MESSAGE_CREATE (non-bot) | `IngestMessage`    | upsert `stat_messages` +1                                            |
+| MESSAGE_REACTION_ADD     | `IngestReaction`   | upsert `stat_reactions` +1 (target = message author when known)      |
+| VOICE_STATE_UPDATE       | `IngestVoiceState` | close the open session, open a new one if the member joined or moved |
+| PRESENCE_UPDATE          | `IngestPresence`   | close or open `stat_activity_sessions` for playing-type activities   |
 
 - On bot startup or resume, sessions still open are closed at the last known time, then new sessions are opened from the current voice and presence state.
 - **Opt-out** (web or `/privacy optout|optin|status`): sets `tracking_opted_out_at`, updates the cached opted-out set in Redis, and queues `PurgeMemberStats`, which deletes every `stat_*` row for that member and rebuilds the affected rollups. The opt-out is checked twice: the bot drops the event before queuing it, and the job checks again. Opting back in clears the flag, and only new activity is counted.

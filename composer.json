@@ -18,6 +18,7 @@
         "laravel/wayfinder": "^0.1.14"
     },
     "require-dev": {
+        "driftingly/rector-laravel": "^2.7",
         "fakerphp/faker": "^1.24",
         "larastan/larastan": "^3.9",
         "laravel/pail": "^1.2.5",
@@ -26,7 +27,10 @@
         "laravel/sail": "^1.53",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
-        "phpunit/phpunit": "^12.5.23"
+        "pestphp/pest": "^5.3",
+        "pestphp/pest-plugin-browser": "^5.2",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "rector/rector": "^2.9"
     },
     "autoload": {
         "psr-4": {
@@ -54,9 +58,11 @@
             "@php artisan dev"
         ],
         "lint": [
+            "rector --no-progress-bar",
             "pint --parallel"
         ],
         "lint:check": [
+            "rector --dry-run --no-progress-bar",
             "pint --parallel --test"
         ],
         "ci:check": [
@@ -66,13 +72,13 @@
             "@test"
         ],
         "types:check": [
-            "phpstan analyse"
+            "phpstan analyse --memory-limit=1G"
         ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
-            "@php artisan test"
+            "@php artisan test --parallel"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -97,8 +103,7 @@
         "laravel": {
             "dont-discover": [],
             "installer": {
-                "post-create-project": [
-                ]
+                "post-create-project": []
             }
         }
     },
