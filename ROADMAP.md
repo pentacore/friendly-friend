@@ -18,6 +18,24 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Stats: streaks and records (longest voice session, most messages in a day)
+- [ ] Quotes: "Who said it?" game, in Discord and on the web (show a quote, everyone guesses the person, running scores)
+- [ ] Yearly recap ("Wrapped") per server and per person: top quotes, most quoted, voice nights, events attended, money spent
+- [ ] Birthdays: date on the profile, a bot greeting in Discord (maybe with a random quote from that person)
+- [ ] Events: Swish links / QR codes on settle-up transfers (amount and message filled in)
+- [ ] Events: recurring events (e.g. every other Friday) and templates / copy an earlier event with its food, questions and costs setup
+- [ ] Quotes: quote of the day / "on this day" auto-post in a chosen channel
+- [ ] Quotes: images and screenshots as quotes (attachments)
+- [ ] Quotes: let the quoted person ask to hide a quote (counterpart to the stats opt-out)
+- [ ] Quotes: tags or more emoji reactions than 👍/👎, and browsing by them
+- [ ] Quotes: quote book export (PDF / JSON)
+- [ ] Events: general polls ("where do we eat?") reusing the date-vote machinery
+- [ ] Events: capacity limit with a waitlist
+- [ ] Events: per-user calendar subscription feed (iCal URL) instead of one-off .ics downloads
+- [ ] Events: memories page afterwards (photos plus quotes captured during the event)
+- [ ] Notification settings: choose which DMs you get (reminders, date chosen, "you were quoted")
+- [ ] Privacy: "download my data" export on `/settings/privacy`
+- [ ] Admin: audit log (who removed, merged, restored what)
+- [ ] Web push notifications for the installed PWA (the web manifest already exists)
 
 ## Follow-ups and known gaps
 
