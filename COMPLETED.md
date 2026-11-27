@@ -89,6 +89,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Quote feed: best-match order while searching, with a newest / top score / best match switch.
 - [x] Quote cards mark the words a search matched.
 - [x] Quote feed: a person picker next to the server select.
+- [x] Discord: `/quote search text [person]`, private results with links (person as a Discord user option, not autocomplete).
 
 ## Bugs found and fixed along the way
 

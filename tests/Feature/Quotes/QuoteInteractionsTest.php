@@ -11,6 +11,7 @@ use App\Discord\Testing\FakeDiscordClient;
 use App\Enums\QuoteSource;
 use App\Enums\QuoteStatus;
 use App\Enums\SaidAtPrecision;
+use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Models\Person;
 use App\Models\Quote;
@@ -226,4 +227,26 @@ it('keeps line breaks inside a conversation line through the edit form', functio
     $parsed = $editForm->parse(['lines' => $value]);
     expect($parsed->lines[0]->text)->toBe("roses are red\nviolets are blue")
         ->and($parsed->lines[1]->text)->toBe('no');
+});
+
+it('searches quotes privately with /quote search, optionally by one person', function (): void {
+    $bo = Person::factory()->forDiscordUser(DiscordUser::factory()->create(['discord_id' => '50']))->create(['display_name' => 'Bo']);
+    $fix = Quote::factory()->for($this->guild)->withLine('Bo', 'i can fix the dishwasher')->create();
+    $fix->lines()->update(['person_id' => $bo->id]);
+    $fix->refreshSearchText();
+    Quote::factory()->for($this->guild)->withLine('Kim', 'nobody can fix that')->create()->refreshSearchText();
+    Quote::factory()->for(Guild::factory()->create())->withLine('Al', 'fix it elsewhere')->create()->refreshSearchText();
+
+    interact(P::slash('search', [['name' => 'text', 'type' => 3, 'value' => 'fix']]));
+    expect(responseText($this->discord))->toContain('2 quotes match')
+        ->toContain('dishwasher')
+        ->toContain('nobody can fix that')
+        ->not->toContain('elsewhere')
+        ->toContain(route('quotes.show', $fix));
+
+    interact(P::slash('search', [['name' => 'text', 'type' => 3, 'value' => 'fix'], ['name' => 'person', 'type' => 6, 'value' => '50']]));
+    expect(responseText($this->discord))->toContain('1 quote matches')->not->toContain('nobody');
+
+    interact(P::slash('search', [['name' => 'text', 'type' => 3, 'value' => 'zebra']]));
+    expect(responseText($this->discord))->toContain('Nothing matches “zebra”');
 });

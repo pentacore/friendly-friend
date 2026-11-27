@@ -183,6 +183,7 @@ final readonly class QuoteInteractions
         return match ($subcommand['name'] ?? null) {
             QuoteCommands::ADD => $this->addCommand($guild, $actor, $options, $resolvedUsers),
             QuoteCommands::RANDOM => $this->randomQuote($guild, $options['person'] ?? null),
+            QuoteCommands::SEARCH => $this->searchCommand($guild, $options['text'] ?? '', $options['person'] ?? null),
             QuoteCommands::IMPORT => $this->importCommand($guild, $actor, $options),
             default => QuoteMessages::notice('Unknown command.'),
         };
@@ -264,6 +265,29 @@ final readonly class QuoteInteractions
         return $quote !== null
             ? QuoteMessages::published($quote, '— quote #'.$quote->id)
             : QuoteMessages::notice('No quotes yet. Save one with /quote add or right-click a message → Apps → Save quote.');
+    }
+
+    /**
+     * Up to five of this server's quotes matching the text (`Quote::search`),
+     * best match first, each with a link to its page.
+     *
+     * @return array<string, mixed>
+     */
+    private function searchCommand(Guild $guild, string $text, ?string $personDiscordId): array
+    {
+        $matches = Quote::query()
+            ->whereBelongsTo($guild)
+            ->where('status', QuoteStatus::Published)
+            ->search($text)
+            ->when($personDiscordId, fn (Builder $query, string $discordId) => $query->whereHas(
+                'lines.person.discordUser',
+                fn (Builder $user) => $user->where('discord_id', $discordId),
+            ));
+
+        $total = $matches->clone()->count();
+        $quotes = $matches->orderByRelevance($text)->orderByDesc('published_at')->with('lines')->limit(QuoteMessages::SEARCH_RESULTS)->get();
+
+        return QuoteMessages::searchResults($text, $quotes, $total);
     }
 
     /**
