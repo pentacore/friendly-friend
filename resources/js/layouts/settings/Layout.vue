@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editCalendar } from '@/routes/calendar-settings';
 import { edit as editFood } from '@/routes/food-settings';
 import { edit as editPrivacy } from '@/routes/privacy';
 import type { NavItem } from '@/types';
@@ -14,6 +15,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Appearance',
         href: editAppearance(),
+    },
+    {
+        title: 'Calendar',
+        href: editCalendar(),
     },
     {
         title: 'Food',

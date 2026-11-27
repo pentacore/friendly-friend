@@ -91,6 +91,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Quote feed: a person picker next to the server select.
 - [x] Discord: `/quote search text [person]`, private results with links (person as a Discord user option, not autocomplete).
 - [x] Events list: search by name or place, and every past event through infinite scroll.
+- [x] Events: a personal calendar feed link (Settings → Calendar) to subscribe to.
 
 ## Bugs found and fixed along the way
 

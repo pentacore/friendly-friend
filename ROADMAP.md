@@ -23,7 +23,6 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Quotes: quote book export (PDF / JSON)
 - [ ] Events: general polls ("where do we eat?") reusing the date-vote machinery
 - [ ] Events: capacity limit with a waitlist
-- [ ] Events: per-user calendar subscription feed (iCal URL) instead of one-off .ics downloads
 - [ ] Events: memories page afterwards (photos plus quotes captured during the event)
 - [ ] Notification settings: choose which DMs you get (reminders, date chosen, "you were quoted")
 - [ ] Privacy: "download my data" export on `/settings/privacy`

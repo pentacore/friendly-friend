@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Settings\CalendarSettingsController;
 use App\Http\Controllers\Settings\FoodSettingsController;
 use App\Http\Controllers\Settings\PrivacyController;
 use Illuminate\Support\Facades\Route;
@@ -18,4 +19,8 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
 
     Route::get('settings/food', [FoodSettingsController::class, 'edit'])->name('food-settings.edit');
     Route::put('settings/food', [FoodSettingsController::class, 'update'])->name('food-settings.update');
+
+    Route::get('settings/calendar', [CalendarSettingsController::class, 'edit'])->name('calendar-settings.edit');
+    Route::post('settings/calendar', [CalendarSettingsController::class, 'store'])->name('calendar-settings.store');
+    Route::delete('settings/calendar', [CalendarSettingsController::class, 'destroy'])->name('calendar-settings.destroy');
 });

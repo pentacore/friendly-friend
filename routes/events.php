@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventCostController;
 use App\Http\Controllers\EventDatePollController;
@@ -10,6 +11,12 @@ use App\Http\Controllers\EventQuestionController;
 use App\Http\Controllers\EventRideController;
 use App\Http\Controllers\EventRsvpController;
 use Illuminate\Support\Facades\Route;
+
+// Calendar apps fetch the personal feed without a session: the token is the key.
+Route::get('calendar/{token}.ics', CalendarFeedController::class)
+    ->where('token', '[A-Za-z0-9]{40}')
+    ->middleware('throttle:60,1')
+    ->name('calendar.feed');
 
 Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::get('events', [EventController::class, 'index'])->name('events.index');

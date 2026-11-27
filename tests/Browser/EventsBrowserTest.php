@@ -146,6 +146,22 @@ it('renders the food settings', function (): void {
     expect($this->user->discordUser->fresh()?->dietary_notes)->toBe('Vegetarian');
 });
 
+it('creates a personal calendar link', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/settings/calendar');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->press('Create my calendar link')
+        ->assertSee('New calendar link created.')
+        ->assertSee('Make a new link')
+        ->assertNoJavaScriptErrors()
+        ->screenshot(filename: 'settings-calendar-'.($dark ? 'dark' : 'light'));
+
+    expect($this->user->fresh()?->calendar_token)->toHaveLength(40)
+        ->and($page->script('document.getElementById("feed-url").value'))->toBe(route('calendar.feed', $this->user->fresh()?->calendar_token));
+})->with(['light' => false, 'dark' => true]);
+
 it('arranges rides', function (bool $dark): void {
     $driver = DiscordUser::factory()->create(['global_name' => 'Robin']);
     EventRide::query()->create(['event_id' => $this->event->id, 'driver_discord_user_id' => $driver->id, 'direction' => 'to', 'seats' => 3, 'departs_from' => 'Central station', 'departs_at' => $this->event->starts_at->copy()->subHours(2)]);
