@@ -86,8 +86,13 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Quote search: one shared scope (`Quote::search()`).
 - [x] Quote search matches prefixes while typing; `-word` excludes.
 - [x] Quote search finds quotes by a person's current name and nicknames.
+- [x] Quote feed: best-match order while searching, with a newest / top score / best match switch.
+- [x] Quote cards mark the words a search matched.
+- [x] Quote feed: a person picker next to the server select.
 
 ## Bugs found and fixed along the way
+
+- [x] Searching the quote feed (and admin people) never updated the page's `filters`: `reset: [...]` made the visit a partial reload of only the list, so the empty state said "No quotes yet" instead of "Nothing matches".
 
 Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (traps are in `general.md`).
 

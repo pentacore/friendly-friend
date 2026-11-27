@@ -35,9 +35,6 @@ All seven build phases are done (see `COMPLETED.md`).
 Today there are two searches: the quote feed (`QuoteController::index`, `search_vector @@ websearch_to_tsquery('simple', …)`, newest first) and admin people (`Admin\PeopleController::index`, `ilike` on names and aliases). Ideas in rough priority order:
 
 - [ ] Quotes: tolerate typos and missing accents ("hakan" → "Håkan", "kanelbule" → "kanelbulle"). `pg_trgm` is already installed (for `ResolvePerson`); add a trigram GIN index on `search_text` and fall back to `word_similarity` when full-text finds nothing. Accent folding needs the `unaccent` extension (an immutable wrapper for the generated column)
-- [ ] Quotes: sort by relevance (`ts_rank`) when there is a query, with a sort switch (newest / top score / best match) on the feed
-- [ ] Quotes: highlight the matched words in the quote cards
-- [ ] Quotes feed: a person picker next to the server select. The person filter is only reachable from a person page (`?person=slug`), and an unknown slug is silently ignored
 - [ ] Discord: `/quote search <text>` with autocomplete on the person option, reusing the shared scope (only `add` and `random` exist)
 - [ ] Global search / command palette (Ctrl+K) across quotes, people and events. The unused starter-kit `AppHeader.vue` has a search button that does nothing; wire it up or delete the component
 - [ ] Events: search by title, and reach past events older than the latest 30 (`EventController::index` caps them with no paging)

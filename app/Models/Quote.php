@@ -150,6 +150,23 @@ class Quote extends Model
     }
 
     /**
+     * Best match first: quotes whose text has more of the words, more often
+     * (`ts_rank`). Words matched only through a person's name rank zero here
+     * but still pass the `search` scope.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function orderByRelevance(Builder $query, string $text): void
+    {
+        $include = self::searchTerms($text)['include'];
+
+        if ($include !== []) {
+            $query->orderByRaw("ts_rank(quotes.search_vector, to_tsquery('simple', ?)) desc", [implode(' | ', $include)]);
+        }
+    }
+
+    /**
      * The words of a search as prefix tsquery terms (`word:*`), split into
      * words to match and words to leave out. Only letters and digits are
      * kept, so the terms are always valid tsquery syntax.

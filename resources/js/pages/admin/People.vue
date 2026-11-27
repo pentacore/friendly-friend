@@ -20,6 +20,8 @@ const searchSoon = useDebounceFn(() => {
     router.visit(index({ query: { q: search.value || undefined } }), {
         preserveState: true,
         replace: true,
+        // `reset` alone would reload only `people`; keep `search` in step.
+        only: ['people', 'search'],
         reset: ['people'],
     });
 }, 300);

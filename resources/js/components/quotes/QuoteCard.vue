@@ -7,7 +7,12 @@ import { formatSaidAt } from '@/lib/quoteDates';
 import { show } from '@/routes/quotes';
 import type { QuoteResource } from '@/typefinder';
 
-const props = defineProps<{ quote: QuoteResource; showServer?: boolean }>();
+const props = defineProps<{
+    quote: QuoteResource;
+    showServer?: boolean;
+    /** Search words to mark in the text. */
+    highlight?: string[];
+}>();
 
 const saidAt = computed(() =>
     formatSaidAt(props.quote.said_at, props.quote.said_at_precision),
@@ -19,7 +24,7 @@ const saidAt = computed(() =>
         class="group rounded-xl border bg-card p-5 text-card-foreground shadow-xs transition-colors hover:border-foreground/20 sm:p-6"
         :data-test="`quote-${quote.id}`"
     >
-        <QuoteText :lines="quote.lines" />
+        <QuoteText :lines="quote.lines" :highlight="highlight" />
 
         <p
             v-if="quote.context"

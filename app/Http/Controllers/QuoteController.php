@@ -37,7 +37,8 @@ final class QuoteController extends Controller
 
     #[TypefinderPage(component: 'quotes/Index', props: [
         'quotes' => 'SimplePaginatedResourceCollection<'.QuoteResource::class.'>',
-        'filters' => '{ q: string; guild: number | null; person: string | null }',
+        'filters' => '{ q: string; guild: number | null; person: string | null; sort: \'best\' | \'newest\' | \'top\' }',
+        'people' => '{ slug: string; display_name: string }[]',
         'guilds' => '{ id: number; name: string }[]',
         'person' => '{ slug: string; display_name: string } | null',
     ])]
@@ -45,6 +46,7 @@ final class QuoteController extends Controller
     {
         $access = $this->access($request);
         $search = trim($request->string('q')->value());
+        $sort = $request->sort();
         $guildId = $request->integer('guild') ?: null;
         $person = $request->filled('person') ? Person::query()->where('slug', $request->string('person')->value())->first() : null;
 
@@ -52,6 +54,8 @@ final class QuoteController extends Controller
             ->when($guildId !== null, fn (Builder $query) => $query->where('guild_id', $guildId))
             ->when($person !== null, fn (Builder $query) => $query->whereHas('lines', fn (Builder $lines) => $lines->where('person_id', $person?->id)))
             ->search($search)
+            ->when($sort === 'best', fn (Builder $query) => $query->orderByRelevance($search))
+            ->when($sort === 'top', fn (Builder $query) => $query->orderByDesc('score'))
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->simplePaginate(self::PER_PAGE)
@@ -59,7 +63,14 @@ final class QuoteController extends Controller
 
         return Inertia::render('quotes/Index', [
             'quotes' => Inertia::scroll(QuoteResource::collection($quotes)),
-            'filters' => ['q' => $search, 'guild' => $guildId, 'person' => $person?->slug],
+            'filters' => ['q' => $search, 'guild' => $guildId, 'person' => $person?->slug, 'sort' => $sort],
+            'people' => Person::query()
+                ->whereHas('quoteLines.quote', fn (Builder $quotes) => $quotes->visibleTo($access))
+                ->orderBy('display_name')
+                ->get(['slug', 'display_name'])
+                ->map(fn (Person $person): array => ['slug' => $person->slug, 'display_name' => $person->display_name])
+                ->values()
+                ->all(),
             'guilds' => Guild::query()->whereIn('id', $access->guildIds)->orderBy('name')->get(['id', 'name'])
                 ->map(fn (Guild $guild): array => ['id' => $guild->id, 'name' => $guild->name])->values()->all(),
             'person' => $person !== null ? ['slug' => $person->slug, 'display_name' => $person->display_name] : null,

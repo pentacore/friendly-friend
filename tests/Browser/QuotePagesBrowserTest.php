@@ -47,6 +47,24 @@ it('renders the quote feed', function (bool $dark): void {
         ->screenshotElement('[data-test^="quote-"] blockquote', 'quote-text-'.($dark ? 'dark' : 'light'));
 })->with(['light' => false, 'dark' => true]);
 
+it('searches while typing and marks the matches', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/quotes');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->type('[aria-label="Search quotes"]', 'philo')
+        ->wait(1)
+        ->assertDontSee('You said that about the car')
+        ->assertSelected('[aria-label="Sort"]', 'best')
+        ->assertNoJavaScriptErrors();
+
+    expect($page->script('document.querySelector("blockquote mark")?.textContent'))->toBe('philosophical');
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'quotes-search-'.($dark ? 'dark' : 'light'));
+})->with(['light' => false, 'dark' => true]);
+
 it('renders a quote page', function (bool $dark): void {
     $this->actingAs($this->user);
 
