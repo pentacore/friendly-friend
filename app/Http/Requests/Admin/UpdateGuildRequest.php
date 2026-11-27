@@ -42,6 +42,7 @@ final class UpdateGuildRequest extends FormRequest
             'watched_channel_ids' => ['array', 'max:10'],
             'watched_channel_ids.*' => ['string', 'distinct', Rule::in($channelIds)],
             'publish_watched_quotes' => ['boolean'],
+            'private_random_quotes' => ['boolean'],
         ];
     }
 

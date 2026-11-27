@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Discord\Interactions;
 
 use App\Discord\Data\Payload;
+use App\Quotes\PrivateRandomQuotes;
 
 /**
  * Decides the immediate answer to an interaction, from the payload alone
@@ -41,7 +42,7 @@ final class InteractionAck
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
 
         return match ($payload['type'] ?? null) {
-            self::APPLICATION_COMMAND => self::command($data),
+            self::APPLICATION_COMMAND => self::command($payload, $data),
             self::MESSAGE_COMPONENT => self::component($data),
             self::MODAL_SUBMIT => CustomId::parse($data['custom_id'] ?? null) instanceof CustomId ? ['type' => self::DEFERRED_UPDATE] : null,
             default => null,
@@ -49,10 +50,11 @@ final class InteractionAck
     }
 
     /**
+     * @param  array<mixed>  $payload
      * @param  array<mixed>  $data
      * @return array<string, mixed>|null
      */
-    private static function command(array $data): ?array
+    private static function command(array $payload, array $data): ?array
     {
         $name = $data['name'] ?? null;
 
@@ -66,8 +68,10 @@ final class InteractionAck
 
         $subcommand = Payload::string($data, 'options', 0, 'name');
 
-        // A random quote is for everyone in the channel; the rest is private.
-        return self::deferred(ephemeral: $subcommand !== QuoteCommands::RANDOM);
+        // A random quote is for everyone in the channel, unless the server
+        // chose otherwise; the rest is private.
+        return self::deferred(ephemeral: $subcommand !== QuoteCommands::RANDOM
+            || app(PrivateRandomQuotes::class)->contains(Payload::string($payload, 'guild_id') ?? ''));
     }
 
     /**

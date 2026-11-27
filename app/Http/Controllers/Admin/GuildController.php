@@ -48,6 +48,7 @@ final class GuildController extends Controller
             adminRoleIds: $this->ids($request->array('admin_role_ids')),
             quotesChannelId: $request->string('quotes_channel_id')->value() ?: null,
             eventsChannelId: $request->string('events_channel_id')->value() ?: null,
+            privateRandomQuotes: $request->boolean('private_random_quotes'),
         );
 
         $user = $request->user();

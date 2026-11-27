@@ -10,6 +10,7 @@ use App\Discord\Gateway\DiscordPhpAcknowledger;
 use App\Discord\Gateway\GatewayEventRouter;
 use App\Discord\Gateway\GatewayIntents;
 use App\Discord\Interactions\InteractionAcknowledger;
+use App\Quotes\PrivateRandomQuotes;
 use App\Quotes\WatchedChannels;
 use App\Stats\OptedOutMembers;
 use Discord\Discord;
@@ -47,7 +48,7 @@ final class RunBot extends Command
 
     private bool $connected = false;
 
-    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat, DiscordClient $client, OptedOutMembers $optedOut, WatchedChannels $watchedChannels): int
+    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat, DiscordClient $client, OptedOutMembers $optedOut, WatchedChannels $watchedChannels, PrivateRandomQuotes $privateRandomQuotes): int
     {
         $token = config()->string('discord.bot_token');
 
@@ -70,6 +71,7 @@ final class RunBot extends Command
         $heartbeat->markStarted();
         $optedOut->refresh();
         $watchedChannels->refresh();
+        $privateRandomQuotes->refresh();
 
         $discord = new Discord([
             'token' => $token,

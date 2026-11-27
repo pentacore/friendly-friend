@@ -58,7 +58,7 @@ Members with access through an **enabled** server can do all of this. The bot re
 | Reply to a message and **@mention the bot**                               | Same, for the replied-to message. The preview arrives by **DM**.                                                         |
 | **@bot** with text, e.g. `@bot Bo said "I can fix it" before breaking it` | Speakers, text, context and time are worked out from what you wrote. The preview arrives by DM.                          |
 | **`/quote add`** `text` `[who]` `[who_name]` `[context]` `[when]`         | `who` picks a member; `who_name` is for someone not on Discord; `Name: text` lines make a conversation. Private preview. |
-| **`/quote random`** `[person]`                                            | Posts a random saved quote from this server, visible to everyone.                                                        |
+| **`/quote random`** `[person]`                                            | Posts a random saved quote from this server, visible to everyone (or only to you, if the server chose that).             |
 | **`/quote import`** `channel`                                             | Admins of that server: scan a channel's history for old quotes (see below).                                              |
 
 **Format:** a quote by one person is shown as `"quote text" - Person`, and a conversation as `**Name:** text` lines. Both formats are also understood as **input**, in `@bot` messages, `/quote add text:`, the edit form and channel imports.

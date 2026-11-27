@@ -36,6 +36,7 @@ final class GuildResource extends JsonResource
      *     events_channel_id: string|null,
      *     watched_channel_ids: list<string>,
      *     publish_watched_quotes: bool,
+     *     private_random_quotes: bool,
      *     member_count: int,
      * }
      */
@@ -60,6 +61,7 @@ final class GuildResource extends JsonResource
             'events_channel_id' => $guild->events_channel_id,
             'watched_channel_ids' => $guild->watched_channel_ids,
             'publish_watched_quotes' => $guild->publish_watched_quotes,
+            'private_random_quotes' => $guild->private_random_quotes,
             'member_count' => $guild->member_count ?? $guild->members()->where('in_guild', true)->count(),
         ];
     }

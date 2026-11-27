@@ -7,6 +7,7 @@ namespace App\Access\Actions;
 use App\Access\Jobs\SyncGuildMembers;
 use App\Discord\Jobs\RegisterGuildCommands;
 use App\Models\Guild;
+use App\Quotes\PrivateRandomQuotes;
 use App\Quotes\WatchedChannels;
 
 /**
@@ -15,13 +16,13 @@ use App\Quotes\WatchedChannels;
  */
 final readonly class UpdateGuildSettings
 {
-    public function __construct(private WatchedChannels $watchedChannels) {}
+    public function __construct(private WatchedChannels $watchedChannels, private PrivateRandomQuotes $privateRandomQuotes) {}
 
     /**
      * @param  list<string>  $allowedRoleIds
      * @param  list<string>  $adminRoleIds
      */
-    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds, ?string $quotesChannelId = null, ?string $eventsChannelId = null): Guild
+    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds, ?string $quotesChannelId = null, ?string $eventsChannelId = null, bool $privateRandomQuotes = false): Guild
     {
         $wasEnabled = $guild->enabled;
 
@@ -32,7 +33,10 @@ final readonly class UpdateGuildSettings
             'admin_role_ids' => array_values(array_unique($adminRoleIds)),
             'quotes_channel_id' => $quotesChannelId,
             'events_channel_id' => $eventsChannelId,
+            'private_random_quotes' => $privateRandomQuotes,
         ]);
+
+        $this->privateRandomQuotes->refresh();
 
         if ($enabled && ! $wasEnabled) {
             dispatch(new SyncGuildMembers($guild->discord_id));

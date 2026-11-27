@@ -8,9 +8,11 @@ use App\Discord\Interactions\DraftEditForm;
 use App\Discord\Interactions\InteractionAck;
 use App\Discord\Interactions\InteractionAcknowledger;
 use App\Discord\Testing\FakeInteractionAcknowledger;
+use App\Models\Guild;
 use App\Models\Quote;
 use App\Quotes\Jobs\CaptureFromMention;
 use App\Quotes\Jobs\HandleQuoteInteraction;
+use App\Quotes\PrivateRandomQuotes;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\DiscordPayloads as P;
 
@@ -24,6 +26,15 @@ it('acknowledges commands privately, except a random quote which is public', fun
     expect(InteractionAck::body(P::slash('add')))->toBe(['type' => 5, 'data' => ['flags' => 64]])
         ->and(InteractionAck::body(P::saveQuoteMenu(P::message())))->toBe(['type' => 5, 'data' => ['flags' => 64]])
         ->and(InteractionAck::body(P::slash('random')))->toBe(['type' => 5]);
+});
+
+it('answers a random quote privately on servers that chose that', function (): void {
+    Guild::factory()->create(['discord_id' => '555', 'private_random_quotes' => true]);
+    Guild::factory()->create(['discord_id' => '556']);
+    app(PrivateRandomQuotes::class)->refresh();
+
+    expect(InteractionAck::body(P::slash('random')))->toBe(['type' => 5, 'data' => ['flags' => 64]])
+        ->and(InteractionAck::body(P::slash('random', guildId: '556')))->toBe(['type' => 5]);
 });
 
 it('acknowledges save and cancel clicks and form submissions as deferred updates', function (): void {

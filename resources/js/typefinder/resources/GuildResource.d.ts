@@ -20,5 +20,6 @@ export type GuildResource = {
   events_channel_id: string | null;
   watched_channel_ids: string[];
   publish_watched_quotes: boolean;
+  private_random_quotes: boolean;
   member_count: number;
 };

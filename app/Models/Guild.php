@@ -32,11 +32,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $events_channel_id
  * @property list<string> $watched_channel_ids channels where posted quotes are picked up for review
  * @property bool $publish_watched_quotes picked-up quotes skip review
+ * @property bool $private_random_quotes `/quote random` answers only the asker
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int|null $member_count  withCount() alias of members still in the guild
  */
-#[Fillable(['discord_id', 'name', 'icon', 'bot_present', 'enabled', 'allow_all_members', 'allowed_role_ids', 'admin_role_ids', 'roles', 'channels', 'quotes_channel_id', 'events_channel_id', 'watched_channel_ids', 'publish_watched_quotes'])]
+#[Fillable(['discord_id', 'name', 'icon', 'bot_present', 'enabled', 'allow_all_members', 'allowed_role_ids', 'admin_role_ids', 'roles', 'channels', 'quotes_channel_id', 'events_channel_id', 'watched_channel_ids', 'publish_watched_quotes', 'private_random_quotes'])]
 class Guild extends Model
 {
     /** @use HasFactory<GuildFactory> */
@@ -101,6 +102,7 @@ class Guild extends Model
             'channels' => 'array',
             'watched_channel_ids' => 'array',
             'publish_watched_quotes' => 'boolean',
+            'private_random_quotes' => 'boolean',
         ];
     }
 }

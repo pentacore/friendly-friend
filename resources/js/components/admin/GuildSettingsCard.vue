@@ -33,6 +33,7 @@ const form = useForm({
     events_channel_id: props.guild.events_channel_id,
     watched_channel_ids: [...props.guild.watched_channel_ids],
     publish_watched_quotes: props.guild.publish_watched_quotes,
+    private_random_quotes: props.guild.private_random_quotes,
 });
 
 function setWatched(
@@ -184,6 +185,17 @@ function save(): void {
                 </select>
                 <InputError :message="form.errors.quotes_channel_id" />
             </div>
+
+            <Label class="flex items-start gap-3 font-normal">
+                <Checkbox v-model="form.private_random_quotes" class="mt-0.5" />
+                <span class="grid gap-0.5">
+                    Show /quote random only to the person who asked
+                    <span class="text-xs text-muted-foreground">
+                        Otherwise the random quote is posted for everyone in the
+                        channel.
+                    </span>
+                </span>
+            </Label>
 
             <div class="grid gap-2">
                 <Label for="events-channel">Announce events in</Label>

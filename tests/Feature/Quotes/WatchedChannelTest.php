@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Quotes\Actions\WatchChannels;
 use App\Quotes\Jobs\CaptureFromMention;
 use App\Quotes\Jobs\PickUpPostedQuote;
+use App\Quotes\PrivateRandomQuotes;
 use App\Quotes\WatchedChannels;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\DiscordPayloads as P;
@@ -119,14 +120,16 @@ it('publishes picked-up quotes straight away when the server opted in', function
         ->and($this->discord->reactions())->toHaveCount(1);
 });
 
-it('lets owners turn on publishing straight away on the Servers page', function (): void {
+it('lets owners turn on publishing straight away and private random quotes on the Servers page', function (): void {
     config()->set('discord.owner_ids', [$this->owner->discord_id]);
     $owner = User::factory()->forDiscordUser($this->owner)->create();
 
     $this->actingAs($owner)->put(route('admin.guilds.update', $this->guild), [
         'enabled' => true, 'allow_all_members' => true, 'allowed_role_ids' => [], 'admin_role_ids' => [],
-        'watched_channel_ids' => ['777'], 'publish_watched_quotes' => true,
+        'watched_channel_ids' => ['777'], 'publish_watched_quotes' => true, 'private_random_quotes' => true,
     ])->assertSessionHasNoErrors();
 
-    expect($this->guild->refresh()->publish_watched_quotes)->toBeTrue();
+    expect($this->guild->refresh()->publish_watched_quotes)->toBeTrue()
+        ->and($this->guild->private_random_quotes)->toBeTrue()
+        ->and(app(PrivateRandomQuotes::class)->contains('555'))->toBeTrue();
 });
