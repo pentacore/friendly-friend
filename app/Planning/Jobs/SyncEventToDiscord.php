@@ -35,7 +35,7 @@ final class SyncEventToDiscord implements ShouldBeUniqueUntilProcessing, ShouldQ
 
     public function handle(DiscordClient $discord): void
     {
-        $event = Event::query()->with(['guild', 'rsvps', 'dateOptions'])->find($this->eventId);
+        $event = Event::query()->with(['guild', 'rsvps', 'dateOptions.votes'])->find($this->eventId);
 
         if ($event === null || ! $discord->configured() || ! $event->guild->enabled || ! $event->guild->bot_present) {
             return;

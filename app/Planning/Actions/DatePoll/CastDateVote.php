@@ -9,6 +9,7 @@ use App\Events\EventChanged;
 use App\Models\DiscordUser;
 use App\Models\EventDateOption;
 use App\Models\EventDateVote;
+use App\Planning\Jobs\SyncEventToDiscord;
 
 /**
  * Yes / if need be / no for one proposed date; null takes the vote back.
@@ -27,5 +28,6 @@ final readonly class CastDateVote
         }
 
         broadcast(new EventChanged($option->event_id, EventChanged::OVERVIEW));
+        dispatch(new SyncEventToDiscord($option->event_id, details: false));
     }
 }

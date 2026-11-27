@@ -76,8 +76,11 @@ final class InteractionAck
      */
     private static function component(array $data): ?array
     {
-        if (EventCustomId::parse($data['custom_id'] ?? null) instanceof EventCustomId) {
-            return self::deferred(ephemeral: true);
+        $eventComponent = EventCustomId::parse($data['custom_id'] ?? null);
+
+        if ($eventComponent instanceof EventCustomId) {
+            // Picker selects update the (private) picker in place; buttons get a private reply.
+            return $eventComponent->isDateSelect() ? ['type' => self::DEFERRED_UPDATE] : self::deferred(ephemeral: true);
         }
 
         $customId = CustomId::parse($data['custom_id'] ?? null);

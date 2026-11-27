@@ -3,16 +3,22 @@
 declare(strict_types=1);
 
 use App\Discord\DiscordClient;
+use App\Discord\Interactions\EventCustomId;
+use App\Discord\Interactions\InteractionAck;
 use App\Discord\Testing\FakeDiscordClient;
+use App\Enums\DateVote;
 use App\Enums\RsvpStatus;
 use App\Models\Event;
 use App\Models\EventDateOption;
+use App\Models\EventDateVote;
 use App\Models\EventRsvp;
 use App\Models\Guild;
 use App\Models\User;
+use App\Planning\Discord\EventInteractions;
 use App\Planning\Jobs\SendEventReminders;
 use Illuminate\Support\Facades\Date;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\DiscordPayloads as P;
 
 beforeEach(function (): void {
     Date::setTestNow('2026-11-27T12:00:00Z');
@@ -54,11 +60,11 @@ it('needs a date or at least two proposed dates', function (): void {
         ->assertSessionHasErrors('starts_at');
 });
 
-it('announces the proposed dates in Discord without RSVP buttons or a native event', function (): void {
-    pollEvent($this->host, $this->guild);
+it('announces the proposed dates in Discord with a vote button instead of RSVP buttons, and no native event', function (): void {
+    $event = pollEvent($this->host, $this->guild);
 
     $message = $this->discord->sentMessages()[0]['message'];
-    expect($message['components'])->toBe([])
+    expect(array_column($message['components'][0]['components'], 'custom_id'))->toBe([EventCustomId::dates($event->id)])
         ->and($message['embeds'][0]['fields'][0]['value'])->toContain('Not decided yet')
         ->and($this->discord->scheduledEvents())->toBe([]);
 });
@@ -124,4 +130,62 @@ it('keeps the date when editing other details during the vote, and sends no remi
     Date::setTestNow('2026-12-05T10:00:00Z');
     dispatch_sync(new SendEventReminders);
     expect($this->discord->directMessages())->toBe([]);
+});
+
+/**
+ * @param  array<string, mixed>  $data
+ * @return array<string, mixed>
+ */
+function dateComponent(User $user, array $data): array
+{
+    return [
+        'id' => 'i', 'token' => 'tok', 'type' => 3, 'guild_id' => '555',
+        'member' => P::member($user->discordUser->discord_id),
+        'data' => $data,
+    ];
+}
+
+it('opens a private date picker from the announcement button', function (): void {
+    $event = pollEvent($this->host, $this->guild);
+    [$early] = $event->dateOptions()->get()->all();
+    $this->actingAs($this->anna)->put(route('events.dates.vote', [$event, $early]), ['answer' => 'yes']);
+
+    expect(InteractionAck::body(dateComponent($this->anna, ['custom_id' => EventCustomId::dates($event->id), 'component_type' => 2])))->toBe(['type' => 5, 'data' => ['flags' => 64]]);
+    app(EventInteractions::class)->handle(dateComponent($this->anna, ['custom_id' => EventCustomId::dates($event->id), 'component_type' => 2]));
+
+    $picker = $this->discord->lastResponse();
+    $yes = $picker['components'][0]['components'][0];
+    expect($yes['custom_id'])->toBe(EventCustomId::datesYes($event->id))
+        ->and(array_column($yes['options'], 'label'))->toBe(['Sat 5 Dec, 18:00–23:00', 'Sat 12 Dec, 18:00'])
+        ->and(array_column($yes['options'], 'default'))->toBe([true, false]);
+});
+
+it('saves votes from the picker selects and updates the tallies', function (): void {
+    $event = pollEvent($this->host, $this->guild);
+    [$early, $late] = $event->dateOptions()->get()->all();
+
+    expect(InteractionAck::body(dateComponent($this->anna, ['custom_id' => EventCustomId::datesYes($event->id), 'component_type' => 3, 'values' => []])))->toBe(['type' => 6]);
+
+    app(EventInteractions::class)->handle(dateComponent($this->anna, ['custom_id' => EventCustomId::datesMaybe($event->id), 'component_type' => 3, 'values' => [(string) $late->id]]));
+    app(EventInteractions::class)->handle(dateComponent($this->anna, ['custom_id' => EventCustomId::datesYes($event->id), 'component_type' => 3, 'values' => [(string) $early->id]]));
+
+    $votes = EventDateVote::query()->where('discord_user_id', $this->anna->discord_user_id)->get()->mapWithKeys(fn (EventDateVote $v): array => [$v->event_date_option_id => $v->answer->value])->all();
+    expect($votes)->toBe([$late->id => 'if_need_be', $early->id => 'yes'])
+        ->and(FakeDiscordClient::content($this->discord->lastResponse()))->toStartWith('Saved.');
+
+    $announcement = array_last($this->discord->editedMessages())['message'];
+    expect($announcement['embeds'][0]['fields'][0]['value'])->toContain('(1 yes, 0 if need be)')->toContain('(0 yes, 1 if need be)');
+
+    app(EventInteractions::class)->handle(dateComponent($this->anna, ['custom_id' => EventCustomId::datesYes($event->id), 'component_type' => 3, 'values' => []]));
+    expect(EventDateVote::query()->where('event_date_option_id', $early->id)->value('answer'))->toBe(DateVote::No)
+        ->and(EventDateVote::query()->where('event_date_option_id', $late->id)->value('answer'))->toBe(DateVote::IfNeedBe);
+});
+
+it('says the date is decided once it is', function (): void {
+    $event = pollEvent($this->host, $this->guild);
+    $this->actingAs($this->host)->post(route('events.dates.choose', [$event, $event->dateOptions()->firstOrFail()]));
+
+    app(EventInteractions::class)->handle(dateComponent($this->anna, ['custom_id' => EventCustomId::dates($event->id), 'component_type' => 2]));
+
+    expect(FakeDiscordClient::content($this->discord->lastResponse()))->toContain('already decided');
 });

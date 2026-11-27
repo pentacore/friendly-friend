@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Planning\Discord;
 
 use App\Discord\Interactions\EventCustomId;
+use App\Enums\DateVote;
 use App\Enums\RsvpStatus;
 use App\Models\Event;
 use App\Models\EventDateOption;
+use App\Models\EventDateVote;
 use App\Models\EventRsvp;
 use Illuminate\Support\Str;
 
@@ -22,6 +24,8 @@ final class EventAnnouncement
     private const int BUTTON = 2;
 
     private const int SUCCESS = 3;
+
+    private const int PRIMARY = 1;
 
     private const int SECONDARY = 2;
 
@@ -74,8 +78,8 @@ final class EventAnnouncement
                 'fields' => $fields,
                 'footer' => ['text' => 'Food, rides and costs are on the website.'],
             ]],
-            // No RSVP buttons until the date is decided.
-            'components' => $event->date_polling ? [] : [[
+            // Until the date is decided: one button that opens the private date picker.
+            'components' => $event->date_polling ? [self::voteOnDatesRow($event)] : [[
                 'type' => self::ACTION_ROW,
                 'components' => [
                     self::button($event, RsvpStatus::Going, self::SUCCESS),
@@ -87,13 +91,35 @@ final class EventAnnouncement
     }
 
     /**
-     * "Not decided yet" plus the proposed dates. Load `dateOptions`.
+     * "Not decided yet" plus the proposed dates with their tallies. Load `dateOptions.votes`.
      */
     private static function candidates(Event $event): string
     {
-        $dates = $event->dateOptions->map(fn (EventDateOption $option): string => '• <t:'.$option->starts_at->getTimestamp().':F>')->implode("\n");
+        $dates = $event->dateOptions->map(function (EventDateOption $option): string {
+            $yes = $option->votes->filter(fn (EventDateVote $vote): bool => $vote->answer === DateVote::Yes)->count();
+            $ifNeedBe = $option->votes->filter(fn (EventDateVote $vote): bool => $vote->answer === DateVote::IfNeedBe)->count();
 
-        return "Not decided yet: vote on the website.\n{$dates}";
+            return '• <t:'.$option->starts_at->getTimestamp().":F> ({$yes} yes, {$ifNeedBe} if need be)";
+        })->implode("\n");
+
+        return "Not decided yet: press **Vote on dates**.\n{$dates}";
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function voteOnDatesRow(Event $event): array
+    {
+        return [
+            'type' => self::ACTION_ROW,
+            'components' => [[
+                'type' => self::BUTTON,
+                'style' => self::PRIMARY,
+                'label' => 'Vote on dates',
+                'custom_id' => EventCustomId::dates($event->id),
+                'disabled' => $event->isCancelled(),
+            ]],
+        ];
     }
 
     /**

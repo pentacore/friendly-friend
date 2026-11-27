@@ -24,7 +24,8 @@ Not sure when? Tick **Let people vote on the date** on the new-event form and pr
 
 - While the vote is open the event shows "Date to be decided" (a **?** badge), and the "Are you coming?" box is replaced by **Which dates work for you?**: everyone answers each date **Yes / If need be / No** (press again to take it back), and sees the tallies and who said what. The date with the most yes (then most if need be) is marked **Best so far**.
 - Organisers can **propose another date**, withdraw one (not the last), and **Choose this date**. Choosing sets the event's time, and everyone who voted yes on it becomes **going**, if need be becomes **maybe**, unless they had already answered.
-- Until a date is chosen: only "Can't" is accepted as an RSVP, the Discord announcement lists the proposed dates without RSVP buttons, no native Discord event is created, and no reminders go out. Editing the event keeps the date out of the form.
+- Until a date is chosen: only "Can't" is accepted as an RSVP, no native Discord event is created, and no reminders go out. Editing the event keeps the date out of the form.
+- **In Discord**, the announcement lists the proposed dates with their tallies and a **Vote on dates** button instead of the RSVP buttons. It opens a private picker with two dropdowns, "Dates I can make" and "Dates that work if need be", pre-filled with your votes. Each change saves at once; dates you pick in neither count as no. The tallies on the announcement update as people vote. Once a date is chosen, the RSVP buttons replace the vote button.
 - `starts_at` holds the earliest proposed date while voting, so lists still sort sensibly.
 
 ## Answer by
