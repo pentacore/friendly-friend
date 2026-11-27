@@ -8,6 +8,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/*/Actions/**                                                                                                                                                        | .ai/rules/actions.md      |
 | .ai/**                                                                                                                                                                  | .ai/rules/ai-rules.md     |
 | app/**                                                                                                                                                                  | .ai/rules/app.md          |
+| app/Console/Commands/**, routes/console.php                                                                                                                             | .ai/rules/commands.md     |
 | config/**                                                                                                                                                               | .ai/rules/config.md       |
 | app/*/Data/**                                                                                                                                                           | .ai/rules/data.md         |
 | database/**                                                                                                                                                             | .ai/rules/database.md     |
@@ -21,6 +22,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Models/**                                                                                                                                                           | .ai/rules/models.md       |
 | app/Quotes/**, app/Ai/**, app/Models/Quote*.php, app/Models/Person*.php                                                                                                 | .ai/rules/quotes.md       |
 | routes/**                                                                                                                                                               | .ai/rules/routes.md       |
+| database/seeders/**                                                                                                                                                     | .ai/rules/seeders.md      |
 | app/Stats/**                                                                                                                                                            | .ai/rules/stats.md        |
 | app/*/Testing/**                                                                                                                                                        | .ai/rules/testing.md      |
 | tests/**                                                                                                                                                                | .ai/rules/tests.md        |

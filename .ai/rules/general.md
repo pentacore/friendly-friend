@@ -22,7 +22,15 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 ## Keeping rules current
 
 - These rule files are the project's conventions and design decisions. **Every commit that introduces or changes a convention, a design decision or a trap updates the matching rule file in the same commit.** If a decision spans the project, put it here; if it's about one area, put it in that area's file. Create a new rule file with a `paths` frontmatter for a new area. How to write and file rules (narrowest glob, owner's decisions, skills for procedures) is in `ai-rules.md`.
-- Bugs, follow-ups, upstream issues and feature ideas go in `ROADMAP.md`, also in the same commit. `ROADMAP.md` holds only open items: when one is done (or a bug is found and fixed in the same change), it goes to `COMPLETED.md` in that commit, and a fixed bug's lesson becomes a rule here.
+- Bugs, follow-ups, upstream issues and feature ideas go in `ROADMAP.md`, also in the same commit, under the group that matches what the item needs next: Decisions (the owner chooses), Brainstorms (design first), Ready to pick up, Setup outside the code, Held dependency updates or Upstream reports. An idea the owner drops goes to Not planned with its reason, so it isn't proposed again. `ROADMAP.md` holds only open items: when one is done (or a bug is found and fixed in the same change), it goes to `COMPLETED.md` in that commit, and a fixed bug's lesson becomes a rule here.
+
+## Words
+
+`GLOSSARY.md` names the domain terms (server, person, organiser, settle up…) with their code names, and the words to avoid. Use its words in code, UI copy, rules, docs and commits, and update it in the same commit when a change adds or renames a term.
+
+## Worktrees
+
+Work that runs alongside other work gets its own git worktree and its own test database (`testing_<name>`, passed as `DB_DATABASE`), never the main checkout's or another worktree's. Setup, running tests and cleanup are in the `working-in-a-worktree` skill.
 
 ## Shape of the app (each part has one job)
 
