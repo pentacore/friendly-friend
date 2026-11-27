@@ -27,12 +27,12 @@
                             "scope": "deps",
                             "section": "Dependencies"
                         },
-                        { "type": "chore", "hidden": true },
-                        { "type": "docs", "hidden": true },
-                        { "type": "style", "hidden": true },
-                        { "type": "test", "hidden": true },
-                        { "type": "ci", "hidden": true },
-                        { "type": "build", "hidden": true }
+                        { "type": "chore", "effect": "hidden" },
+                        { "type": "docs", "effect": "hidden" },
+                        { "type": "style", "effect": "hidden" },
+                        { "type": "test", "effect": "hidden" },
+                        { "type": "ci", "effect": "hidden" },
+                        { "type": "build", "effect": "hidden" }
                     ]
                 }
             }

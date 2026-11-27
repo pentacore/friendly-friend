@@ -49,6 +49,8 @@ It writes `CHANGELOG.md`, commits it as `chore(release): X.Y.Z` on `main`, tags 
 
 The image is the same for every deploy: browsers read where Reverb is from the page at runtime, so nothing site-specific is compiled in and no build settings are needed. A package that Actions creates for a public repository is linked to it; if the server can't pull it, make the package public under the repository's Packages, or `docker login ghcr.io` on the server.
 
+`CHANGELOG.md` is written by semantic-release: don't edit it by hand, and the formatter skips it (`vite.config.ts`). In `.releaserc.json`, a commit type is left out of the notes with `"effect": "hidden"`; `conventional-changelog-conventionalcommits` 10 ignores the older `"hidden": true` and lists those commits under no heading.
+
 semantic-release 26 needs Node 26.13 or newer, newer than the app's Node, so the job runs it pinned through `npx` rather than from `package.json`.
 
 ## `image` job

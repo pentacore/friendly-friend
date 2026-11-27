@@ -86,6 +86,8 @@ export default defineConfig({
             'AGENTS.md',
             'CLAUDE.md',
             'boost.json',
+            // Written by semantic-release on every release (.releaserc.json).
+            'CHANGELOG.md',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],
