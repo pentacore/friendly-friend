@@ -14,6 +14,7 @@ import EventDateBadge from '@/components/events/EventDateBadge.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import FoodTab from '@/components/events/FoodTab.vue';
 import RsvpPanel from '@/components/events/RsvpPanel.vue';
+import TransportTab from '@/components/events/TransportTab.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,15 +42,16 @@ setLayoutProps({
 });
 
 useLiveEvent(props.event.id, {
-    overview: ['event', 'attendees'],
+    overview: ['event', 'attendees', 'transport'],
     food: ['food'],
-    transport: [],
+    transport: ['transport'],
     costs: [],
 });
 
 const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'food', label: 'Food' },
+    { id: 'transport', label: 'Transport' },
 ] as const;
 
 type Tab = (typeof tabs)[number]['id'];
@@ -219,6 +221,13 @@ function setCancelled(cancelled: boolean): void {
             :food="food"
             :me="me"
             :first-day="firstDay"
+        />
+
+        <TransportTab
+            v-else-if="tab === 'transport'"
+            :event="event"
+            :transport="transport"
+            :me="me"
         />
 
         <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">

@@ -1,6 +1,6 @@
 # Events
 
-Plan get-togethers per server: who's coming, food, and (in later slices) rides, costs and Discord announcements.
+Plan get-togethers per server: who's coming, food, rides, and (in later slices) costs and Discord announcements.
 
 ## Who can do what
 
@@ -25,6 +25,13 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 - **Shopping list:** anyone adds items with an amount. Tick when bought; it shows who got it, and bought items sink to the bottom.
 - **Meal plan:** organisers add meals by day and slot (breakfast, lunch, dinner, snack). Anyone volunteers to cook ("I'll cook").
 
+## Transport tab
+
+- **Still needs a ride there:** everyone going or maybe who ticked "I need a ride" and isn't yet in a ride that goes there (`to` or `both`).
+- **Rides**, grouped as There, Back, There and back: the driver, where and when they leave (in the event's timezone), a note, and the seats as a bar with "N free".
+- **Take a seat** with an optional pickup note. The ride is locked while seating, so two people can't take the last seat. The driver can't sit in their own ride. Leave with ×; the driver and organisers can remove passengers and cancel the ride.
+- **Offer a ride:** which way, free seats (1 to 8), leaving from, leaving at, note. To change a ride, cancel it and offer a new one.
+
 ## Live updates
 
 Every change broadcasts `event.changed` (`{ event_id, section }`) on the private channel `events.{id}`. Everyone viewing the event reloads just the changed part of the page. Channel access follows the event's server.
@@ -38,3 +45,4 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_shopping_items`: label, quantity (free text), added_by, checked_by, checked_at.
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
+- `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats, note) and `event_ride_passengers` (one per person and ride: pickup_note).

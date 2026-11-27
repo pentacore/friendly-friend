@@ -56,6 +56,7 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 - `env()` is only allowed in `config/*.php`, because config is cached in production. Read `config()` everywhere else.
 - Reverb has two endpoints: `REVERB_*` (where the app publishes: `reverb:8080` inside Docker, never `localhost`) and `VITE_REVERB_*` (where browsers connect, compiled in at build time).
 - The bot and Horizon are long-running processes. Restart them after code changes (`vendor/bin/sail restart bot horizon`).
+- Parallel tests ran Postgres out of lock slots (`out of shared memory`) once the schema grew. Sail's `pgsql` runs with `max_locks_per_transaction=256` (`compose.yaml`). Recreate the container after pulling (`vendor/bin/sail up -d pgsql`).
 - Don't trust Rector blindly with arithmetic on casts: it once changed `(int) ((int) $x >> 22) % 6` into different precedence. Keep a test on anything bit-twiddly.
 
 ## Product rules

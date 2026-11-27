@@ -99,6 +99,14 @@ class Event extends Model
         return $this->hasMany(EventMeal::class);
     }
 
+    /**
+     * @return HasMany<EventRide, $this>
+     */
+    public function rides(): HasMany
+    {
+        return $this->hasMany(EventRide::class);
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === EventStatus::Cancelled;

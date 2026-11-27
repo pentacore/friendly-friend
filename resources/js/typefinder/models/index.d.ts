@@ -11,6 +11,8 @@ export type { EventBringItem, EventBringItemCreate, EventBringItemUpdate } from 
 export type { EventHostsPivot } from './EventHostsPivot';
 export type { EventMeal, EventMealCreate, EventMealUpdate } from './EventMeal';
 export type { EventMealCooksPivot } from './EventMealCooksPivot';
+export type { EventRide, EventRideCreate, EventRideUpdate } from './EventRide';
+export type { EventRidePassenger, EventRidePassengerCreate, EventRidePassengerUpdate } from './EventRidePassenger';
 export type { EventRsvp, EventRsvpCreate, EventRsvpUpdate } from './EventRsvp';
 export type { EventShoppingItem, EventShoppingItemCreate, EventShoppingItemUpdate } from './EventShoppingItem';
 export type { Guild, GuildCreate, GuildUpdate } from './Guild';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
+use App\Models\EventRide;
 use App\Models\EventRsvp;
 use App\Models\Guild;
 use App\Models\User;
@@ -131,3 +132,31 @@ it('renders the food settings', function (): void {
 
     expect($this->user->discordUser->fresh()?->dietary_notes)->toBe('Vegetarian');
 });
+
+it('arranges rides', function (bool $dark): void {
+    $driver = DiscordUser::factory()->create(['global_name' => 'Robin']);
+    EventRide::query()->create(['event_id' => $this->event->id, 'driver_discord_user_id' => $driver->id, 'direction' => 'to', 'seats' => 3, 'departs_from' => 'Central station', 'departs_at' => $this->event->starts_at->copy()->subHours(2)]);
+    $this->actingAs($this->user);
+
+    $page = visit("/events/{$this->event->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->click('[role="tab"]:nth-child(3)')
+        ->assertSee('Still needs a ride there')
+        ->assertSee('Robin drives')
+        ->fill('[data-test="transport"] input[aria-label="Pickup"]', 'By the bakery')
+        ->click('Take a seat')
+        ->assertSee('By the bakery')
+        ->assertSee('2 free')
+        ->click('Offer a ride')
+        ->fill('#ride-from', 'Kim’s place')
+        ->click('[data-test="transport"] form button[type="submit"]')
+        ->assertDontSee('Never mind')
+        ->assertSee('There and back')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-transport-'.($dark ? 'dark' : 'light'));
+
+    expect(EventRide::query()->count())->toBe(2);
+})->with(['light' => false, 'dark' => true]);

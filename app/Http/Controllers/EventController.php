@@ -17,6 +17,7 @@ use App\Planning\Actions\CancelEvent;
 use App\Planning\Actions\CreateEvent;
 use App\Planning\Actions\UpdateEvent;
 use App\Planning\FoodPlan;
+use App\Planning\TransportPlan;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -91,6 +92,7 @@ final class EventController extends Controller
         'event' => EventResource::class,
         'attendees' => '{ member: '.self::MEMBER.'; status: '.RsvpStatus::class.'; guests: number; note: string | null; needs_ride: boolean }[]',
         'food' => FoodPlan::TYPE,
+        'transport' => TransportPlan::TYPE,
         'me' => 'number',
     ])]
     public function show(Request $request, Event $event): Response
@@ -111,6 +113,7 @@ final class EventController extends Controller
                     'needs_ride' => $rsvp->needs_ride,
                 ])->all()),
             'food' => fn (): array => FoodPlan::for($event, $access),
+            'transport' => fn (): array => TransportPlan::for($event, $access),
             'me' => $access->discordUserId,
         ]);
     }

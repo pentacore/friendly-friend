@@ -8,6 +8,7 @@ import type { DiscordUser } from './DiscordUser';
 import type { EventBringItem } from './EventBringItem';
 import type { EventHostsPivot } from './EventHostsPivot';
 import type { EventMeal } from './EventMeal';
+import type { EventRide } from './EventRide';
 import type { EventRsvp } from './EventRsvp';
 import type { EventShoppingItem } from './EventShoppingItem';
 import type { EventStatus } from '../enums';
@@ -35,6 +36,7 @@ export type Event = {
   bring_items?: EventBringItem[];
   shopping_items?: EventShoppingItem[];
   meals?: EventMeal[];
+  rides?: EventRide[];
 };
 
 export type EventCreate = {

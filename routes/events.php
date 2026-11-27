@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventFoodController;
+use App\Http\Controllers\EventRideController;
 use App\Http\Controllers\EventRsvpController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,5 +29,12 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
         Route::put('meals/{meal}', 'updateMeal')->name('meals.update');
         Route::delete('meals/{meal}', 'destroyMeal')->name('meals.destroy');
         Route::put('meals/{meal}/cook', 'cook')->name('meals.cook');
+    });
+
+    Route::scopeBindings()->prefix('events/{event}/rides')->name('events.rides.')->controller(EventRideController::class)->group(function (): void {
+        Route::post('/', 'store')->name('store');
+        Route::delete('{ride}', 'destroy')->name('destroy');
+        Route::put('{ride}/seat', 'join')->name('join');
+        Route::delete('{ride}/seat', 'leave')->name('leave');
     });
 });

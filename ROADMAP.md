@@ -40,7 +40,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 - [x] Events per server: RSVP (going/maybe/can't, guests, note, needs a ride), attendee list
 - [x] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
-- [ ] Transport: rides with seats, pickup points, "needs a ride" list
+- [x] Transport: rides with seats, pickup points, "needs a ride" list
 - [ ] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
 - [ ] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
 - [x] Live updates per event over Reverb
@@ -54,6 +54,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
 - [ ] Events: add an "Add to calendar" (.ics) link
+- [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again
 - [x] Sidebar grouped into Quotes, Together and Admin
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Stats: per-channel breakdown on `/stats` (channel names are already cached on `guilds.channels`)
@@ -105,6 +106,8 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] Dark-mode error text unreadable (the starter kit's dark `--destructive` token was too dark for text): brightened the token.
 - [x] Highlighter swipe hidden behind the card background (negative z-index without its own stacking context): `isolate`.
 - [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
+
+- [x] Parallel tests failed with Postgres `out of shared memory` after the events schema grew: Sail's Postgres now runs with `max_locks_per_transaction=256`.
 
 ## Upstream reports (other projects)
 

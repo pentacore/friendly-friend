@@ -9,5 +9,6 @@ export * from './EventStatus';
 export * from './MealSlot';
 export * from './QuoteSource';
 export * from './QuoteStatus';
+export * from './RideDirection';
 export * from './RsvpStatus';
 export * from './SaidAtPrecision';
