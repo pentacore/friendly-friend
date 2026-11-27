@@ -92,6 +92,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] **Stats after bot downtime:** sessions that ended while the bot was down now end at its last heartbeat before the restart (only in the first 10 minutes after a start; events missed during the outage are still lost).
 - [ ] **Stats need the Presence intent** turned on in the developer portal (game sessions), and the bot must see a channel to count messages there (see "Bot can't see most channels").
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
+- [ ] **SSR hydration mismatch in dev** on pages with dates (`/events`): the server renders dates in its own locale (and "in 3 days" at render time), the browser in the viewer's, so Vue logs "Hydration completed but contains mismatches". Format with one shared locale, or render those bits client-side only.
 - [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.
 
 ## Bugs found and fixed along the way

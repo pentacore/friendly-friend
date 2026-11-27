@@ -156,6 +156,28 @@ function setCancelled(cancelled: boolean): void {
                     </template>
                     · {{ event.guild.name }}
                 </p>
+                <p
+                    v-if="event.discord.event_url || event.discord.message_url"
+                    class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                    data-test="discord-links"
+                >
+                    <a
+                        v-if="event.discord.event_url"
+                        :href="event.discord.event_url"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+                        >Discord event<ExternalLink class="size-3"
+                    /></a>
+                    <a
+                        v-if="event.discord.message_url"
+                        :href="event.discord.message_url"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+                        >Announcement in Discord<ExternalLink class="size-3"
+                    /></a>
+                </p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <Button

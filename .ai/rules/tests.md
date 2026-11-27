@@ -35,4 +35,4 @@ Postgres `jsonb` reorders keys, so compare stored JSON with `toEqual`, not `toBe
 
 ## No real services
 
-Feature tests block stray HTTP (`Http::preventStrayRequests()` in `tests/Pest.php`). `phpunit.xml` turns Inertia SSR off and blanks `DISCORD_BOT_TOKEN`, so a real `.env` can't make tests act as the bot. Fake Discord with `FakeDiscordClient` / `FakeInteractionAcknowledger`, and HTTP with `Http::fake()`.
+Feature and browser tests block stray HTTP (`Http::preventStrayRequests()` in `tests/Pest.php`; the browser suite also blanks the bot token, since the app under test runs in the same process). `phpunit.xml` turns Inertia SSR off and blanks `DISCORD_BOT_TOKEN`, so a real `.env` can't make tests act as the bot. Fake Discord with `FakeDiscordClient` / `FakeInteractionAcknowledger`, and HTTP with `Http::fake()`.

@@ -39,6 +39,7 @@ final class EventResource extends JsonResource
      *     rsvp_by: string|null,
      *     rsvp_closed: bool,
      *     date_polling: bool,
+     *     discord: array{event_url: string|null, message_url: string|null},
      *     timezone: string,
      *     status: EventStatus,
      *     currency: string,
@@ -69,6 +70,12 @@ final class EventResource extends JsonResource
             'rsvp_by' => $event->rsvp_by?->toIso8601String(),
             'rsvp_closed' => $event->rsvpClosed(),
             'date_polling' => $event->date_polling,
+            'discord' => [
+                'event_url' => $event->discord_scheduled_event_id !== null ? "https://discord.com/events/{$event->guild->discord_id}/{$event->discord_scheduled_event_id}" : null,
+                'message_url' => $event->discord_message_id !== null && $event->announce_channel_id !== null
+                    ? "https://discord.com/channels/{$event->guild->discord_id}/{$event->announce_channel_id}/{$event->discord_message_id}"
+                    : null,
+            ],
             'timezone' => $event->timezone,
             'status' => $event->status,
             'currency' => $event->currency,

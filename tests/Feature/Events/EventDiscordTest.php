@@ -24,6 +24,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Inertia\Testing\AssertableInertia;
 use Tests\Support\DiscordPayloads as P;
 
 beforeEach(function (): void {
@@ -174,4 +175,15 @@ it('sends only the last reminder for an event planned at short notice', function
 
     expect($this->discord->directMessages())->toHaveCount(1)
         ->and($event->fresh()?->reminded_day_at)->not->toBeNull();
+});
+
+it('links the Discord event and announcement from the event page', function (): void {
+    $event = plannedEvent($this->guild, $this->host);
+    dispatch_sync(new SyncEventToDiscord($event->id));
+    $event->refresh();
+
+    $this->actingAs($this->host)->get(route('events.show', $event))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('event.discord.event_url', "https://discord.com/events/555/{$event->discord_scheduled_event_id}")
+            ->where('event.discord.message_url', "https://discord.com/channels/555/888/{$event->discord_message_id}"));
 });

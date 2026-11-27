@@ -18,6 +18,7 @@ export type EventResource = {
   rsvp_by: string | null;
   rsvp_closed: boolean;
   date_polling: boolean;
+  discord: { event_url: string | null; message_url: string | null };
   timezone: string;
   status: EventStatus;
   currency: string;

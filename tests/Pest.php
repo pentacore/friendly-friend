@@ -31,6 +31,9 @@ pest()->beforeEach(function (): void {
 // dev server, so they behave the same locally and in CI.
 pest()->beforeEach(function (): void {
     Vite::useHotFile(storage_path('framework/testing/no-vite-hot-file'));
+    // The app under test runs in this process: it must not reach Discord or AI providers either.
+    Http::preventStrayRequests();
+    config()->set('discord.bot_token', '');
 })->in('Browser');
 
 /*
