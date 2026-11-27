@@ -93,6 +93,10 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Events list: search by name or place, and every past event through infinite scroll.
 - [x] Events: a personal calendar feed link (Settings → Calendar) to subscribe to.
 - [x] Privacy: "Download my data" as JSON on /settings/privacy.
+- [x] More from media manager: `GLOSSARY.md` (domain words with their code names, and words to avoid), architecture tests for the "never do X" rules (strict types, final classes, `Model::query()`, `dispatch()`, no Mockery, no `env()` outside config, no services/listeners layer), rules for foreign key delete rules, `down()`, `$with`, seeders, command names and new job fields, a worktree rule, and `ROADMAP.md` grouped by what each item needs next.
+- [x] Owner settings (`/admin/settings`): reminder times, the Maybe nudge, draft expiry and top-list sizes are `AppSetting`s with defaults and bounds instead of constants and config.
+- [x] Browser layout gate: every page on a phone and a desktop, light and dark (no JavaScript errors, no sideways overflow, dark theme applied, every control named), with a test that every page route is in it, and the browser suite in 3 duration-balanced CI shards.
+- [x] Release pipeline: after CI passes on `main`, semantic-release versions from conventional commits, writes `CHANGELOG.md`, tags and publishes a GitHub release, and the tagged image goes to GHCR, where `compose.prod.yaml` pulls it. The image is generic: the browser's Reverb endpoint moved from build-time `VITE_REVERB_*` to a runtime `<meta name="reverb-config">` (`REVERB_BROWSER_*`).
 
 ## Bugs found and fixed along the way
 
@@ -125,3 +129,5 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] Tests could reach real services: page tests called the Vite SSR dev server whenever it ran, and the real `DISCORD_BOT_TOKEN` from `.env` let jobs call Discord (it hit random fake server IDs, so nothing was created). Feature tests now block stray HTTP, SSR is off in tests, and the bot token is blanked in `phpunit.xml`.
 - [x] **Channel imports could run twice at once:** `ImportChannelQuotes` may run 600 s, but redis handed a reserved job to a second worker after `retry_after` (90 s). `retry_after` is 630 s now, and a test keeps every job's timeout below it.
 - [x] **`withoutOverlapping()` on scheduled jobs protected nothing:** `Schedule::job()` releases the lock once the job is queued, so two `SendEventReminders` runs could overlap and DM a reminder twice. It and `PruneExpiredDrafts` are `ShouldBeUnique` now, and a test bans the lock on scheduled jobs.
+- [x] `DatabaseSeeder` still set the starter kit's `name` and `email`, which the `users` table doesn't have, so `db:seed` failed. It seeds nothing now and says why.
+- [x] Five PHP files (two migrations, `bootstrap/providers.php`, `HandleAppearance`, a unit test) lacked `declare(strict_types=1)`; the new architecture test caught them.

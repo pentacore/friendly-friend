@@ -16,6 +16,7 @@
 ## Commands
 
 - Run **every** PHP, Composer, artisan and npm command through Sail (`vendor/bin/sail …`). Host PHP is 8.3, but the project needs PHP 8.5.
+- Agents: pass `CLAUDECODE=1` into the container so `laravel/pao` (dev) turns Pest, Paratest, PHPStan and Rector output into one JSON line: `vendor/bin/sail bash -c 'CLAUDECODE=1 php artisan test --compact …'` (Sail and `docker exec` don't forward host variables; use `docker exec -e CLAUDECODE=1 …`). Exit codes are the same either way. A script that reads the human `Tests:` line must not set it.
 - After backend changes that affect types (models, enums, requests, resources, Inertia actions, broadcast events): `vendor/bin/sail artisan typefinder:generate`, and commit `resources/js/typefinder/`.
 
 ## Skills for procedures
@@ -34,7 +35,7 @@
 ## Habits
 
 - Write the failing test first (Pest). Fix Larastan errors at their cause: no baseline, no `@phpstan-ignore`, no casts or `@var` only to silence it.
-- Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
+- Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`). They drive releases: `feat:` cuts a minor version, `fix:` a patch, a `BREAKING CHANGE:` footer a major, and each `feat`/`fix` subject becomes a `CHANGELOG.md` line, so write it for the people who use the site.
 - When the implementation deliberately departs from the spec (`docs/superpowers/specs/`), update the spec too.
 
 === foundation rules ===

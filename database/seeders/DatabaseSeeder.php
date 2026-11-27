@@ -4,24 +4,18 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+/**
+ * Seeds nothing yet. Real data comes from Discord (`discord:sync-members` and
+ * the bot), and tests build theirs with factories. A local convenience added
+ * here must be idempotent and return early outside `local`
+ * (.ai/rules/seeders.md).
+ */
+final class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $this->command?->info('Nothing to seed: real data comes from Discord, run discord:sync-members.');
     }
 }

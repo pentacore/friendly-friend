@@ -7,8 +7,45 @@ import { initializeFlashToast } from '@/lib/flashToast';
 import { recordHydrationMismatches } from '@/lib/hydrationCheck';
 import { configureEcho } from '@laravel/echo-vue';
 
+type ReverbConfig = {
+    key: string;
+    host: string;
+    port: number;
+    scheme: 'http' | 'https';
+};
+
+/**
+ * Where browsers reach Reverb, from `<meta name="reverb-config">` (rendered by
+ * Laravel at runtime, so one built image works for every deploy). Empty on the
+ * server: live updates are browser-only.
+ */
+function reverbConnection(): Record<string, unknown> {
+    const meta =
+        typeof document === 'undefined'
+            ? null
+            : document.querySelector<HTMLMetaElement>(
+                  'meta[name="reverb-config"]',
+              );
+
+    if (!meta?.content) {
+        return {};
+    }
+
+    const config = JSON.parse(meta.content) as ReverbConfig;
+
+    return {
+        key: config.key,
+        wsHost: config.host,
+        wsPort: config.port,
+        wssPort: config.port,
+        forceTLS: config.scheme === 'https',
+        enabledTransports: ['ws', 'wss'],
+    };
+}
+
 configureEcho({
     broadcaster: 'reverb',
+    ...reverbConnection(),
 });
 
 recordHydrationMismatches();

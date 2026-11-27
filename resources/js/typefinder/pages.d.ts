@@ -4,7 +4,7 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
-import type { AccessDeniedReason, Currency, DateVote, MealSlot, QuestionKind, RideDirection, RsvpStatus, SplitMode } from './enums';
+import type { AccessDeniedReason, AppSetting, Currency, DateVote, MealSlot, QuestionKind, RideDirection, RsvpStatus, SplitMode } from './enums';
 import type { EventResource, GuildResource, PersonAdminResource, QuoteImportResource, QuoteResource, QuoteRevisionResource } from './resources';
 import type { SimplePaginatedResourceCollection } from './helpers';
 
@@ -25,6 +25,7 @@ export type PageProps = {
   'admin/Imports': { imports: QuoteImportResource[] };
   'admin/People': { people: SimplePaginatedResourceCollection<PersonAdminResource>; search: string; discord_users: { id: number; name: string }[]; all_people: { id: number; display_name: string }[] };
   'admin/RemovedQuotes': { quotes: SimplePaginatedResourceCollection<QuoteResource> };
+  'admin/Settings': { settings: { key: AppSetting; group: string; label: string; help: string; unit: string; value: number; default: number; min: number; max: number }[] };
   'auth/Login': { error: AccessDeniedReason | null };
   'events/Create': { guilds: { id: number; name: string }[]; members: Record<number, { id: number; name: string; avatar_url: string }[]>; default_timezone: string };
   'events/Edit': { event: EventResource; form: { title: string; description: string; location: string; location_url: string; starts_at: string; ends_at: string; rsvp_by: string; timezone: string; currency: Currency; host_ids: number[] }; currency_locked: boolean; members: { id: number; name: string; avatar_url: string }[] };
@@ -34,7 +35,7 @@ export type PageProps = {
   'quotes/Index': { quotes: SimplePaginatedResourceCollection<QuoteResource>; filters: { q: string; guild: number | null; person: string | null; sort: 'best' | 'newest' | 'top' }; people: { slug: string; display_name: string }[]; guilds: { id: number; name: string }[]; person: { slug: string; display_name: string } | null };
   'quotes/Show': { quote: QuoteResource; revisions: QuoteRevisionResource[] };
   'quotes/ThisOrThat': { pair: QuoteResource[] | null };
-  'quotes/Top': { all_time: QuoteResource[]; this_month: QuoteResource[]; elo: QuoteResource[]; most_quoted: { slug: string; display_name: string; quote_count: number }[]; top_submitters: { name: string; avatar_url: string; quote_count: number }[] };
+  'quotes/Top': { all_time: QuoteResource[]; this_month: QuoteResource[]; elo: QuoteResource[]; most_quoted: { slug: string; display_name: string; quote_count: number }[]; top_submitters: { name: string; avatar_url: string; quote_count: number }[]; min_matchups: number };
   'settings/Calendar': { feed_url: string | null };
   'settings/Food': { dietary_notes: string };
   'settings/Privacy': { opted_out_at: string | null };

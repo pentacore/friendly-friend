@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\GuildController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\PeopleController;
 use App\Http\Controllers\Admin\RemovedQuoteController;
+use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'guild.access', 'can:manage-guilds'])
@@ -14,6 +15,8 @@ Route::middleware(['auth', 'guild.access', 'can:manage-guilds'])
     ->group(function (): void {
         Route::get('guilds', [GuildController::class, 'index'])->name('guilds.index');
         Route::put('guilds/{guild}', [GuildController::class, 'update'])->name('guilds.update');
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
     });
 
 Route::middleware(['auth', 'guild.access', 'can:admin'])

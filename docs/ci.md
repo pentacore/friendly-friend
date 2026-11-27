@@ -13,8 +13,17 @@ Steps, in order:
 5. `composer types:check` (Larastan at max level)
 6. `npm run build:ssr` (client and SSR bundles; also generates the Wayfinder routes the type check needs)
 7. `npm run check` (lint and format), `npm run types:check` (vue-tsc)
-8. `php artisan test --parallel` (Pest)
-9. `npx playwright install --with-deps chromium`, start the SSR server (`php artisan inertia:start-ssr`), then `php artisan test --testsuite=Browser`: real-browser checks in light and dark mode, plus a hydration check (server-rendered pages hydrated in a browser with another locale and timezone must not mismatch)
+8. `php artisan test --parallel` (Pest, Unit and Feature)
+
+## `browser` job (3 shards)
+
+The browser suite runs in 3 parallel shards (`php artisan test --testsuite=Browser --shard=i/3`), balanced by the per-class timings in `tests/.pest/shards.json`. Each shard installs the app, builds the client and SSR bundles, installs Chromium (`npx playwright install --with-deps chromium`) and starts the SSR server (`php artisan inertia:start-ssr`). The suite covers:
+
+- the layout gate (`LayoutGateTest`): every page on a phone and a desktop, light and dark, with no JavaScript errors, no sideways overflow, the dark theme applied and every control named
+- page tests in light and dark mode, with screenshots
+- the hydration check: server-rendered pages hydrated in a browser with another locale and timezone must not mismatch
+
+A failed shard uploads its screenshots as the `browser-screenshots-<shard>` artifact. Refresh the timings after adding or renaming a browser test class: `php artisan test --testsuite=Browser --update-shards`.
 
 Run the same checks locally before pushing:
 
@@ -24,6 +33,23 @@ vendor/bin/sail composer test
 vendor/bin/sail npm run check
 vendor/bin/sail npm run types:check
 ```
+
+## Releases (`release.yml`)
+
+After `ci` passes on a push to `main`, the `release` workflow runs semantic-release (`.releaserc.json`). It reads the conventional commit subjects since the last tag and picks the next version:
+
+| Commits since the last tag                 | Release |
+| ------------------------------------------ | ------- |
+| a `BREAKING CHANGE:` footer or `feat!:`    | major   |
+| `feat:`                                    | minor   |
+| `fix:`, `perf:`, `chore(deps):`            | patch   |
+| only `docs:`, `test:`, `ci:`, other chores | none    |
+
+It writes `CHANGELOG.md`, commits it as `chore(release): X.Y.Z` on `main`, tags `vX.Y.Z` and publishes a GitHub release. The `image` job in the same workflow then builds that tag and pushes `ghcr.io/pentacore/friendly-friend` as `X.Y.Z`, `X.Y` and `latest`. (A tag pushed with `GITHUB_TOKEN` never triggers another workflow, so both jobs share one.)
+
+The image is the same for every deploy: browsers read where Reverb is from the page at runtime, so nothing site-specific is compiled in and no build settings are needed. A package that Actions creates for a public repository is linked to it; if the server can't pull it, make the package public under the repository's Packages, or `docker login ghcr.io` on the server.
+
+semantic-release 26 needs Node 26.13 or newer, newer than the app's Node, so the job runs it pinned through `npx` rather than from `package.json`.
 
 ## `image` job
 

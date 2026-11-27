@@ -18,12 +18,14 @@ Always pass `-u sail`. A command run as root leaves root-owned files in shared f
 1. Install: `composer install` and `npm ci` (through the `docker exec` above).
 2. Copy the main checkout's `.env` into the worktree (it is git-ignored, never commit it).
 3. Build: `npm run build`. Without the Vite manifest, every Inertia page test answers 500.
-4. Create the worktree's own test database, so its runs never collide with the main checkout's or another worktree's: `docker exec friendly-friend-pgsql-1 psql -U sail -d postgres -c 'CREATE DATABASE testing_<name>'`.
+4. For browser tests, install Chromium: `npx playwright install chromium`. The container sets `PLAYWRIGHT_BROWSERS_PATH=0`, so each checkout keeps its browser under its own `node_modules`; without it every browser test fails with "Playwright is outdated".
+5. Create the worktree's own test database, so its runs never collide with the main checkout's or another worktree's: `docker exec friendly-friend-pgsql-1 psql -U sail -d postgres -c 'CREATE DATABASE testing_<name>'`.
 
 ## Run
 
-- Pass the database on every test run: `docker exec -u sail -e DB_DATABASE=testing_<name> -w … friendly-friend-laravel.test-1 composer test`. `phpunit.xml` doesn't force its `testing` value, so the variable wins. Parallel runs add `testing_<name>_test_1`, `_2` and so on.
+- Pass the database on every test run, and `CLAUDECODE=1` for compact one-line JSON output from Pest, PHPStan and Rector (`laravel/pao`): `docker exec -u sail -e CLAUDECODE=1 -e DB_DATABASE=testing_<name> -w … friendly-friend-laravel.test-1 composer test`. `phpunit.xml` doesn't force its `testing` value, so the variable wins. Parallel runs add `testing_<name>_test_1`, `_2` and so on.
 - Git doesn't work inside the container: the worktree's `.git` file points at a host path. `pint --dirty` fails there, so pass Pint the changed files instead (`vendor/bin/pint --format agent app/… tests/…`). Run git itself on the host.
+- A browser run can leave its `playwright run-server` behind (a known plugin leak), holding the output pipe open: send the output to a file (`> storage/logs/browser.log`) instead of piping it into `tail`.
 - Long-running services (Horizon, the bot, Reverb) run the main checkout's code, not the worktree's.
 
 ## Clean up

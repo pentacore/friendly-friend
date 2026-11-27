@@ -1,0 +1,13 @@
+{
+    "timings": {
+        "Tests\\Browser\\AdminGuildsBrowserTest": 3.3479,
+        "Tests\\Browser\\EventsBrowserTest": 31.9848,
+        "Tests\\Browser\\HydrationBrowserTest": 4.8743,
+        "Tests\\Browser\\LayoutGateTest": 53.4029,
+        "Tests\\Browser\\LoginBrowserTest": 0.9009,
+        "Tests\\Browser\\QuotePagesBrowserTest": 21.0737,
+        "Tests\\Browser\\StatsBrowserTest": 8.1146
+    },
+    "checksum": "fdcb03d06e15f963b20b1ea8399b9709",
+    "updated_at": "2026-11-27T19:15:02+00:00"
+}

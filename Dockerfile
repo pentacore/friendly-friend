@@ -15,21 +15,12 @@ RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 
 # ---- Frontend build. Needs PHP: Wayfinder generates routes at build time. ----
 # Typefinder output is committed, so its build step is skipped (TYPEFINDER_SKIP_BUILD).
-# VITE_* values are compiled into the JavaScript: they must be the PUBLIC
-# app name and WebSocket endpoint browsers connect to (passed as build args
-# by compose.prod.yaml from .env). Real environment variables take precedence
-# over the .env copied below.
+# Nothing site-specific is compiled in: browsers read where Reverb is from the
+# page at runtime (<meta name="reverb-config">), so one image fits every deploy.
+# Only the app name used in page titles is baked in.
 FROM vendor AS assets
 ARG VITE_APP_NAME="Friendly Friend"
-ARG VITE_REVERB_APP_KEY=""
-ARG VITE_REVERB_HOST=""
-ARG VITE_REVERB_PORT="443"
-ARG VITE_REVERB_SCHEME="https"
-ENV VITE_APP_NAME=${VITE_APP_NAME} \
-    VITE_REVERB_APP_KEY=${VITE_REVERB_APP_KEY} \
-    VITE_REVERB_HOST=${VITE_REVERB_HOST} \
-    VITE_REVERB_PORT=${VITE_REVERB_PORT} \
-    VITE_REVERB_SCHEME=${VITE_REVERB_SCHEME}
+ENV VITE_APP_NAME=${VITE_APP_NAME}
 COPY --from=node:24-slim /usr/local/bin/node /usr/local/bin/node
 COPY --from=node:24-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
