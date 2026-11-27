@@ -12,7 +12,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 | 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                                               | ✅ done                             |
 | 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done                             |
 | 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done                             |
-| 6     | Server stats with opt-out                                                                                                         | 🚧 in progress                      |
+| 6     | Server stats with opt-out: messages, reactions, voice, games, rollups, `/stats`, person stats, `/settings/privacy`, `/privacy`    | ✅ done                             |
 | 7     | Event planning                                                                                                                    | planned (approved design, spec §14) |
 
 ## Planned features
@@ -33,7 +33,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 ### Phase 6: Stats
 
 - [x] Message, voice, reaction/emoji and game/presence tracking per server; hourly/daily rollups
-- [ ] Dashboards (heatmap, leaderboards, "who hangs out with whom")
+- [x] Dashboards (heatmap, leaderboards, "who hangs out with whom") on `/stats`, plus stats on person pages
 - [x] Opt-out on the website and with `/privacy optout|optin|status`; purge on opt-out; cached opted-out set checked in the bot router and again in the jobs
 
 ### Phase 7: Event planning (spec §14)
@@ -52,6 +52,10 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Sync Discord's native event "Interested" back to RSVPs (needs the `GUILD_SCHEDULED_EVENTS` intent)
 - [ ] Let server admins (not only owners) manage their own server's settings
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
+- [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
+- [ ] Stats: per-channel breakdown on `/stats` (channel names are already cached on `guilds.channels`)
+- [ ] Stats: a small "this week" card on the dashboard
+- [ ] Stats: streaks and records (longest voice session, most messages in a day)
 
 ## Follow-ups and known gaps
 
@@ -68,6 +72,9 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Draft lifetime (15 min) equals the interaction token lifetime. A preview edited at minute 14 still works, but there's no margin.
 - [ ] Telescope's migration also runs in production (creates unused tables). Harmless; could be excluded.
 - [ ] `docs-updated` CI check only warns on pull requests; direct pushes to `main` aren't checked.
+- [ ] **Stats after bot downtime:** events missed while the bot is down are lost. On reconnect, sessions that still match are assumed to have continued, and the rest are closed at reconnect time rather than at the last heartbeat, which can overcount voice and game time after a long outage. Could close stale sessions at the previous heartbeat instead.
+- [ ] **Stats need the Presence intent** turned on in the developer portal (game sessions), and the bot must see a channel to count messages there (see "Bot can't see most channels").
+- [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
 - [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.
 
 ## Bugs found and fixed along the way

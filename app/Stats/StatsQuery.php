@@ -1,0 +1,292 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Stats;
+
+use App\Models\DiscordUser;
+use App\Models\Person;
+use App\Models\StatDailyActivity;
+use App\Models\StatDailyVoice;
+use App\Models\StatDailyVoicePair;
+use App\Models\StatMessage;
+use App\Models\StatReaction;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Str;
+
+/**
+ * Read model behind /stats and the stats on people pages: totals,
+ * leaderboards and the heatmap for some servers over the last N local days.
+ * Opted-out members have no rows left, so they never show up.
+ *
+ * @phpstan-type Member array{id: int, name: string, avatar_url: string, person_slug: string|null}
+ */
+final readonly class StatsQuery
+{
+    private string $timezone;
+
+    private CarbonImmutable $since;
+
+    /**
+     * @param  list<int>  $guildIds
+     */
+    public function __construct(private array $guildIds, int $days)
+    {
+        $this->timezone = config()->string('stats.timezone');
+        $this->since = Date::now($this->timezone)->toImmutable()->startOfDay()->subDays($days - 1);
+    }
+
+    /**
+     * @return array{messages: int, voice_seconds: int, reactions: int, members: int}
+     */
+    public function totals(?int $discordUserId = null): array
+    {
+        $messages = $this->messages()->when($discordUserId, fn (Builder $q, int $id) => $q->where('discord_user_id', $id));
+        $voice = $this->daily(StatDailyVoice::query())->when($discordUserId, fn (Builder $q, int $id) => $q->where('discord_user_id', $id));
+        $reactions = $this->reactions()->when($discordUserId, fn (Builder $q, int $id) => $q->where('reactor_discord_user_id', $id));
+
+        return [
+            'messages' => (int) $messages->sum('count'),
+            'voice_seconds' => (int) $voice->sum('seconds'),
+            'reactions' => (int) $reactions->sum('count'),
+            'members' => $discordUserId !== null ? 1 : $this->messages()->distinct()->count('discord_user_id'),
+        ];
+    }
+
+    /**
+     * Messages per local weekday (1 = Monday) and hour.
+     *
+     * @return list<array{weekday: int, hour: int, count: int}>
+     */
+    public function heatmap(?int $discordUserId = null): array
+    {
+        $rows = $this->messages()
+            ->when($discordUserId, fn (Builder $q, int $id) => $q->where('discord_user_id', $id))
+            ->selectRaw('extract(isodow from hour at time zone ?)::int as weekday, extract(hour from hour at time zone ?)::int as local_hour, sum(count)::int as total', [$this->timezone, $this->timezone])
+            ->groupByRaw('1, 2')
+            ->toBase()
+            ->get();
+
+        return array_values($rows->map(fn (object $row): array => [
+            'weekday' => $this->int($row, 'weekday'),
+            'hour' => $this->int($row, 'local_hour'),
+            'count' => $this->int($row, 'total'),
+        ])->all());
+    }
+
+    /**
+     * Messages sent.
+     *
+     * @return list<array{member: Member, total: int}>
+     */
+    public function topMessagers(int $limit = 10): array
+    {
+        return $this->ranked($this->messages(), 'discord_user_id', 'sum(count)', $limit);
+    }
+
+    /**
+     * Seconds in voice.
+     *
+     * @return list<array{member: Member, total: int}>
+     */
+    public function topVoice(int $limit = 10): array
+    {
+        return $this->ranked($this->daily(StatDailyVoice::query()), 'discord_user_id', 'sum(seconds)', $limit);
+    }
+
+    /**
+     * Reactions added.
+     *
+     * @return list<array{member: Member, total: int}>
+     */
+    public function topReactors(int $limit = 10): array
+    {
+        return $this->ranked($this->reactions(), 'reactor_discord_user_id', 'sum(count)', $limit);
+    }
+
+    /**
+     * Who spent the most time in the same voice channel.
+     *
+     * @return list<array{first: Member, second: Member, total: int}>
+     */
+    public function voicePairs(?int $discordUserId = null, int $limit = 10): array
+    {
+        $rows = $this->daily(StatDailyVoicePair::query())
+            ->when($discordUserId, fn (Builder $q, int $id) => $q->where(fn (Builder $q) => $q->where('first_discord_user_id', $id)->orWhere('second_discord_user_id', $id)))
+            ->selectRaw('first_discord_user_id as first_id, second_discord_user_id as second_id, sum(seconds)::int as total')
+            ->groupBy('first_discord_user_id', 'second_discord_user_id')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        $members = $this->members($rows->flatMap(fn (object $row): array => [$this->int($row, 'first_id'), $this->int($row, 'second_id')])->all());
+
+        return array_values($rows->map(fn (object $row): array => [
+            'first' => $members[$this->int($row, 'first_id')],
+            'second' => $members[$this->int($row, 'second_id')],
+            'total' => $this->int($row, 'total'),
+        ])->all());
+    }
+
+    /**
+     * Who reacts most to whose messages (not their own).
+     *
+     * @return list<array{first: Member, second: Member, total: int}>
+     */
+    public function reactionPairs(int $limit = 10): array
+    {
+        $rows = $this->reactions()
+            ->whereNotNull('target_discord_user_id')
+            ->whereColumn('target_discord_user_id', '!=', 'reactor_discord_user_id')
+            ->selectRaw('reactor_discord_user_id as first_id, target_discord_user_id as second_id, sum(count)::int as total')
+            ->groupBy('reactor_discord_user_id', 'target_discord_user_id')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        $members = $this->members($rows->flatMap(fn (object $row): array => [$this->int($row, 'first_id'), $this->int($row, 'second_id')])->all());
+
+        return array_values($rows->map(fn (object $row): array => [
+            'first' => $members[$this->int($row, 'first_id')],
+            'second' => $members[$this->int($row, 'second_id')],
+            'total' => $this->int($row, 'total'),
+        ])->all());
+    }
+
+    /**
+     * @return list<array{emoji: string, name: string, image_url: string|null, total: int}>
+     */
+    public function topEmoji(?int $discordUserId = null, int $limit = 10): array
+    {
+        $rows = $this->reactions()
+            ->when($discordUserId, fn (Builder $q, int $id) => $q->where('reactor_discord_user_id', $id))
+            ->selectRaw('emoji, sum(count)::int as total')
+            ->groupBy('emoji')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        return array_values($rows->map(function (object $row): array {
+            $emoji = $this->string($row, 'emoji');
+            $isCustom = str_contains($emoji, ':');
+
+            return [
+                'emoji' => $emoji,
+                'name' => Str::after($emoji, ':'),
+                'image_url' => $isCustom ? config()->string('discord.cdn_base').'/emojis/'.Str::before($emoji, ':').'.webp?size=64' : null,
+                'total' => $this->int($row, 'total'),
+            ];
+        })->all());
+    }
+
+    /**
+     * @return list<array{name: string, total: int, players: int}>
+     */
+    public function games(?int $discordUserId = null, int $limit = 10): array
+    {
+        $rows = $this->daily(StatDailyActivity::query())
+            ->when($discordUserId, fn (Builder $q, int $id) => $q->where('discord_user_id', $id))
+            ->selectRaw('activity_name, sum(seconds)::int as total, count(distinct discord_user_id)::int as players')
+            ->groupBy('activity_name')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        return array_values($rows->map(fn (object $row): array => [
+            'name' => $this->string($row, 'activity_name'),
+            'total' => $this->int($row, 'total'),
+            'players' => $this->int($row, 'players'),
+        ])->all());
+    }
+
+    /**
+     * @return Builder<StatMessage>
+     */
+    private function messages(): Builder
+    {
+        return StatMessage::query()->whereIn('guild_id', $this->guildIds)->where('hour', '>=', $this->since->utc());
+    }
+
+    /**
+     * @return Builder<StatReaction>
+     */
+    private function reactions(): Builder
+    {
+        return StatReaction::query()->whereIn('guild_id', $this->guildIds)->where('day', '>=', $this->since->toDateString());
+    }
+
+    /**
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    private function daily(Builder $query): Builder
+    {
+        return $query->whereIn('guild_id', $this->guildIds)->where('day', '>=', $this->since->toDateString());
+    }
+
+    /**
+     * @param  Builder<covariant Model>  $query
+     * @param  literal-string  $memberColumn
+     * @param  literal-string  $aggregate
+     * @return list<array{member: Member, total: int}>
+     */
+    private function ranked(Builder $query, string $memberColumn, string $aggregate, int $limit): array
+    {
+        $rows = $query
+            ->selectRaw("{$memberColumn} as member_id, {$aggregate}::int as total")
+            ->groupBy($memberColumn)
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        $members = $this->members($rows->map(fn (object $row): int => $this->int($row, 'member_id'))->all());
+
+        return array_values($rows->map(fn (object $row): array => [
+            'member' => $members[$this->int($row, 'member_id')],
+            'total' => $this->int($row, 'total'),
+        ])->all());
+    }
+
+    /**
+     * @param  array<int>  $ids
+     * @return array<int, Member>
+     */
+    private function members(array $ids): array
+    {
+        $slugs = Person::query()->whereIn('discord_user_id', $ids)->get(['discord_user_id', 'slug'])
+            ->mapWithKeys(fn (Person $person): array => [(int) $person->discord_user_id => $person->slug]);
+
+        return DiscordUser::query()->whereIn('id', $ids)->get()
+            ->mapWithKeys(fn (DiscordUser $user): array => [$user->id => [
+                'id' => $user->id,
+                'name' => $user->display_name,
+                'avatar_url' => $user->avatarUrl(),
+                'person_slug' => $slugs->get($user->id),
+            ]])
+            ->all();
+    }
+
+    private function int(object $row, string $key): int
+    {
+        $value = $row->{$key} ?? 0;
+
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private function string(object $row, string $key): string
+    {
+        $value = $row->{$key} ?? '';
+
+        return is_string($value) ? $value : '';
+    }
+}

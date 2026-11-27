@@ -42,3 +42,8 @@ paths:
 ## Checking
 
 - Every page gets a Pest browser test in `tests/Browser`, run in light **and** dark mode: no JavaScript errors, content visible, and a screenshot after `document.fonts.ready`. Run `npm run build` then `composer test:browser`. Look at the screenshots.
+
+## Stats pages
+
+- Boards use `components/stats/StatsBoard.vue` (ranked rows with a quiet relative bar) and `MemberAvatar` / `MemberName` (links to the person page when there is one). Numbers and durations go through `lib/statsFormat.ts`.
+- The heatmap (`ActivityHeatmap.vue`) is the stats pages' one bold element: highlighter ink (`bg-highlight`), opacity scaled by the square root of the count, on `bg-muted` squares. It must fit a phone without scrolling.

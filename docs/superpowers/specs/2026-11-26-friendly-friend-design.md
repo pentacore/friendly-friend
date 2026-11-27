@@ -178,7 +178,8 @@ All Inertia controller actions carry `#[TypefinderPage]` (kept current by Rector
 | PRESENCE_UPDATE          | `IngestPresence`   | close or open `stat_activity_sessions` for playing-type activities   |
 
 - On bot startup or resume, sessions still open are closed at the last known time, then new sessions are opened from the current voice and presence state.
-- **Opt-out** (web or `/privacy optout|optin|status`): sets `tracking_opted_out_at`, updates the cached opted-out set in Redis, and queues `PurgeMemberStats`, which deletes every `stat_*` row for that member and rebuilds the affected rollups. The opt-out is checked twice: the bot drops the event before queuing it, and the job checks again. Opting back in clears the flag, and only new activity is counted.
+  _Implementation note (Phase 6):_ only a fresh session (`GUILD_CREATE`) reseeds, because Discord replays missed events on RESUME. `SeedGuildSessions` keeps sessions that still match the current state and closes the rest at reconnect time, not at the last heartbeat (see ROADMAP).
+- **Opt-out** (web or `/privacy optout|optin|status`): sets `tracking_opted_out_at`, updates the cached opted-out set in Redis, and queues `PurgeMemberStats`, which deletes every `stat_*` row for that member and rebuilds the affected rollups. _(Implemented as: rollups are per member, so the purge deletes their rollup rows directly, and reactions on their messages are kept without a target.)_ The opt-out is checked twice: the bot drops the event before queuing it, and the job checks again. Opting back in clears the flag, and only new activity is counted.
 
 ## 9. Error handling
 

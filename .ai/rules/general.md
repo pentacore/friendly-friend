@@ -10,7 +10,7 @@ paths:
 A private website and Discord bot for a group of friends across **one or more Discord servers**:
 
 - quotes captured from Discord, tidied up by AI, browsed, voted on and ranked on the site
-- server activity stats with an opt-out (Phase 6)
+- server activity stats (messages, reactions, voice, games) with an opt-out
 - event planning: RSVP, food, transport, costs (Phase 7)
 
 The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase plans are in `docs/superpowers/plans/`, and the backlog is `ROADMAP.md`.
@@ -33,7 +33,7 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 | `App\Discord` | Talking to Discord: gateway process, REST client, interactions, DTOs                                            |
 | `App\Quotes`  | Quote domain: actions, Discord flows, jobs, imports, rules                                                      |
 | `App\Ai`      | Quote normalizer and detector, laravel/ai agents                                                                |
-| `App\Stats`   | Stats ingest, rollups, opt-out purge (Phase 6)                                                                  |
+| `App\Stats`   | Stats ingest, rollups, opt-out and purge, the `StatsQuery` read model                                           |
 | `App\Http`    | Thin controllers (validate with a FormRequest, call an action, render Inertia), resources, requests, middleware |
 | `App\Enums`   | Backed enums, emitted by Typefinder as `as const` objects plus unions                                           |
 

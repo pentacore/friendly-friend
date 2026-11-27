@@ -40,7 +40,7 @@ final class PrivacyController extends Controller
             Inertia::flash('toast', ['type' => 'success', 'message' => __('Stats are on again.')]);
         } else {
             $optOut->handle($member);
-            Inertia::flash('toast', ['type' => 'success', 'message' => __('Stats are off, and your stats are being deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Stats are off. What was counted is being deleted.')]);
         }
 
         return to_route('privacy.edit');

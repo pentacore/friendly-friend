@@ -35,6 +35,16 @@ It rebuilds a whole day each run, so it's safe to repeat. It runs every hour for
 vendor/bin/sail artisan stats:rollup --days=30
 ```
 
+## On the website
+
+- **`/stats`** (sidebar → Stats): one server or all you can see, over a week, a month or a year.
+    - a one-line summary
+    - a weekday × hour heatmap of messages (in `STATS_TIMEZONE`)
+    - boards: most messages, most time in voice, time together, most played, favourite reactions, who reacts to whom, most reactions given
+- **Person pages** (`/people/{slug}`): the last 30 days for that person, if they're linked to a Discord user and haven't opted out. Shows a summary, their own heatmap, who they spend the most voice time with, what they play, and the emoji they react with.
+
+Everything is read through `App\Stats\StatsQuery`, limited to the servers the viewer can see.
+
 ## Opting out
 
 Two ways, both available to everyone, with or without access to the website:

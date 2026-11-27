@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    ChartColumn,
     LayoutGrid,
     Quote,
     Scale,
@@ -23,7 +24,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, top } from '@/routes';
+import { dashboard, stats, top } from '@/routes';
 import { index as guildsIndex } from '@/routes/admin/guilds';
 import { index as importsIndex } from '@/routes/admin/imports';
 import { index as peopleIndex } from '@/routes/admin/people';
@@ -43,6 +44,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Random quote', href: randomQuote(), icon: Shuffle },
     { title: 'This or that', href: thisOrThat(), icon: Scale },
     { title: 'Top lists', href: top(), icon: Trophy },
+    { title: 'Stats', href: stats(), icon: ChartColumn },
     ...(page.props.auth.user?.is_admin
         ? [
               { title: 'People', href: peopleIndex(), icon: Users },

@@ -26,3 +26,9 @@ paths:
 - `RollUpStats` rebuilds one **local day** (`stats.timezone`) of `stat_daily_voice`, `stat_daily_activity` and `stat_daily_voice_pairs` from the sessions: delete the day, then insert. Sessions are clipped to the day, and open ones count until now. It runs hourly for today and at 00:15 for yesterday. `stats:rollup --days=N` backfills.
 - Pairs are stored once, with `first_discord_user_id < second_discord_user_id`, for members in the **same channel** at the same time.
 - Messages and reactions are already bucketed, so dashboards read them directly. Only time-based stats need rollups.
+
+## Reading stats
+
+- Pages read stats only through `Stats\StatsQuery`, built with the viewer's `AccessSnapshot::guildIds` (or one of them) and a period in local days. Never query `stat_*` tables from controllers.
+- Leaderboards return `{ member, total }` and pairs `{ first, second, total }`, where `member` is `{ id, name, avatar_url, person_slug }`. The unit of `total` depends on the board (count or seconds), and the page formats it.
+- Person pages show stats only for a linked Discord user who hasn't opted out (`stats: null` otherwise).
