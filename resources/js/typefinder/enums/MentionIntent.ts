@@ -7,6 +7,7 @@
 export const MentionIntent = {
     Capture: 'capture',
     RandomQuote: 'random_quote',
+    Search: 'search',
     Help: 'help',
 } as const;
 

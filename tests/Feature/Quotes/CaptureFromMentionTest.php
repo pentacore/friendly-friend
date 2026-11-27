@@ -198,3 +198,48 @@ it('falls back to anyone when the named person is unknown', function (): void {
 
     $this->discord->assertSent('777', 'only one');
 });
+
+it('DMs search results when the mention asks to find a quote', function (string $text): void {
+    $quote = Quote::factory()->for($this->guild)->withLine('Bo', 'IKEA is a labyrinth')->create();
+    $quote->refreshSearchText();
+    Quote::factory()->for($this->guild)->withLine('Ann', 'not this one')->create()->refreshSearchText();
+    jevSaysIntent('search');
+
+    dispatch_sync(new CaptureFromMention(mentionMessage("<@1000> {$text}")));
+
+    expect(Quote::query()->count())->toBe(2)
+        ->and($this->discord->sentMessages())->toBe([])
+        ->and(FakeDiscordClient::content($this->discord->directMessages()[0]['message']))
+        ->toContain('1 quote matches')
+        ->toContain('IKEA is a labyrinth')
+        ->not->toContain('not this one');
+})->with([
+    'find the one' => 'find the one where Bo talks about ikea',
+    'who said, quoted' => 'who said "ikea is a"?',
+    'Swedish' => 'hitta citatet där Bo säger labyrint',
+]);
+
+it('narrows a mention search to a mentioned member', function (): void {
+    $bo = Person::factory()->forDiscordUser(DiscordUser::factory()->create(['discord_id' => '50']))->create(['display_name' => 'Bo']);
+    $quote = Quote::factory()->for($this->guild)->withLine('Bo', 'coffee first')->create();
+    $quote->lines()->update(['person_id' => $bo->id]);
+    $quote->refreshSearchText();
+    Quote::factory()->for($this->guild)->withLine('Ann', 'coffee later')->create()->refreshSearchText();
+    jevSaysIntent('search');
+
+    dispatch_sync(new CaptureFromMention(mentionMessage('<@1000> find the coffee quote by <@50>', [
+        'mentions' => [['id' => '1000', 'username' => 'friendly-bot'], ['id' => '50', 'username' => 'bo']],
+    ])));
+
+    expect(FakeDiscordClient::content($this->discord->directMessages()[0]['message']))
+        ->toContain('coffee first')
+        ->not->toContain('coffee later');
+});
+
+it('asks what to look for when a mention search has no words left', function (): void {
+    jevSaysIntent('search');
+
+    dispatch_sync(new CaptureFromMention(mentionMessage('<@1000> can you find a quote for me?')));
+
+    expect(FakeDiscordClient::content($this->discord->directMessages()[0]['message']))->toContain('/quote search');
+});

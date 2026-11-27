@@ -34,13 +34,23 @@ use Illuminate\Queue\Attributes\Tries;
  * Someone mentioned the bot. Replying to a message: quote that message.
  * Otherwise Jev (`MentionIntentClassifier`) decides what they want: a random
  * quote (posted in the channel, or DMed if the server keeps random quotes
- * private), help (DMed), or, by default, to quote what they wrote ("@bot
+ * private), a search ("find the one where …", results DMed like the private
+ * `/quote search`), help (DMed), or, by default, to quote what they wrote ("@bot
  * Martin said …"). A message can't be private, so the preview goes to their DMs.
  */
 #[Tries(1)]
 final class CaptureFromMention implements ShouldQueue
 {
     use Queueable;
+
+    /** Words that ask for a search rather than describe the quote (English and Swedish). */
+    private const array ASKING_WORDS = [
+        'a', 'about', 'an', 'by', 'can', 'could', 'find', 'for', 'from', 'get', 'give', 'i', 'is', 'look', 'me', 'my', 'of',
+        'one', 'please', 'pls', 'plz', 'quote', 'quotes', 'said', 'say', 'says', 'search', 'show', 'someone', 'talked', 'talks',
+        'that', 'the', 'there', 'up', 'was', 'when', 'where', 'who', 'with', 'you',
+        'av', 'citat', 'citaten', 'citatet', 'där', 'den', 'det', 'du', 'efter', 'en', 'ett', 'från', 'hitta', 'jag', 'kan',
+        'leta', 'med', 'mig', 'när', 'om', 'pratar', 'sa', 'sade', 'snälla', 'som', 'säger', 'sök', 'tack', 'var', 'visa',
+    ];
 
     /**
      * @param  array<mixed>  $message  MESSAGE_CREATE
@@ -91,6 +101,12 @@ final class CaptureFromMention implements ShouldQueue
 
             if ($intent === MentionIntent::RandomQuote) {
                 $this->postRandomQuote($discord, $interactions, $resolvePerson, $guild, $member->discordId, $text);
+
+                return;
+            }
+
+            if ($intent === MentionIntent::Search) {
+                $discord->sendDirectMessage($member->discordId, $this->searchReply($interactions, $guild, $text));
 
                 return;
             }
@@ -196,6 +212,43 @@ final class CaptureFromMention implements ShouldQueue
         $name = trim((string) preg_replace('/[\s.!?,]+$/u', '', $name));
 
         return $name !== '' && mb_strlen($name) <= 40 ? $name : null;
+    }
+
+    /**
+     * Search results for "@bot find the one where Bo talks about IKEA":
+     * the quoted words if there are any, else the message without the
+     * asking words, narrowed to the first member mentioned besides the bot.
+     *
+     * @return array<string, mixed>
+     */
+    private function searchReply(QuoteInteractions $interactions, Guild $guild, string $text): array
+    {
+        $words = $this->searchWords($text);
+
+        if ($words === '') {
+            return QuoteMessages::notice('What should I look for? Try "@me find the one about kanelbullar", or /quote search.');
+        }
+
+        $personId = array_key_first($this->otherMentionNames());
+
+        return $interactions->search($guild, $words, $personId !== null ? (string) $personId : null);
+    }
+
+    /**
+     * The words worth searching for in a request: the quoted part
+     * ("who said "i can fix it"?") or every word that isn't part of asking.
+     */
+    private function searchWords(string $text): string
+    {
+        $text = (string) preg_replace('/<[@#][!&]?\d+>/', ' ', $text);
+
+        if (preg_match('/["“”„](.+?)["“”]/u', $text, $quoted) === 1) {
+            return trim($quoted[1]);
+        }
+
+        $words = preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return implode(' ', array_filter($words, fn (string $word): bool => ! in_array(mb_strtolower($word), self::ASKING_WORDS, true)));
     }
 
     private function draftFromText(Guild $guild, DiscordUser $submitter, QuoteNormalizer $normalizer, DraftQuote $draftQuote, string $text): Quote

@@ -12,5 +12,6 @@ enum MentionIntent: string
 {
     case Capture = 'capture';
     case RandomQuote = 'random_quote';
+    case Search = 'search';
     case Help = 'help';
 }

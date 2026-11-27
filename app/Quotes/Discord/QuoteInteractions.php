@@ -183,7 +183,7 @@ final readonly class QuoteInteractions
         return match ($subcommand['name'] ?? null) {
             QuoteCommands::ADD => $this->addCommand($guild, $actor, $options, $resolvedUsers),
             QuoteCommands::RANDOM => $this->randomQuote($guild, $options['person'] ?? null),
-            QuoteCommands::SEARCH => $this->searchCommand($guild, $options['text'] ?? '', $options['person'] ?? null),
+            QuoteCommands::SEARCH => $this->search($guild, $options['text'] ?? '', $options['person'] ?? null),
             QuoteCommands::IMPORT => $this->importCommand($guild, $actor, $options),
             default => QuoteMessages::notice('Unknown command.'),
         };
@@ -268,13 +268,14 @@ final readonly class QuoteInteractions
     }
 
     /**
-     * Up to five of this server's quotes matching the text (`Quote::search`),
+     * Up to five of this server's quotes matching the text (`Quote::search`,
+     * for `/quote search` and "@bot find the one where …"),
      * best match first, each with a link to its page; close spellings when
      * nothing matches exactly.
      *
      * @return array<string, mixed>
      */
-    private function searchCommand(Guild $guild, string $text, ?string $personDiscordId): array
+    public function search(Guild $guild, string $text, ?string $personDiscordId = null): array
     {
         $matches = Quote::query()
             ->whereBelongsTo($guild)

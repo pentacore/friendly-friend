@@ -110,7 +110,7 @@ final class QuoteMessages
             '• Reply to a message and @mention me, or right-click it → Apps → **Save quote**, to save it as a quote.',
             '• **/quote add**, or @mention me with what was said ("@me Bo said …"), to save a quote you write yourself.',
             '• **/quote random** [person], or ask me for a random quote, to see one.',
-            '• **/quote search** text [person] to find quotes (only you see the results).',
+            '• **/quote search** text [person], or ask me to find one ("@me find the one about IKEA"), to find quotes (only you see the results).',
             '• **/privacy** to opt out of server stats.',
             'Every saved quote is also on the website.',
         ]));

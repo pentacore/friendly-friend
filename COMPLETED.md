@@ -98,6 +98,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Browser layout gate: every page on a phone and a desktop, light and dark (no JavaScript errors, no sideways overflow, dark theme applied, every control named), with a test that every page route is in it, and the browser suite in 3 duration-balanced CI shards.
 - [x] Release pipeline: after CI passes on `main`, semantic-release versions from conventional commits, writes `CHANGELOG.md`, tags and publishes a GitHub release, and the tagged image goes to GHCR, where `compose.prod.yaml` pulls it. The image is generic: the browser's Reverb endpoint moved from build-time `VITE_REVERB_*` to a runtime `<meta name="reverb-config">` (`REVERB_BROWSER_*`).
 - [x] Quotes: search ignores accents (`f_unaccent`, `hakan` finds _Håkan_) and falls back to close spellings for typos when nothing matches exactly (`Quote::applySearch`, trigram `word_similarity`), on the feed and in `/quote search`
+- [x] Discord: Jev routes @mentions that ask to find a quote ("find the one where Bo talks about IKEA", "who said …?") to the quote search; results are DMed like `/quote search`
 
 ## Bugs found and fixed along the way
 

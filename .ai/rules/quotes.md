@@ -28,4 +28,4 @@ paths:
 - The AI keeps the wording (quotes are deliberately unfair). It only fixes formatting.
 - Channel imports detect quotes with `QuoteDetector`: Jev if configured, then a cheap LLM, then heuristics.
 - **Jev goes only through OpenRouter**, via `App\Ai\Jev` (`isAvailable()` = `OPENROUTER_API_KEY` set, `ask()` = one laravel/ai Classification question on `Lab::OpenRouter`). Never call `Classification` or `Lab::TypeSafe` directly. Every Jev use has a non-Jev fallback, also when it throws, so Jev only ever improves a decision.
-- An @mention (not a reply) goes through `MentionIntentClassifier`: capture unless Jev is ≥ 0.6 sure it's a random-quote or help request. Capture is the default because its preview can be cancelled; a reply-mention always captures.
+- An @mention (not a reply) goes through `MentionIntentClassifier`: capture unless Jev is ≥ 0.6 sure it's a random-quote, search or help request. Search results are DMed, like the private `/quote search`. Capture is the default because its preview can be cancelled; a reply-mention always captures.

@@ -44,7 +44,6 @@ A design discussion comes before any plan.
 Quote search runs through one scope, `Quote::search()`: prefix matching while typing, accents ignored, close spellings when nothing matches exactly, people's current names and nicknames, best-match order and highlighted matches, on the feed and in `/quote search`. What's left:
 
 - [ ] Global search / command palette (Ctrl+K) across quotes, people and events. The unused starter-kit `AppHeader.vue` has a search button that does nothing; wire it up or delete the component
-- [ ] Discord: let Jev route @mentions that ask for a quote ("find the one where…") to search instead of saving a new quote. Jev is a classifier (`Classification`), so it picks the intent, not the results. Add a search intent to `MentionIntentClassifier`. Cost: one small classification per @mention, cheaper than the AI parsing a save already does
 
 ## Setup outside the code
 
