@@ -32,7 +32,7 @@ Tip: `alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'`.
 | Telescope           | http://localhost/telescope                                                |
 | Mailpit             | http://localhost:8025                                                     |
 
-The Sail stack runs `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis` and `mailpit` (see `compose.yaml`). The Discord `bot` service starts only with `COMPOSE_PROFILES=bot` (see [bot.md](bot.md)). After changing queued job code, restart Horizon with `vendor/bin/sail restart horizon`.
+The Sail stack runs `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis` and `mailpit` (see `compose.yaml`). The Discord `bot` service starts only with `COMPOSE_PROFILES=bot` (see [bot.md](bot.md)). After changing queued job code, restart Horizon with `vendor/bin/sail restart horizon`. `laravel.test` runs with `init: true`, so exited processes (the Chrome instances browser tests leave) are reaped; after pulling a change to `compose.yaml`, recreate the containers with `vendor/bin/sail up -d`.
 
 ## Checks (run before every commit, same as CI)
 

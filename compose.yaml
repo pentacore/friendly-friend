@@ -1,5 +1,8 @@
 services:
     laravel.test:
+        # A real init as PID 1 reaps exited processes. Without it `artisan serve` is PID 1 and
+        # never does, so every browser run leaves zombie Chrome processes behind.
+        init: true
         build:
             context: ./vendor/laravel/sail/runtimes/8.5
             dockerfile: Dockerfile

@@ -25,6 +25,7 @@
         "echo-development",
         "tailwindcss-development",
         "typefinder-development",
+        "cleaning-up-after-a-merge",
         "formatting-project",
         "running-browser-tests",
         "working-in-a-worktree"

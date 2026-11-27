@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Vite;
+use Tests\Support\OrphanedPlaywrightServers;
 use Tests\TestCase;
 
 /*
@@ -17,6 +18,13 @@ use Tests\TestCase;
 | need to change it using the "pest()" function to bind different classes or traits.
 |
 */
+
+// Playwright servers left behind by killed browser runs pile up in the Sail
+// container. Only orphans (children of PID 1) are stopped, never a live run's
+// server. REAP_ORPHANED_PLAYWRIGHT=0 leaves them alone.
+if (getenv('REAP_ORPHANED_PLAYWRIGHT') !== '0') {
+    OrphanedPlaywrightServers::reap();
+}
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)

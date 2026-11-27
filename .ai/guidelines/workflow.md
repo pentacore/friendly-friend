@@ -21,6 +21,7 @@
 - Formatting or cleaning up code: the `formatting-project` skill (Rector, then Vite+, then Pint, keeping every change they make).
 - Running browser tests: the `running-browser-tests` skill.
 - Working in a git worktree (setup in Sail, its own test database, cleanup): the `working-in-a-worktree` skill.
+- **When your pull request is merged, clean up after yourself in the same session**: your Playwright servers, test databases, worktree and branch (the `cleaning-up-after-a-merge` skill). Only ever what is yours.
 
 ## Before every commit
 

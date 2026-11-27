@@ -25,9 +25,9 @@ Always pass `-u sail`. A command run as root leaves root-owned files in shared f
 
 - Pass the database on every test run, and `CLAUDECODE=1` for compact one-line JSON output from Pest, PHPStan and Rector (`laravel/pao`): `docker exec -u sail -e CLAUDECODE=1 -e DB_DATABASE=testing_<name> -w … friendly-friend-laravel.test-1 composer test`. `phpunit.xml` doesn't force its `testing` value, so the variable wins. Parallel runs add `testing_<name>_test_1`, `_2` and so on.
 - Git doesn't work inside the container: the worktree's `.git` file points at a host path. `pint --dirty` fails there, so pass Pint the changed files instead (`vendor/bin/pint --format agent app/… tests/…`). Run git itself on the host.
-- A browser run can leave its `playwright run-server` behind (a known plugin leak), holding the output pipe open: send the output to a file (`> storage/logs/browser.log`) instead of piping it into `tail`.
+- A killed browser run can leave its `playwright run-server` behind, holding the output pipe open: send the output to a file (`> storage/logs/browser.log`) instead of piping it into `tail`. The next test run stops such orphans (`tests/Pest.php`); set `REAP_ORPHANED_PLAYWRIGHT=0` to keep them.
 - Long-running services (Horizon, the bot, Reverb) run the main checkout's code, not the worktree's.
 
 ## Clean up
 
-When the worktree is removed, drop its databases: `testing_<name>` and every `testing_<name>_test_*`.
+When the pull request is merged, follow the `cleaning-up-after-a-merge` skill: it stops your leftover processes, drops your test databases and removes the worktree and branch.
