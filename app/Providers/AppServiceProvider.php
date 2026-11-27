@@ -42,13 +42,15 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Discord OAuth (Socialite) and the admin gate (Discord admin roles).
+     * Discord OAuth (Socialite) and the gates: `admin` (owners and guild
+     * admin roles) and `manage-guilds` (owners only).
      */
     protected function configureAuth(): void
     {
         Event::listen(SocialiteWasCalled::class, [DiscordExtendSocialite::class, 'handle']);
 
-        Gate::define('admin', fn (User $user): bool => app(GuildAccess::class)->isAdmin($user->discordMember));
+        Gate::define('admin', fn (User $user): bool => app(GuildAccess::class)->isAdmin($user->discordUser));
+        Gate::define('manage-guilds', fn (User $user): bool => app(GuildAccess::class)->isOwner($user->discordUser));
     }
 
     /**

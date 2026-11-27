@@ -3,13 +3,14 @@
 **Date:** 2026-11-26
 **Status:** Approved in brainstorming, awaiting written-spec review
 
-A private website and Discord bot for one Discord server of friends. It captures quotes from Discord (cleaned up by AI, editable before saving), shows them on a website with voting, this-or-that and top lists, and tracks server activity statistics with an opt-out.
+A private website and Discord bot for a group of friends across **one or more Discord servers**. It captures quotes from Discord (cleaned up by AI, editable before saving), shows them on a website with voting, this-or-that and top lists, and tracks server activity statistics with an opt-out.
 
 ## 1. Goals and non-goals
 
 **Goals**
 
-- Discord-only login, restricted to members of one configured server who have an allowed role.
+- Discord-only login, restricted to members (with an allowed role) of any enabled server, plus the owners listed in `.env`.
+- The bot can be in several servers. Quotes and people are one shared pool, each quote tagged with its server. Stats are recorded per server, with filters and combined totals.
 - Capture quotes from Discord in four ways, normalize them with AI, and let the submitter preview and edit them before saving.
 - Import past quotes from an existing channel (backfill), with an admin review queue.
 - Quotes can attribute lines to anyone, including people who aren't on Discord.
@@ -20,7 +21,7 @@ A private website and Discord bot for one Discord server of friends. It captures
 
 **Non-goals (YAGNI)**
 
-- Supporting more than one server.
+- Fully separate per-server spaces. Data is shared and tagged, never siloed.
 - Storing message content for stats (counts only).
 - Quote tags or categories, comments, public or anonymous access, mobile apps.
 - Backfilling _statistics_ from channel history. Stats start when the bot joins, and only quotes can be imported.
@@ -73,31 +74,33 @@ Browser (Vue/Inertia) ──► web (FrankenPHP) ──► PostgreSQL / Redis
 
 ## 4. Data model
 
-Configured in `.env`: `DISCORD_GUILD_ID`, `DISCORD_ALLOWED_ROLE_IDS`, `DISCORD_ADMIN_ROLE_IDS`, `DISCORD_QUOTES_CHANNEL_ID`.
+Configured in `.env`: `DISCORD_OWNER_IDS` (Discord **user** IDs, comma-separated). Owners can always log in, are admins, and are the only ones who can change server settings. Everything else per server lives in `guilds` and is edited on the owners-only admin page.
 
 **Identity**
 
-- `discord_members`: id, discord_id (unique), username, global_name, guild_nick, avatar, role_ids (jsonb), in_guild (bool), tracking_opted_out_at (nullable), timestamps. Synced by the bot for **every** member.
-- `users`: id, discord_member_id (FK, unique), remember_token, last_access_check_at, timestamps. Admin status comes from `role_ids` ∩ admin roles.
-- `people`: id, display_name, slug (unique), discord_member_id (nullable FK, unique), timestamps. An outsider is a person with no `discord_member_id`.
+- `guilds`: id, discord_id (unique), name, icon, bot_present (bool), enabled (bool, default false), allow_all_members (bool), allowed_role_ids (jsonb), admin_role_ids (jsonb), roles (jsonb cache of `{id, name, color, position}` for the role pickers), quotes_channel_id (nullable, Phase 4), timestamps. Registered by the bot when it joins or connects to a server. It stays disabled until an owner enables it.
+- `discord_users`: id, discord_id (unique), username, global_name, avatar, tracking_opted_out_at (nullable), timestamps. One row per person, the same across all servers.
+- `guild_members`: id, guild_id (FK), discord_user_id (FK), nick, guild_avatar, role_ids (jsonb), in_guild (bool), timestamps, unique (guild_id, discord_user_id). Synced by the bot for **every** member of every enabled server.
+- `users`: id, discord_user_id (FK, unique), remember_token, last_access_check_at, timestamps.
+- `people`: id, display_name, slug (unique), discord_user_id (nullable FK, unique), timestamps. An outsider is a person with no `discord_user_id`.
 - `person_aliases`: id, person_id, alias (case-insensitive unique).
 
 **Quotes**
 
-- `quotes`: id, status (`QuoteStatus`: draft, pending_review, published, removed), context (nullable), said_at (nullable), said_at_precision (`exact`, `day`, `approximate`), source (`QuoteSource`: reply_mention, context_menu, slash_command, mention_freetext, channel_import), source_message_id (nullable, unique), source_message_url (nullable), import_id (nullable FK), channel_id (nullable), submitted_by_member_id (FK), raw_input (text), ai_output (jsonb, nullable), score (int, cached up minus down), elo (int, default 1000), matchup_count, published_at, timestamps, plus a Postgres full-text `tsvector` generated column over the lines and context.
+- `quotes`: id, status (`QuoteStatus`: draft, pending_review, published, removed), context (nullable), said_at (nullable), said_at_precision (`exact`, `day`, `approximate`), source (`QuoteSource`: reply_mention, context_menu, slash_command, mention_freetext, channel_import), source_message_id (nullable, unique), source_message_url (nullable), import_id (nullable FK), channel_id (nullable), guild_id (FK, the server it came from), submitted_by_discord_user_id (FK), raw_input (text), ai_output (jsonb, nullable), score (int, cached up minus down), elo (int, default 1000), matchup_count, published_at, timestamps, plus a Postgres full-text `tsvector` generated column over the lines and context.
 - `quote_lines`: id, quote_id, person_id, position, text.
-- `quote_revisions`: id, quote_id, editor_member_id, snapshot (jsonb of the lines, context and said_at), created_at.
+- `quote_revisions`: id, quote_id, editor_discord_user_id, snapshot (jsonb of the lines, context and said_at), created_at.
 - `quote_votes`: quote_id, user_id, value (+1/-1), unique (quote_id, user_id).
 - `quote_matchups`: id, user_id, quote_a_id, quote_b_id, winner_quote_id, created_at. Elo uses K=32.
 
-- `quote_imports`: id, channel_id, requested_by_member_id, status (queued, running, done, failed), before_message_id cursor, messages_scanned, quotes_found, started_at, finished_at.
+- `quote_imports`: id, channel_id, guild_id, requested_by_discord_user_id, status (queued, running, done, failed), before_message_id cursor, messages_scanned, quotes_found, started_at, finished_at.
 
-**Stats** (keyed by `discord_member_id`, so members who never log in are counted too)
+**Stats** (keyed by `guild_id` + `discord_user_id`, so members who never log in are counted too, and every stat can be shown per server or combined)
 
-- `stat_messages`: member_id, channel_id, hour (timestamptz, truncated), count. Unique (member, channel, hour). Updated by upsert.
-- `stat_voice_sessions`: id, member_id, channel_id, started_at, ended_at (nullable).
-- `stat_reactions`: reactor_member_id, target_member_id (nullable), emoji (unicode or custom id:name), day, count. Unique on all but count.
-- `stat_activity_sessions`: id, member_id, activity_name, activity_type, started_at, ended_at (nullable).
+- `stat_messages`: guild_id, discord_user_id, channel_id, hour (timestamptz, truncated), count. Unique (guild, user, channel, hour). Updated by upsert.
+- `stat_voice_sessions`: id, guild_id, discord_user_id, channel_id, started_at, ended_at (nullable).
+- `stat_reactions`: guild_id, reactor_discord_user_id, target_discord_user_id (nullable), emoji (unicode or custom id:name), day, count. Unique on all but count.
+- `stat_activity_sessions`: id, guild_id, discord_user_id, activity_name, activity_type, started_at, ended_at (nullable).
 - `stat_daily_*` rollups, written nightly, for the dashboards. Voice co-presence ("hours together") is calculated from overlapping `stat_voice_sessions` in the nightly rollup.
 
 ## 5. Quote capture (Discord)
@@ -116,7 +119,7 @@ All four input methods produce a **draft quote**, then a **private preview**, th
 3. `ResolvePerson` for each speaker checks, in order: Discord ID → alias or display name (case-insensitive) → Postgres trigram similarity ≥ 0.6 → otherwise proposes a **new outside person**.
 4. The bot sends a private reply (or a direct message, for the mention-based methods) with the formatted draft, how each speaker was resolved, and the buttons **Save**, **Edit** and **Cancel**.
 5. **Edit** opens a Discord form with fields for the lines (one `Name: text` per line), context and when. Submitting re-parses it without AI (plain `Name:` prefix parsing plus `ResolvePerson`) and shows the preview again.
-6. **Save** calls `ConfirmQuote`, which sets the status to `published`, writes the first `quote_revisions` snapshot, broadcasts `QuotePublished` (Reverb), and posts to `DISCORD_QUOTES_CHANNEL_ID`.
+6. **Save** calls `ConfirmQuote`, which sets the status to `published`, writes the first `quote_revisions` snapshot, broadcasts `QuotePublished` (Reverb), and posts to that server's `quotes_channel_id`, if one is set.
 7. Drafts not confirmed within 15 minutes are deleted by a scheduled job.
 
 `/quote random [person]` posts a random published quote in the channel.
@@ -154,9 +157,11 @@ All Inertia controller actions carry `#[TypefinderPage]` (kept current by Rector
 ## 7. Access control
 
 - OAuth scopes: `identify`, `guilds.members.read`.
-- At login: fetch the member record for `DISCORD_GUILD_ID`. Access is denied unless the user is a member and has at least one role in `DISCORD_ALLOWED_ROLE_IDS`. Their `discord_member` and `user` rows are created or updated.
-- The `guild.access` middleware rejects users with `in_guild = false` or no allowed role, using the bot-synced `discord_members` data.
-- `SyncGuildMembers` runs every 3 hours (and the bot updates members in real time on member join, update and leave). _Implementation note (Phase 2):_ sessions live in Redis, so they aren't deleted. Instead `guild.access` re-checks the stored member row on every request and logs out anyone who lost access. Admin roles always count as allowed, and an empty allowed list means every guild member may log in.
+- OAuth also asks for the `guilds` scope. At login: list the user's servers (`/users/@me/guilds`), keep the **enabled** ones, read the membership in each (`/users/@me/guilds/{id}/member`), and upsert `discord_users` plus `guild_members`.
+- **Allowed** = an owner (`DISCORD_OWNER_IDS`), **or** in at least one enabled server where they are still a member and (`allow_all_members`, or a role in `allowed_role_ids`, or a role in `admin_role_ids`).
+- **Admin** (`admin` gate: Horizon, quote moderation) = an owner, **or** an admin role in an enabled server. **Server settings** (`manage-guilds` gate) are owners only.
+- The `guild.access` middleware re-checks this on every request against the stored membership rows.
+- `SyncGuildMembers` (one per enabled server) runs every 3 hours (and the bot updates members in real time on member join, update and leave). _Implementation note (Phase 2):_ sessions live in Redis, so they aren't deleted. Instead `guild.access` re-checks the stored member row on every request and logs out anyone who lost access. Admin roles always count as allowed, and an empty allowed list means every guild member may log in.
 
 ## 8. Statistics and opt-out
 
@@ -202,6 +207,7 @@ Each phase ends with passing CI, a commit, and rules and docs updated.
 1. **Foundation**: scaffold the Laravel 13 Vue starter kit (into a temp directory, then move it here, since this directory already holds `docs/`), set up Sail with PHP 8.5, Postgres and Redis, install all the tooling, Typefinder (Inertia and broadcasting turned on, Rector sets), Boost and guidelines, CI, the production Dockerfile and compose file.
 2. **Access**: Socialite Discord login, the guild and role gate, `discord_members`/`users` and the access middleware. Drop the starter kit's email/password auth.
 3. **Bot core**: `bot:run`, the event → job pipeline, member sync, heartbeat, `DiscordClient` and its fake.
+   3b. **Multiple servers**: `guilds` / `discord_users` / `guild_members`, owners in `.env`, per-server access settings, the bot registering servers, and the owners-only `/admin/guilds` page.
 4. **Quotes in Discord**: `people`/aliases, quotes schema, `QuoteNormalizer`, the four input methods, preview, edit and save, the quotes channel post, `/quote random`, channel import job.
 5. **Quotes on the web**: feed, search, quote page and edit history, voting with Reverb, this or that, top lists, people pages, admin (including the import review queue).
 6. **Stats**: ingest jobs, sessions, rollups, dashboards, opt-out on the web and in Discord, purge.

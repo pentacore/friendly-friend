@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Discord\Gateway;
 
 use App\Access\Jobs\MarkMemberLeft;
-use App\Access\Jobs\SyncGuildMembers;
 use App\Access\Jobs\UpsertGuildMember;
+use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Jobs\MarkGuildLeft;
+use App\Discord\Jobs\RefreshGuild;
+use App\Discord\Jobs\RegisterGuild;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Turns gateway dispatch events (type + decoded `d` payload) into queued
  * jobs. Runs inside the bot process, so it must stay cheap: no database, no
- * HTTP, no business logic. It only checks the guild and queues work.
+ * HTTP, no business logic. Whether a guild is enabled is the jobs' concern.
  */
 final readonly class GatewayEventRouter
 {
@@ -23,11 +26,67 @@ final readonly class GatewayEventRouter
     public function route(string $type, array $payload): void
     {
         match ($type) {
+            'GUILD_CREATE' => $this->guildAvailable($type, $payload, syncMembers: true),
+            'GUILD_UPDATE' => $this->guildAvailable($type, $payload, syncMembers: false),
+            'GUILD_DELETE' => $this->guildRemoved($payload),
+            'GUILD_ROLE_CREATE', 'GUILD_ROLE_UPDATE', 'GUILD_ROLE_DELETE' => $this->rolesChanged($type, $payload),
             'GUILD_MEMBER_ADD', 'GUILD_MEMBER_UPDATE' => $this->memberChanged($type, $payload),
             'GUILD_MEMBER_REMOVE' => $this->memberLeft($type, $payload),
-            'GUILD_CREATE' => $this->guildAvailable($payload),
             default => null,
         };
+    }
+
+    /**
+     * GUILD_CREATE arrives when the bot joins a guild and for every guild on
+     * connect, so it also triggers a member sync to catch missed events.
+     *
+     * @param  array<mixed>  $payload
+     */
+    private function guildAvailable(string $type, array $payload, bool $syncMembers): void
+    {
+        if (($payload['unavailable'] ?? false) === true) {
+            return;
+        }
+
+        $guild = GuildData::fromPayload($payload);
+
+        if (! $guild->isValid()) {
+            $this->malformed($type);
+
+            return;
+        }
+
+        dispatch(new RegisterGuild($guild, $syncMembers));
+    }
+
+    /**
+     * `unavailable: true` means a Discord outage, not that the bot was removed.
+     *
+     * @param  array<mixed>  $payload
+     */
+    private function guildRemoved(array $payload): void
+    {
+        $guildId = $this->string($payload, 'id');
+
+        if ($guildId !== null && ($payload['unavailable'] ?? false) !== true) {
+            dispatch(new MarkGuildLeft($guildId));
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $payload
+     */
+    private function rolesChanged(string $type, array $payload): void
+    {
+        $guildId = $this->string($payload, 'guild_id');
+
+        if ($guildId === null) {
+            $this->malformed($type);
+
+            return;
+        }
+
+        dispatch(new RefreshGuild($guildId));
     }
 
     /**
@@ -35,19 +94,16 @@ final readonly class GatewayEventRouter
      */
     private function memberChanged(string $type, array $payload): void
     {
-        if (! $this->isOurGuild($payload['guild_id'] ?? null)) {
-            return;
-        }
-
+        $guildId = $this->string($payload, 'guild_id');
         $member = GuildMemberData::fromPayload($payload);
 
-        if ($member->discordId === '' || $member->username === '') {
+        if ($guildId === null || ! $member->isValid()) {
             $this->malformed($type);
 
             return;
         }
 
-        dispatch(new UpsertGuildMember($member));
+        dispatch(new UpsertGuildMember($guildId, $member));
     }
 
     /**
@@ -55,38 +111,27 @@ final readonly class GatewayEventRouter
      */
     private function memberLeft(string $type, array $payload): void
     {
-        if (! $this->isOurGuild($payload['guild_id'] ?? null)) {
-            return;
-        }
-
+        $guildId = $this->string($payload, 'guild_id');
         $user = $payload['user'] ?? null;
-        $discordId = is_array($user) && is_string($user['id'] ?? null) ? $user['id'] : null;
+        $userId = is_array($user) ? $this->string($user, 'id') : null;
 
-        if ($discordId === null) {
+        if ($guildId === null || $userId === null) {
             $this->malformed($type);
 
             return;
         }
 
-        dispatch(new MarkMemberLeft($discordId));
+        dispatch(new MarkMemberLeft($guildId, $userId));
     }
 
     /**
-     * Sent on connect and after outages: refresh every member, since member
-     * events may have been missed while the bot was away.
-     *
-     * @param  array<mixed>  $payload
+     * @param  array<mixed>  $data
      */
-    private function guildAvailable(array $payload): void
+    private function string(array $data, string $key): ?string
     {
-        if ($this->isOurGuild($payload['id'] ?? null)) {
-            dispatch(new SyncGuildMembers);
-        }
-    }
+        $value = $data[$key] ?? null;
 
-    private function isOurGuild(mixed $guildId): bool
-    {
-        return is_string($guildId) && $guildId === config()->string('discord.guild_id');
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     private function malformed(string $type): void

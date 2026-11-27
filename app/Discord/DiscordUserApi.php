@@ -14,6 +14,30 @@ use Illuminate\Support\Facades\Http;
 final readonly class DiscordUserApi
 {
     /**
+     * IDs of every guild the user is in (needs the `guilds` scope).
+     *
+     * @return list<string>
+     *
+     * @throws RequestException
+     */
+    public function guildIds(string $accessToken): array
+    {
+        $payload = Http::baseUrl(config()->string('discord.api_base'))
+            ->withToken($accessToken)
+            ->acceptJson()
+            ->get('users/@me/guilds')
+            ->throw()
+            ->json();
+
+        $guilds = is_array($payload) ? array_filter($payload, is_array(...)) : [];
+
+        return array_values(array_filter(
+            array_map(fn (array $guild): mixed => $guild['id'] ?? null, $guilds),
+            is_string(...),
+        ));
+    }
+
+    /**
      * The user's membership of the guild, or null if they are not a member.
      *
      * @throws RequestException on any Discord error other than "not a member"

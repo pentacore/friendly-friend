@@ -25,7 +25,6 @@ function memberPayload(string $id, array $roles = ['100'], ?string $nick = null)
 }
 
 beforeEach(function (): void {
-    config()->set('discord.guild_id', '555');
     config()->set('discord.bot_token', 'bot-token');
 });
 
@@ -45,6 +44,24 @@ it('fetches the current user guild member with the oauth token', function (): vo
         ->and($member?->roleIds)->toBe(['100', '7']);
 
     Http::assertSent(fn (Request $request): bool => $request->hasHeader('Authorization', 'Bearer user-token'));
+});
+
+it('lists the ids of the user\'s guilds', function (): void {
+    Http::fake(['discord.com/api/v10/users/@me/guilds' => Http::response([['id' => '555', 'name' => 'A'], ['id' => '777', 'name' => 'B']])]);
+
+    expect(app(DiscordUserApi::class)->guildIds('user-token'))->toBe(['555', '777']);
+});
+
+it('fetches a guild with its roles using the bot token', function (): void {
+    Http::fake(['discord.com/api/v10/guilds/555' => Http::response([
+        'id' => '555', 'name' => 'Friends', 'icon' => null,
+        'roles' => [['id' => '100', 'name' => 'Friends', 'color' => 1, 'position' => 1, 'managed' => false]],
+    ])]);
+
+    $guild = app(HttpDiscordClient::class)->guild('555');
+
+    expect($guild->name)->toBe('Friends')
+        ->and($guild->roles[0]->name)->toBe('Friends');
 });
 
 it('returns null when the user is not in the guild', function (): void {

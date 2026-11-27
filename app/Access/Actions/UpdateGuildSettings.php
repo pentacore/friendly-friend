@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Access\Actions;
+
+use App\Access\Jobs\SyncGuildMembers;
+use App\Models\Guild;
+
+/**
+ * Saves a server's access settings. Enabling a server pulls in its members
+ * straight away, so its people can log in without waiting for the schedule.
+ */
+final readonly class UpdateGuildSettings
+{
+    /**
+     * @param  list<string>  $allowedRoleIds
+     * @param  list<string>  $adminRoleIds
+     */
+    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds): Guild
+    {
+        $wasEnabled = $guild->enabled;
+
+        $guild->update([
+            'enabled' => $enabled,
+            'allow_all_members' => $allowAllMembers,
+            'allowed_role_ids' => array_values(array_unique($allowedRoleIds)),
+            'admin_role_ids' => array_values(array_unique($adminRoleIds)),
+        ]);
+
+        if ($enabled && ! $wasEnabled) {
+            dispatch(new SyncGuildMembers($guild->discord_id));
+        }
+
+        return $guild;
+    }
+}

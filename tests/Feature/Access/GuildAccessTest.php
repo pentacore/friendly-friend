@@ -3,54 +3,97 @@
 declare(strict_types=1);
 
 use App\Access\GuildAccess;
-use App\Models\DiscordMember;
+use App\Models\DiscordUser;
+use App\Models\Guild;
+use App\Models\GuildMember;
 
-beforeEach(function (): void {
-    config()->set('discord.allowed_role_ids', ['100', '101']);
-    config()->set('discord.admin_role_ids', ['900']);
-});
+/**
+ * @param  list<string>  $roles
+ */
+function memberIn(Guild $guild, array $roles, ?DiscordUser $user = null): DiscordUser
+{
+    $user ??= DiscordUser::factory()->create();
+    GuildMember::factory()->for($guild)->for($user)->withRoles($roles)->create();
 
-it('allows a member with an allowed role', function (): void {
-    $member = DiscordMember::factory()->withRoles(['5', '101'])->make();
+    return $user;
+}
 
-    expect(app(GuildAccess::class)->allows($member))->toBeTrue();
+it('allows a member with an allowed role in an enabled guild', function (): void {
+    $user = memberIn(Guild::factory()->create(), ['5', '100']);
+
+    expect(app(GuildAccess::class)->allows($user))->toBeTrue();
 });
 
 it('denies a member without an allowed role', function (): void {
-    $member = DiscordMember::factory()->withRoles(['5'])->make();
+    $user = memberIn(Guild::factory()->create(), ['5']);
 
-    expect(app(GuildAccess::class)->allows($member))->toBeFalse();
+    expect(app(GuildAccess::class)->allows($user))->toBeFalse();
 });
 
-it('denies a member who left the guild even with an allowed role', function (): void {
-    $member = DiscordMember::factory()->withRoles(['100'])->leftGuild()->make();
+it('ignores memberships of disabled guilds', function (): void {
+    $user = memberIn(Guild::factory()->disabled()->create(), ['100', '900']);
+    $access = app(GuildAccess::class);
 
-    expect(app(GuildAccess::class)->allows($member))->toBeFalse();
+    expect($access->allows($user))->toBeFalse()
+        ->and($access->isAdmin($user))->toBeFalse();
 });
 
-it('allows any guild member when no allowed roles are configured', function (): void {
-    config()->set('discord.allowed_role_ids', []);
-    $member = DiscordMember::factory()->withRoles([])->make();
+it('denies members who left the guild', function (): void {
+    $user = DiscordUser::factory()->create();
+    GuildMember::factory()->for(Guild::factory()->create())->for($user)->withRoles(['100'])->leftGuild()->create();
 
-    expect(app(GuildAccess::class)->allows($member))->toBeTrue();
+    expect(app(GuildAccess::class)->allows($user))->toBeFalse();
+});
+
+it('allows any member of a guild that allows all members', function (): void {
+    $user = memberIn(Guild::factory()->allowAllMembers()->create(), []);
+
+    expect(app(GuildAccess::class)->allows($user))->toBeTrue();
+});
+
+it('allows access through any one of several guilds', function (): void {
+    $user = memberIn(Guild::factory()->create(), ['5']);
+    memberIn(Guild::factory()->create(['allowed_role_ids' => ['200']]), ['200'], $user);
+
+    expect(app(GuildAccess::class)->allows($user))->toBeTrue();
+});
+
+it('uses each guild\'s own role lists', function (): void {
+    $guildA = Guild::factory()->create(['allowed_role_ids' => ['100'], 'admin_role_ids' => []]);
+    $guildB = Guild::factory()->create(['allowed_role_ids' => ['200'], 'admin_role_ids' => []]);
+
+    // Role 200 belongs to guild B's list; holding it in guild A means nothing.
+    $user = memberIn($guildA, ['200']);
+    memberIn($guildB, ['100'], $user);
+
+    expect(app(GuildAccess::class)->allows($user))->toBeFalse();
 });
 
 it('treats admin roles as allowed and admin', function (): void {
-    $member = DiscordMember::factory()->withRoles(['900'])->make();
+    $user = memberIn(Guild::factory()->create(), ['900']);
     $access = app(GuildAccess::class);
 
-    expect($access->allows($member))->toBeTrue()
-        ->and($access->isAdmin($member))->toBeTrue();
+    expect($access->allows($user))->toBeTrue()
+        ->and($access->isAdmin($user))->toBeTrue()
+        ->and($access->isOwner($user))->toBeFalse();
 });
 
-it('is not admin without an admin role', function (): void {
-    $member = DiscordMember::factory()->withRoles(['100'])->make();
+it('lets owners in without any membership and makes them admin', function (): void {
+    $user = DiscordUser::factory()->create(['discord_id' => '4242']);
+    config()->set('discord.owner_ids', ['4242']);
+    $access = app(GuildAccess::class);
 
-    expect(app(GuildAccess::class)->isAdmin($member))->toBeFalse();
+    expect($access->allows($user))->toBeTrue()
+        ->and($access->isAdmin($user))->toBeTrue()
+        ->and($access->isOwner($user))->toBeTrue();
 });
 
-it('is never admin after leaving the guild', function (): void {
-    $member = DiscordMember::factory()->withRoles(['900'])->leftGuild()->make();
+it('lists the enabled guilds a user can access', function (): void {
+    $allowed = Guild::factory()->create();
+    $noRole = Guild::factory()->create();
+    $user = memberIn($allowed, ['100']);
+    memberIn($noRole, ['5'], $user);
+    memberIn(Guild::factory()->disabled()->create(), ['100'], $user);
 
-    expect(app(GuildAccess::class)->isAdmin($member))->toBeFalse();
+    expect(app(GuildAccess::class)->accessibleGuildIds($user))->toBe([$allowed->id]);
 });

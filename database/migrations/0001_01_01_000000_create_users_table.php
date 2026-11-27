@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('discord_member_id')->unique()->constrained()->cascadeOnDelete();
+            $table->foreignId('discord_user_id')->unique()->constrained()->cascadeOnDelete();
             $table->rememberToken();
             $table->timestamp('last_access_check_at')->nullable();
             $table->timestamps();

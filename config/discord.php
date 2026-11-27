@@ -11,24 +11,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Guild (server)
+    | Owners
     |--------------------------------------------------------------------------
     |
-    | The single Discord server this app belongs to. Only its members can log
-    | in. Snowflake IDs are kept as strings (they exceed JS safe integers).
+    | Discord *user* IDs (comma-separated) that can always log in, are admins,
+    | and are the only ones who can manage servers on /admin/guilds. Which
+    | servers count, and which of their roles get in, is stored per server
+    | in the `guilds` table, not here.
     |
     */
 
-    'guild_id' => (string) env('DISCORD_GUILD_ID', ''),
-
-    /*
-    | Role IDs that may log in. Empty list = every member of the guild.
-    | Admin roles are always allowed as well.
-    */
-
-    'allowed_role_ids' => $ids('DISCORD_ALLOWED_ROLE_IDS'),
-
-    'admin_role_ids' => $ids('DISCORD_ADMIN_ROLE_IDS'),
+    'owner_ids' => $ids('DISCORD_OWNER_IDS'),
 
     /*
     |--------------------------------------------------------------------------

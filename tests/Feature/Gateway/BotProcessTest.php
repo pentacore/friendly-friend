@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Discord\Gateway\BotHeartbeat;
 use App\Discord\Gateway\GatewayIntents;
 use Discord\WebSockets\Intents;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 
 it('is online right after a heartbeat', function (): void {
@@ -17,6 +18,15 @@ it('is online right after a heartbeat', function (): void {
 
     expect($heartbeat->isOnline())->toBeTrue()
         ->and($heartbeat->lastBeatAt()?->timestamp)->toBe(Date::now()->timestamp);
+});
+
+it('reads the heartbeat back from redis, which returns numbers as strings', function (): void {
+    config()->set('cache.default', 'redis');
+    Cache::store('redis')->forget('discord:bot:heartbeat');
+
+    app(BotHeartbeat::class)->beat();
+
+    expect(app(BotHeartbeat::class)->isOnline())->toBeTrue();
 });
 
 it('goes offline when the heartbeat is stale', function (): void {
@@ -42,19 +52,9 @@ it('requests exactly the intents the spec needs', function (): void {
 
 it('refuses to start without a bot token', function (): void {
     config()->set('discord.bot_token', '');
-    config()->set('discord.guild_id', '555');
 
     $this->artisan('bot:run')
         ->expectsOutputToContain('DISCORD_BOT_TOKEN')
-        ->assertFailed();
-});
-
-it('refuses to start without a guild id', function (): void {
-    config()->set('discord.bot_token', 'token');
-    config()->set('discord.guild_id', '');
-
-    $this->artisan('bot:run')
-        ->expectsOutputToContain('DISCORD_GUILD_ID')
         ->assertFailed();
 });
 

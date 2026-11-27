@@ -21,16 +21,20 @@ final readonly class BotHeartbeat
 
     private const string KEY = 'discord:bot:heartbeat';
 
+    /**
+     * Stored as an ISO-8601 string: Redis returns plain numbers as strings,
+     * so a string round-trips the same on every cache store.
+     */
     public function beat(): void
     {
-        Cache::forever(self::KEY, Date::now()->getTimestamp());
+        Cache::forever(self::KEY, Date::now()->toIso8601String());
     }
 
     public function lastBeatAt(): ?CarbonImmutable
     {
-        $timestamp = Cache::get(self::KEY);
+        $beat = Cache::get(self::KEY);
 
-        return is_int($timestamp) ? CarbonImmutable::createFromTimestamp($timestamp) : null;
+        return is_string($beat) ? CarbonImmutable::parse($beat) : null;
     }
 
     public function isOnline(): bool

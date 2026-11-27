@@ -38,7 +38,7 @@ final class DiscordAuthController extends Controller
     {
         // Only what access checks need: no email.
         return $this->discordProvider()
-            ->setScopes(['identify', 'guilds.members.read'])
+            ->setScopes(['identify', 'guilds', 'guilds.members.read'])
             ->redirect();
     }
 

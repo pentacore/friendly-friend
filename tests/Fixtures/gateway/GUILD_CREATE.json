@@ -1,6 +1,32 @@
 {
     "id": "555",
     "name": "Friends",
+    "icon": "iconhash",
     "member_count": 12,
-    "unavailable": false
+    "unavailable": false,
+    "roles": [
+        {
+            "id": "555",
+            "name": "@everyone",
+            "color": 0,
+            "position": 0,
+            "managed": false
+        },
+        {
+            "id": "100",
+            "name": "Friends",
+            "color": 3447003,
+            "position": 1,
+            "managed": false
+        },
+        {
+            "id": "900",
+            "name": "Admin",
+            "color": 15158332,
+            "position": 2,
+            "managed": false
+        }
+    ],
+    "channels": [],
+    "members": []
 }

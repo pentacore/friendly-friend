@@ -43,10 +43,9 @@ final class RunBot extends Command
     public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat): int
     {
         $token = config()->string('discord.bot_token');
-        $guildId = config()->string('discord.guild_id');
 
-        if ($token === '' || $guildId === '') {
-            $this->error('Set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID in .env before starting the bot (see docs/discord-app.md).');
+        if ($token === '') {
+            $this->error('Set DISCORD_BOT_TOKEN in .env before starting the bot (see docs/discord-app.md).');
 
             return self::FAILURE;
         }
@@ -63,7 +62,7 @@ final class RunBot extends Command
         $this->lastTrafficAt = microtime(true);
 
         $discord->on('init', function () use ($heartbeat): void {
-            Log::info('Discord bot connected.', ['guild_id' => config()->string('discord.guild_id')]);
+            Log::info('Discord bot connected.');
             $this->lastBeatWrittenAt = microtime(true);
             $heartbeat->beat();
         });

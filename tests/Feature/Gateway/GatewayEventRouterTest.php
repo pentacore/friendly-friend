@@ -3,13 +3,16 @@
 declare(strict_types=1);
 
 use App\Access\Jobs\MarkMemberLeft;
-use App\Access\Jobs\SyncGuildMembers;
 use App\Access\Jobs\UpsertGuildMember;
 use App\Discord\Gateway\GatewayEventRouter;
+use App\Discord\Jobs\MarkGuildLeft;
+use App\Discord\Jobs\RefreshGuild;
+use App\Discord\Jobs\RegisterGuild;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 
 /**
+ * @param  array<string, mixed>  $overrides
  * @return array<string, mixed>
  */
 function gatewayFixture(string $type, array $overrides = []): array
@@ -19,58 +22,80 @@ function gatewayFixture(string $type, array $overrides = []): array
     return array_replace(is_array($payload) ? $payload : [], $overrides);
 }
 
+function routeEvent(string $type, array $payload): void
+{
+    app(GatewayEventRouter::class)->route($type, $payload);
+}
+
 beforeEach(function (): void {
-    config()->set('discord.guild_id', '555');
     Queue::fake();
 });
 
-it('queues a member upsert when someone joins', function (): void {
-    app(GatewayEventRouter::class)->route('GUILD_MEMBER_ADD', gatewayFixture('GUILD_MEMBER_ADD'));
+it('registers a guild and syncs members when it becomes available', function (): void {
+    routeEvent('GUILD_CREATE', gatewayFixture('GUILD_CREATE'));
 
-    Queue::assertPushed(UpsertGuildMember::class, fn (UpsertGuildMember $job): bool => $job->member->discordId === '42'
-        && $job->member->roleIds === ['100']);
+    Queue::assertPushed(RegisterGuild::class, fn (RegisterGuild $job): bool => $job->guild->discordId === '555'
+        && $job->guild->name === 'Friends'
+        && count($job->guild->roles) === 3
+        && $job->syncMembers);
 });
 
-it('queues a member upsert when a member changes', function (): void {
-    app(GatewayEventRouter::class)->route('GUILD_MEMBER_UPDATE', gatewayFixture('GUILD_MEMBER_UPDATE'));
+it('updates a guild without a member sync on GUILD_UPDATE', function (): void {
+    routeEvent('GUILD_UPDATE', gatewayFixture('GUILD_CREATE', ['name' => 'Renamed']));
 
-    Queue::assertPushed(UpsertGuildMember::class, fn (UpsertGuildMember $job): bool => $job->member->nick === 'Marre'
-        && $job->member->roleIds === ['100', '900']);
+    Queue::assertPushed(RegisterGuild::class, fn (RegisterGuild $job): bool => $job->guild->name === 'Renamed' && ! $job->syncMembers);
 });
 
-it('queues marking a member as gone when they leave', function (): void {
-    app(GatewayEventRouter::class)->route('GUILD_MEMBER_REMOVE', gatewayFixture('GUILD_MEMBER_REMOVE'));
-
-    Queue::assertPushed(MarkMemberLeft::class, fn (MarkMemberLeft $job): bool => $job->discordId === '42');
-});
-
-it('queues a full member sync when the guild becomes available', function (): void {
-    app(GatewayEventRouter::class)->route('GUILD_CREATE', gatewayFixture('GUILD_CREATE'));
-
-    Queue::assertPushed(SyncGuildMembers::class);
-});
-
-it('ignores events from other guilds', function (string $type): void {
-    $payload = $type === 'GUILD_CREATE'
-        ? gatewayFixture($type, ['id' => '999'])
-        : gatewayFixture($type, ['guild_id' => '999']);
-
-    app(GatewayEventRouter::class)->route($type, $payload);
+it('ignores unavailable guilds during outages', function (): void {
+    routeEvent('GUILD_CREATE', ['id' => '555', 'unavailable' => true]);
+    routeEvent('GUILD_DELETE', ['id' => '555', 'unavailable' => true]);
 
     Queue::assertNothingPushed();
-})->with(['GUILD_MEMBER_ADD', 'GUILD_MEMBER_UPDATE', 'GUILD_MEMBER_REMOVE', 'GUILD_CREATE']);
+});
+
+it('marks a guild as left when the bot is removed', function (): void {
+    routeEvent('GUILD_DELETE', gatewayFixture('GUILD_DELETE'));
+
+    Queue::assertPushed(MarkGuildLeft::class, fn (MarkGuildLeft $job): bool => $job->guildDiscordId === '555');
+});
+
+it('refreshes a guild when its roles change', function (string $type): void {
+    routeEvent($type, gatewayFixture('GUILD_ROLE_UPDATE'));
+
+    Queue::assertPushed(RefreshGuild::class, fn (RefreshGuild $job): bool => $job->guildDiscordId === '555');
+})->with(['GUILD_ROLE_CREATE', 'GUILD_ROLE_UPDATE', 'GUILD_ROLE_DELETE']);
+
+it('queues a member upsert for the event\'s guild', function (string $type): void {
+    routeEvent($type, gatewayFixture($type, ['guild_id' => '777']));
+
+    Queue::assertPushed(UpsertGuildMember::class, fn (UpsertGuildMember $job): bool => $job->guildDiscordId === '777'
+        && $job->member->discordId === '42');
+})->with(['GUILD_MEMBER_ADD', 'GUILD_MEMBER_UPDATE']);
+
+it('queues marking a member as gone from that guild', function (): void {
+    routeEvent('GUILD_MEMBER_REMOVE', gatewayFixture('GUILD_MEMBER_REMOVE'));
+
+    Queue::assertPushed(MarkMemberLeft::class, fn (MarkMemberLeft $job): bool => $job->guildDiscordId === '555'
+        && $job->userDiscordId === '42');
+});
 
 it('ignores event types it does not handle', function (): void {
-    app(GatewayEventRouter::class)->route('TYPING_START', ['guild_id' => '555']);
+    routeEvent('TYPING_START', ['guild_id' => '555']);
 
     Queue::assertNothingPushed();
 });
 
-it('drops malformed payloads without throwing', function (): void {
+it('drops malformed payloads without throwing', function (string $type, array $payload): void {
     Log::spy();
 
-    app(GatewayEventRouter::class)->route('GUILD_MEMBER_ADD', ['guild_id' => '555', 'user' => 'nope']);
+    routeEvent($type, $payload);
 
     Queue::assertNothingPushed();
     Log::shouldHaveReceived('warning')->once();
-});
+})->with([
+    'member without user' => ['GUILD_MEMBER_ADD', ['guild_id' => '555', 'user' => 'nope']],
+    'member without guild' => ['GUILD_MEMBER_ADD', ['user' => ['id' => '1', 'username' => 'a']]],
+    'leave without user' => ['GUILD_MEMBER_REMOVE', ['guild_id' => '555']],
+    'guild without name' => ['GUILD_CREATE', ['id' => '555']],
+    'role without guild' => ['GUILD_ROLE_UPDATE', ['role' => []]],
+]);

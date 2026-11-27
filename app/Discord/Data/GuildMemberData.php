@@ -41,6 +41,16 @@ final readonly class GuildMemberData
         );
     }
 
+    public function user(): DiscordUserData
+    {
+        return new DiscordUserData($this->discordId, $this->username, $this->globalName, $this->avatar);
+    }
+
+    public function isValid(): bool
+    {
+        return $this->user()->isValid();
+    }
+
     /**
      * @param  array<mixed>  $data
      */

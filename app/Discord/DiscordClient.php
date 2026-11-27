@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Discord;
 
+use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
 
 /**
@@ -23,6 +24,11 @@ interface DiscordClient
      * @return iterable<int, GuildMemberData>
      */
     public function guildMembers(string $guildId): iterable;
+
+    /**
+     * The guild with its roles.
+     */
+    public function guild(string $guildId): GuildData;
 
     public function sendMessage(string $channelId, string $content): void;
 }

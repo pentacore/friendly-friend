@@ -17,14 +17,14 @@ use Illuminate\Support\Carbon;
  * A guild member who has logged in to the website (Discord OAuth only).
  *
  * @property int $id
- * @property int $discord_member_id
+ * @property int $discord_user_id
  * @property string|null $remember_token
  * @property Carbon|null $last_access_check_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read DiscordMember $discordMember
+ * @property-read DiscordUser $discordUser
  */
-#[Fillable(['discord_member_id', 'last_access_check_at'])]
+#[Fillable(['discord_user_id', 'last_access_check_at'])]
 #[Hidden(['remember_token'])]
 class User extends Authenticatable
 {
@@ -32,11 +32,11 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * @return BelongsTo<DiscordMember, $this>
+     * @return BelongsTo<DiscordUser, $this>
      */
-    public function discordMember(): BelongsTo
+    public function discordUser(): BelongsTo
     {
-        return $this->belongsTo(DiscordMember::class);
+        return $this->belongsTo(DiscordUser::class);
     }
 
     /**

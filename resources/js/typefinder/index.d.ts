@@ -6,5 +6,7 @@
 
 export type * from './enums';
 export type * from './models';
+export type * from './requests';
+export type * from './resources';
 export type * from './pages';
 export type * from './helpers';

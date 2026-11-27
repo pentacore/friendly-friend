@@ -9,17 +9,21 @@ Discord gateway ──raw dispatch──► RunBot ──► GatewayEventRouter:
                                            queued job ──► Horizon worker (DB, REST, AI)
 ```
 
-- **No business logic or DB access in the bot process.** `App\Discord\Gateway\GatewayEventRouter` is plain PHP: it filters to `DISCORD_GUILD_ID`, maps the payload to a DTO and dispatches a job. It's unit-tested with JSON fixtures in `tests/Fixtures/gateway/`.
+- **No business logic or DB access in the bot process.** `App\Discord\Gateway\GatewayEventRouter` is plain PHP: it validates the payload, maps it to a DTO and dispatches a job. It's unit-tested with JSON fixtures in `tests/Fixtures/gateway/`.
+- The bot can be in **several servers**. The router forwards events from all of them, and the jobs ignore servers that aren't enabled on [`/admin/guilds`](admin.md).
 - DiscordPHP is used only as the transport (`loadAllMembers`, `storeMessages` and `retrieveBans` are off). The database is the source of truth.
 - One bad event never stops the loop: routing errors are caught and logged.
 
 ## Events handled
 
-| Gateway event                             | Job                             | Effect                                               |
-| ----------------------------------------- | ------------------------------- | ---------------------------------------------------- |
-| `GUILD_CREATE` (our guild)                | `Access\Jobs\SyncGuildMembers`  | Full member refresh after connecting or reconnecting |
-| `GUILD_MEMBER_ADD`, `GUILD_MEMBER_UPDATE` | `Access\Jobs\UpsertGuildMember` | Member row created or updated (roles, nick, avatar)  |
-| `GUILD_MEMBER_REMOVE`                     | `Access\Jobs\MarkMemberLeft`    | `in_guild = false`, and `guild.access` logs them out |
+| Gateway event                               | Job                                    | Effect                                                                                                                                                                     |
+| ------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GUILD_CREATE` (joined, or connected)       | `Discord\Jobs\RegisterGuild`           | Server registered or updated (name, icon, roles, `bot_present`). New servers start **disabled**. Enabled ones get a `SyncGuildMembers`. Ignored if `unavailable` (outage). |
+| `GUILD_UPDATE`                              | `Discord\Jobs\RegisterGuild` (no sync) | Name, icon and roles updated                                                                                                                                               |
+| `GUILD_ROLE_CREATE` / `_UPDATE` / `_DELETE` | `Discord\Jobs\RefreshGuild`            | Roles re-read over REST (unique per server, so bursts fetch once)                                                                                                          |
+| `GUILD_DELETE` (not `unavailable`)          | `Discord\Jobs\MarkGuildLeft`           | `bot_present = false`                                                                                                                                                      |
+| `GUILD_MEMBER_ADD` / `_UPDATE`              | `Access\Jobs\UpsertGuildMember`        | Account and membership updated (enabled servers only)                                                                                                                      |
+| `GUILD_MEMBER_REMOVE`                       | `Access\Jobs\MarkMemberLeft`           | That membership `in_guild = false`. `guild.access` logs the person out if it was their last way in.                                                                        |
 
 Quote capture (Phase 4) and stats (Phase 6) add more routes.
 
@@ -36,7 +40,7 @@ Quote capture (Phase 4) and stats (Phase 6) add more routes.
 
 ## Running
 
-Dev (Sail): the `bot` service is behind the compose profile `bot`, so `sail up` doesn't start it without a token. Once `DISCORD_BOT_TOKEN` and `DISCORD_GUILD_ID` are set:
+Dev (Sail): the `bot` service is behind the compose profile `bot`, so `sail up` doesn't start it without a token. Once `DISCORD_BOT_TOKEN` is set:
 
 ```bash
 # either add COMPOSE_PROFILES=bot to .env, or:
@@ -46,6 +50,8 @@ vendor/bin/sail artisan bot:status
 ```
 
 After changing bot code, restart it: `vendor/bin/sail restart bot`. Long-running PHP doesn't reload code. Changes to jobs need `vendor/bin/sail restart horizon`.
+
+Known noise: on start DiscordPHP logs `failed to initialize voice class … libdave is required`. It's harmless: the bot only _reads_ voice states (for stats) and never joins voice.
 
 Prod: the `bot` service in `compose.prod.yaml` always runs (see [deployment.md](deployment.md)).
 

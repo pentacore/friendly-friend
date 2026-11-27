@@ -3,7 +3,7 @@
 
 # friendly-friend: architecture
 
-A private site and Discord bot for **one** Discord server of friends: quotes (captured from Discord, cleaned up by AI, voted on) and server activity stats with an opt-out. Design: `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`.
+A private site and Discord bot for a group of friends across **one or more Discord servers**: quotes (captured from Discord, cleaned up by AI, voted on) and server activity stats with an opt-out. Design: `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`.
 
 ## Stack
 
@@ -11,13 +11,15 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 
 ## Where code goes (each part has one job)
 
-- `App\Discord\Gateway`: the bot process. `RunBot` (`bot:run`) forwards raw gateway dispatches to `GatewayEventRouter::route($type, $payload)`, which filters to our guild, builds a DTO and **queues a job**. Never put DB queries, HTTP calls or business logic in the router or the command. Add new gateway events as router branches with a JSON fixture in `tests/Fixtures/gateway/` and a test. The opt-out check (Phase 6) also lives in the router.
+- `App\Discord\Gateway`: the bot process. `RunBot` (`bot:run`) forwards raw gateway dispatches to `GatewayEventRouter::route($type, $payload)`, which validates the payload, builds a DTO and **queues a job** (the jobs decide whether the server is enabled). Never put DB queries, HTTP calls or business logic in the router or the command. Add new gateway events as router branches with a JSON fixture in `tests/Fixtures/gateway/` and a test. The opt-out check (Phase 6) also lives in the router.
 - `App\Discord\Interactions`: slash commands, the message context menu, buttons and forms. They call actions and build replies.
 - `App\Discord\DiscordClient`: interface for **bot-token** REST calls (`HttpDiscordClient`; tests use `Testing\FakeDiscordClient`). Add methods there instead of calling Discord's HTTP API elsewhere. `DiscordUserApi` is only for the OAuth user token at login.
 - `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
 - `App\Ai\QuoteNormalizer`: an interface whose implementation uses laravel/ai structured output. Tests use the fake.
 - `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
-- `App\Access`: who gets in. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\UpsertDiscordMember`, `Jobs\SyncGuildMembers`, `Exceptions\AccessDeniedException`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
+- `App\Access`: who gets in and server settings. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\RecordDiscordUser`, `Actions\RecordGuildMember`, `Actions\UpdateGuildSettings`, `Jobs\SyncGuildMembers` (one server), `Jobs\SyncAllGuilds` (scheduled), `Jobs\UpsertGuildMember`, `Jobs\MarkMemberLeft`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
+- `App\Discord\Jobs`: guild lifecycle from the gateway (`RegisterGuild`, `RefreshGuild`, `MarkGuildLeft`).
+- `App\Http\Controllers\Admin`: owner and admin pages (`/admin/...`), behind the `manage-guilds` or `admin` gates.
 - Discord REST returns `App\Discord\Data\*` DTOs. Test the HTTP clients themselves with `Http::fake()`.
 - `App\Enums`: backed enums. Typefinder emits them as `as const` objects plus union types.
 - Controllers stay thin: validate (FormRequest), call an action, render Inertia.
@@ -38,10 +40,12 @@ Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `a
 
 # friendly-friend: domain rules (must always hold)
 
-## Identity
+## Identity (multiple servers)
 
-- `discord_members` holds **every** member of the server (synced by the bot), whether or not they ever logged in. `users` are members who have logged in to the website.
-- `people` are anyone who can be quoted. `discord_member_id` is **nullable**, because people outside the server can be quoted. Nicknames are stored in `person_aliases`.
+- The bot can be in **several Discord servers** (`guilds`). Data is one shared pool tagged by server: quotes carry a `guild_id`, stats are keyed by `guild_id` + `discord_user_id`. Never build per-server silos.
+- `discord_users` is the person (one row across all servers). `guild_members` is their membership of one server (nickname, roles, `in_guild`). Every member of every enabled server is stored, whether or not they log in. `users` are people who have logged in.
+- `guilds` are registered by the bot. New servers start **disabled** (`enabled=false`), and the bot's jobs ignore disabled servers. `bot_present=false` means the bot was removed.
+- `people` are anyone who can be quoted. `discord_user_id` is **nullable**, because people outside the servers can be quoted. Nicknames are stored in `person_aliases`.
 
 ## Quotes
 
@@ -59,13 +63,17 @@ Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `a
 
 ## Access
 
-- Login is Discord OAuth only (Socialite, scopes `identify` and `guilds.members.read`). There are no passwords, no email and no registration. Fortify is not installed, so don't add it back.
-- Every access decision goes through `App\Access\GuildAccess` (`allows()`, `isAdmin()`). Don't compare role IDs anywhere else. Use the `admin` gate (`Gate::allows('admin')`, `@can('admin')`) for admin-only features.
-- Allowed means in the guild **and** (a role in `DISCORD_ALLOWED_ROLE_IDS`, **or** an admin role, **or** the allowed list is empty). Admin means in the guild with a role in `DISCORD_ADMIN_ROLE_IDS`.
-- Every app route uses `['auth', 'guild.access']`. The middleware re-checks the stored member row on each request and logs out anyone who has lost access.
+- Login is Discord OAuth only (Socialite, scopes `identify`, `guilds` and `guilds.members.read`). There are no passwords, no email and no registration. Fortify is not installed, so don't add it back.
+- Every access decision goes through `App\Access\GuildAccess` (`allows()`, `isAdmin()`, `isOwner()`, `accessibleGuildIds()`). Don't compare role IDs anywhere else.
+- **Owners** = `DISCORD_OWNER_IDS` (user IDs). They are always allowed, always admin, and are the only ones who can manage servers.
+- **Allowed** = owner, **or** a still-present member of at least one _enabled_ server whose own settings let them in (`allow_all_members`, a role in its `allowed_role_ids`, or a role in its `admin_role_ids`). Role lists are per server, so a role only counts in its own server.
+- **Admin** = owner, or an admin role in an enabled server.
+- Gates: `admin` (Horizon, moderation) and `manage-guilds` (owners only: `/admin/guilds`).
+- Every app route uses `['auth', 'guild.access']`. The middleware re-checks access on each request and logs out anyone who has lost it.
 - Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS.
-- Members without access are still stored in `discord_members`. Only allowed members get a `users` row.
-- The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin}`). Never send `discord_members` or `users` models straight to the frontend.
+- The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin, is_owner}`). Never send `discord_users`, `guild_members` or `users` models straight to the frontend. Use resources and page props.
+- Postgres `jsonb` reorders object keys. Never rely on key order in stored JSON, and compare with `toEqual`, not `toBe`, in tests.
+- Values read back from the Redis cache may change type (numbers come back as strings). Store strings and parse them on read.
 
 === .ai/typefinder rules ===
 

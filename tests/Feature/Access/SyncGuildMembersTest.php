@@ -2,79 +2,92 @@
 
 declare(strict_types=1);
 
+use App\Access\Jobs\SyncAllGuilds;
 use App\Access\Jobs\SyncGuildMembers;
-use App\Models\DiscordMember;
+use App\Discord\Data\GuildMemberData;
+use App\Discord\DiscordClient;
+use App\Discord\Testing\FakeDiscordClient;
+use App\Models\DiscordUser;
+use App\Models\Guild;
+use App\Models\GuildMember;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-
-beforeEach(function (): void {
-    config()->set('discord.guild_id', '555');
-    config()->set('discord.bot_token', 'bot-token');
-});
+use Illuminate\Support\Facades\Queue;
 
 /**
  * @param  list<string>  $roles
- * @return array<string, mixed>
  */
-function syncPayload(string $id, array $roles = ['100']): array
+function syncMember(string $id, array $roles = ['100']): GuildMemberData
 {
-    return [
-        'user' => ['id' => $id, 'username' => "user{$id}", 'global_name' => null, 'avatar' => null],
-        'nick' => null,
-        'avatar' => null,
-        'roles' => $roles,
-    ];
+    return new GuildMemberData($id, "user{$id}", null, null, null, null, $roles);
 }
 
-it('upserts every member and marks missing ones as gone', function (): void {
-    $stays = DiscordMember::factory()->create(['discord_id' => '1', 'role_ids' => []]);
-    $left = DiscordMember::factory()->create(['discord_id' => '9']);
+function fakeDiscordWith(GuildMemberData ...$members): FakeDiscordClient
+{
+    $fake = new FakeDiscordClient()->withMembers(array_values($members));
+    app()->instance(DiscordClient::class, $fake);
 
-    Http::fake([
-        'discord.com/api/v10/guilds/555/members*' => Http::response([syncPayload('1', ['100']), syncPayload('2')]),
-    ]);
+    return $fake;
+}
 
-    dispatch_sync(new SyncGuildMembers);
+it('records every member and marks missing ones as gone from that guild', function (): void {
+    $guild = Guild::factory()->create(['discord_id' => '555']);
+    $other = Guild::factory()->create(['discord_id' => '777']);
+    $stays = GuildMember::factory()->for($guild)->for(DiscordUser::factory()->create(['discord_id' => '1']))->withRoles([])->create();
+    $left = GuildMember::factory()->for($guild)->for(DiscordUser::factory()->create(['discord_id' => '9']))->create();
+    $elsewhere = GuildMember::factory()->for($other)->for($left->discordUser)->create();
+    fakeDiscordWith(syncMember('1'), syncMember('2'));
+
+    dispatch_sync(new SyncGuildMembers('555'));
 
     expect($stays->refresh()->role_ids)->toBe(['100'])
-        ->and($stays->in_guild)->toBeTrue()
         ->and($left->refresh()->in_guild)->toBeFalse()
-        ->and(DiscordMember::query()->where('discord_id', '2')->exists())->toBeTrue();
+        ->and($elsewhere->refresh()->in_guild)->toBeTrue()
+        ->and($guild->members()->count())->toBe(3);
 });
 
-it('skips the sync without a bot token', function (): void {
-    config()->set('discord.bot_token', '');
-    Http::fake();
-    Log::spy();
+it('does nothing for disabled guilds', function (): void {
+    Guild::factory()->disabled()->create(['discord_id' => '555']);
+    fakeDiscordWith(syncMember('1'));
 
-    dispatch_sync(new SyncGuildMembers);
+    dispatch_sync(new SyncGuildMembers('555'));
 
-    Http::assertNothingSent();
-    Log::shouldHaveReceived('warning')->once();
+    expect(GuildMember::query()->count())->toBe(0);
 });
 
 it('does not mark everyone as gone when discord returns nothing', function (): void {
-    $member = DiscordMember::factory()->create(['discord_id' => '1']);
-    Http::fake(['discord.com/api/v10/guilds/555/members*' => Http::response([])]);
+    $member = GuildMember::factory()->for(Guild::factory()->create(['discord_id' => '555']))->create();
+    fakeDiscordWith();
 
-    dispatch_sync(new SyncGuildMembers);
+    dispatch_sync(new SyncGuildMembers('555'));
 
     expect($member->refresh()->in_guild)->toBeTrue();
 });
 
+it('queues a sync for every enabled guild', function (): void {
+    Queue::fake();
+    Guild::factory()->create(['discord_id' => '1']);
+    Guild::factory()->create(['discord_id' => '2']);
+    Guild::factory()->disabled()->create(['discord_id' => '3']);
+
+    new SyncAllGuilds()->handle();
+
+    Queue::assertPushed(SyncGuildMembers::class, 2);
+    Queue::assertNotPushed(SyncGuildMembers::class, fn (SyncGuildMembers $job): bool => $job->guildDiscordId === '3');
+});
+
 it('is scheduled every three hours', function (): void {
     $events = collect(app(Schedule::class)->events())
-        ->filter(fn ($event): bool => str_contains((string) $event->description, SyncGuildMembers::class));
+        ->filter(fn ($event): bool => str_contains((string) $event->description, SyncAllGuilds::class));
 
     expect($events)->toHaveCount(1)
         ->and($events->first()->expression)->toBe('0 */3 * * *');
 });
 
 it('can be run by hand', function (): void {
-    Http::fake(['discord.com/api/v10/guilds/555/members*' => Http::response([syncPayload('1')])]);
+    Guild::factory()->create(['discord_id' => '555']);
+    fakeDiscordWith(syncMember('1'));
 
     $this->artisan('discord:sync-members')->assertSuccessful();
 
-    expect(DiscordMember::query()->where('discord_id', '1')->exists())->toBeTrue();
+    expect(DiscordUser::query()->where('discord_id', '1')->exists())->toBeTrue();
 });

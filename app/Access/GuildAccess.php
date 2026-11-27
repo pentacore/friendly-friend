@@ -4,46 +4,90 @@ declare(strict_types=1);
 
 namespace App\Access;
 
-use App\Models\DiscordMember;
+use App\Models\DiscordUser;
+use App\Models\GuildMember;
+use Illuminate\Support\Collection;
 
 /**
- * Decides who may use the site, from the member's guild roles and the role
- * IDs configured in config/discord.php.
+ * Who may use the site. Owners (DISCORD_OWNER_IDS) always may. Anyone else
+ * needs at least one membership of an *enabled* guild that lets them in,
+ * judged by that guild's own settings (allow all members, allowed roles,
+ * admin roles).
  */
 final readonly class GuildAccess
 {
-    public function allows(DiscordMember $member): bool
+    public function allows(DiscordUser $user): bool
     {
-        if (! $member->in_guild) {
-            return false;
-        }
-
-        $allowed = $this->roleIds('discord.allowed_role_ids');
-
-        return $allowed === []
-            || $this->hasAnyRole($member, $allowed)
-            || $this->isAdmin($member);
+        return $this->isOwner($user)
+            || $this->activeMemberships($user)->contains($this->membershipAllows(...));
     }
 
-    public function isAdmin(DiscordMember $member): bool
+    public function isAdmin(DiscordUser $user): bool
     {
-        return $member->in_guild
-            && $this->hasAnyRole($member, $this->roleIds('discord.admin_role_ids'));
+        return $this->isOwner($user)
+            || $this->activeMemberships($user)->contains($this->membershipIsAdmin(...));
+    }
+
+    public function isOwner(DiscordUser $user): bool
+    {
+        return in_array($user->discord_id, $this->ownerIds(), true);
+    }
+
+    /**
+     * IDs of the enabled guilds through which the user gets in.
+     *
+     * @return list<int>
+     */
+    public function accessibleGuildIds(DiscordUser $user): array
+    {
+        return array_values($this->activeMemberships($user)
+            ->filter($this->membershipAllows(...))
+            ->map(fn (GuildMember $membership): int => $membership->guild_id)
+            ->all());
+    }
+
+    private function membershipAllows(GuildMember $membership): bool
+    {
+        $guild = $membership->guild;
+
+        return $guild->allow_all_members
+            || $this->hasAnyRole($membership, $guild->allowed_role_ids)
+            || $this->membershipIsAdmin($membership);
+    }
+
+    private function membershipIsAdmin(GuildMember $membership): bool
+    {
+        return $this->hasAnyRole($membership, $membership->guild->admin_role_ids);
+    }
+
+    /**
+     * Memberships the user still holds in enabled guilds.
+     *
+     * @return Collection<int, GuildMember>
+     */
+    private function activeMemberships(DiscordUser $user): Collection
+    {
+        return $user->memberships()
+            ->where('in_guild', true)
+            ->whereRelation('guild', 'enabled', true)
+            ->with('guild')
+            ->orderBy('id')
+            ->get();
     }
 
     /**
      * @param  list<string>  $roleIds
      */
-    private function hasAnyRole(DiscordMember $member, array $roleIds): bool
+    private function hasAnyRole(GuildMember $membership, array $roleIds): bool
     {
-        return array_intersect($member->role_ids, $roleIds) !== [];
+        return array_intersect($membership->role_ids, $roleIds) !== [];
     }
 
     /**
      * @return list<string>
      */
-    private function roleIds(string $key): array
+    private function ownerIds(): array
     {
-        return array_values(array_filter(config()->array($key), is_string(...)));
+        return array_values(array_filter(config()->array('discord.owner_ids'), is_string(...)));
     }
 }

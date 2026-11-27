@@ -4,42 +4,32 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+import type { GuildMember } from './GuildMember';
 import type { User } from './User';
 
-export type DiscordMember = {
+export type DiscordUser = {
   id: number;
   discord_id: string;
   username: string;
   global_name: string | null;
-  guild_nick: string | null;
   avatar: string | null;
-  guild_avatar: string | null;
-  role_ids: string[];
-  in_guild: boolean;
   tracking_opted_out_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  memberships?: GuildMember[];
   user?: User | null;
 };
 
-export type DiscordMemberCreate = {
+export type DiscordUserCreate = {
   discord_id: string;
   username: string;
   global_name?: string | null;
-  guild_nick?: string | null;
   avatar?: string | null;
-  guild_avatar?: string | null;
-  role_ids?: string[];
-  in_guild?: boolean;
 };
 
-export type DiscordMemberUpdate = {
+export type DiscordUserUpdate = {
   discord_id?: string;
   username?: string;
   global_name?: string | null;
-  guild_nick?: string | null;
   avatar?: string | null;
-  guild_avatar?: string | null;
-  role_ids?: string[];
-  in_guild?: boolean;
 };

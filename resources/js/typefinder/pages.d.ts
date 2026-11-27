@@ -5,15 +5,17 @@
 // ───────────────────────────────────────────────────────────────────────
 
 import type { AccessDeniedReason } from './enums';
+import type { GuildResource } from './resources';
 
 export type SharedPageProps = {
   errors: Record<string, string>;
   name: string;
-  auth: { user: { id: number; discord_id: string; name: string; avatar_url: string; is_admin: boolean } | null };
+  auth: { user: { id: number; discord_id: string; name: string; avatar_url: string; is_admin: boolean; is_owner: boolean } | null };
   sidebarOpen: boolean;
 };
 
 export type PageProps = {
+  'admin/Guilds': { guilds: GuildResource[] };
   'auth/Login': { error: AccessDeniedReason | null };
 };
 

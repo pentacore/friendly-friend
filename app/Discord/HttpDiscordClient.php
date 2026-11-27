@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Discord;
 
+use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
 use Generator;
 use Illuminate\Http\Client\PendingRequest;
@@ -45,6 +46,13 @@ final readonly class HttpDiscordClient implements DiscordClient
                 yield $member;
             }
         } while (count($rows) === self::PAGE_SIZE);
+    }
+
+    public function guild(string $guildId): GuildData
+    {
+        $payload = $this->request()->get("guilds/{$guildId}")->throw()->json();
+
+        return GuildData::fromPayload(is_array($payload) ? $payload : []);
     }
 
     public function sendMessage(string $channelId, string $content): void

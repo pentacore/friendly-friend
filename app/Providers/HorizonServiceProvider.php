@@ -30,7 +30,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     protected function gate(): void
     {
         // Horizon is always reachable in the local environment. Elsewhere only
-        // Discord admins (DISCORD_ADMIN_ROLE_IDS) get in, via the admin gate.
+        // owners and server admin roles get in, via the admin gate.
         Gate::define('viewHorizon', fn (?User $user = null): bool => $user instanceof User && Gate::forUser($user)->allows('admin'));
     }
 }

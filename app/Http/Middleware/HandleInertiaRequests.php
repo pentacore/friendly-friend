@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @typefinder-return array{
      *     name: string,
-     *     auth: array{user: array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool}|null},
+     *     auth: array{user: array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool, is_owner: bool}|null},
      *     sidebarOpen: bool,
      * }
      */
@@ -60,7 +60,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * The logged-in user as the frontend sees them: Discord identity only.
      *
-     * @return array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool}|null
+     * @return array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool, is_owner: bool}|null
      */
     private function currentUser(Request $request): ?array
     {
@@ -70,14 +70,16 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
-        $member = $user->discordMember;
+        $discordUser = $user->discordUser;
+        $access = app(GuildAccess::class);
 
         return [
             'id' => $user->id,
-            'discord_id' => $member->discord_id,
-            'name' => $member->display_name,
-            'avatar_url' => $member->avatarUrl(),
-            'is_admin' => app(GuildAccess::class)->isAdmin($member),
+            'discord_id' => $discordUser->discord_id,
+            'name' => $discordUser->display_name,
+            'avatar_url' => $discordUser->avatarUrl(),
+            'is_admin' => $access->isAdmin($discordUser),
+            'is_owner' => $access->isOwner($discordUser),
         ];
     }
 }

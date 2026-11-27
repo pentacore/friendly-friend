@@ -1,0 +1,10 @@
+{
+    "guild_id": "555",
+    "role": {
+        "id": "100",
+        "name": "Best Friends",
+        "color": 3447003,
+        "position": 1,
+        "managed": false
+    }
+}

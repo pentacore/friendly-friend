@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Re-checks guild membership and roles on every request, using the member
- * row that the bot and the scheduled sync keep fresh. Someone who left the
- * server or lost their role is logged out on their next request.
+ * Re-checks access on every request against the stored guild memberships,
+ * which the bot and the scheduled sync keep fresh. Someone who left every
+ * server or lost their roles is logged out on their next request.
  */
 final readonly class EnsureGuildAccess
 {
@@ -28,7 +28,7 @@ final readonly class EnsureGuildAccess
     {
         $user = $request->user();
 
-        if ($user instanceof User && ! $this->access->allows($user->discordMember)) {
+        if ($user instanceof User && ! $this->access->allows($user->discordUser)) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
