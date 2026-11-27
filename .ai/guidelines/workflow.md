@@ -19,6 +19,7 @@
 
 - Formatting or cleaning up code: the `formatting-project` skill (Rector, then Vite+, then Pint, keeping every change they make).
 - Running browser tests: the `running-browser-tests` skill.
+- Working in a git worktree (setup in Sail, its own test database, cleanup): the `working-in-a-worktree` skill.
 
 ## Before every commit
 
