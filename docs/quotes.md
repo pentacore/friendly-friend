@@ -75,6 +75,8 @@ Only the person who started the quote can use the buttons. Unsaved drafts expire
 
 ## Channel import (`/quote import` or `quotes:import`)
 
+The per-message step (detect, normalise, store as `pending_review`) is `Quotes\Actions\CaptureChannelMessage`, shared with watched channels.
+
 `ImportChannelQuotes` walks the channel's history backwards (5 pages of 100 per job run, resumable), skips bots, links, empty messages and messages already quoted, and turns the ones that look like quotes into quotes with status **`pending_review`**. Their submitter is the message author, and their time is the stated time or the day it was posted. They wait for an admin on the website: **Imports** in the sidebar (`/admin/imports`) lists each import with its progress (polled every 3 s while it runs). The review page shows the found quotes next to a link to the original message, with **Approve** (`ConfirmQuote`: creates people and publishes, keeping the original date), **Not a quote** (`removed`, so it's never imported again), **Edit**, and **Approve all**. Only that server's admins (and owners) can review.
 
 Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
@@ -86,6 +88,15 @@ Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
 ```bash
 vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discord user id>
 ```
+
+## Watched channels (quotes posted without the bot)
+
+For when people post a quote as a normal message and forget the bot. On the Servers page, an owner ticks **Watch for posted quotes in** for one or more channels (it can be the channel the bot posts saved quotes in; the bot ignores its own messages).
+
+- Each new message there (not from a bot, not mentioning the bot, which already starts a capture) goes through `QuoteDetector`, like a channel import. Messages that look like quotes become `pending_review` quotes with source `watched_channel`, and the bot reacts 📝 to the message so people can see it was noticed.
+- Each watched channel has a standing import (status `watching`) that collects them, so they're reviewed on **Imports** like any import: approve, edit, not a quote, approve all. Unwatching a channel finishes its import.
+- The bot decides from a cached list of watched channels (`Quotes\WatchedChannels`, refreshed on save and when the bot starts); `PickUpPostedQuote` checks the database again.
+- Every message in a watched channel is classified. With an AI key that's one cheap AI call per message, so watch quote channels, not busy chat.
 
 ## On the website: visibility, permissions, search
 

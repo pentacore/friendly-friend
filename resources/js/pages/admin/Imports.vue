@@ -30,6 +30,7 @@ const statusLabel: Record<string, string> = {
     running: 'Scanning',
     done: 'Done',
     failed: 'Failed',
+    watching: 'Watching',
 };
 </script>
 

@@ -14,4 +14,6 @@ enum QuoteSource: string
     case SlashCommand = 'slash_command';
     case MentionFreetext = 'mention_freetext';
     case ChannelImport = 'channel_import';
+    /** Posted in a watched channel without using the bot. */
+    case WatchedChannel = 'watched_channel';
 }

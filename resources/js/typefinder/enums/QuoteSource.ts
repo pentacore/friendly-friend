@@ -10,6 +10,7 @@ export const QuoteSource = {
     SlashCommand: 'slash_command',
     MentionFreetext: 'mention_freetext',
     ChannelImport: 'channel_import',
+    WatchedChannel: 'watched_channel',
 } as const;
 
 export type QuoteSource = typeof QuoteSource[keyof typeof QuoteSource];

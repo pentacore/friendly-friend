@@ -25,3 +25,5 @@ Code: `App\Http\Controllers\Admin\GuildController`, `App\Http\Requests\Admin\Upd
 - **Nicknames:** add or remove aliases ("Marre" → Martin). They are unique regardless of case. Quote capture uses them to find the right person.
 - **Discord account:** link a person to a Discord account, or unlink them ("Not on Discord"). An account can belong to only one person; merge the two people instead.
 - **Merge:** `MergePeople` moves a duplicate's quote lines, nicknames and Discord link to another person, keeps the duplicate's name as a nickname, and deletes the duplicate. It can't be undone.
+
+The Servers page also sets **Post saved quotes in**, **Announce events in** and **Watch for posted quotes in** (quotes posted without the bot are picked up for review on Imports, as a standing "Watching" import per channel; see [quotes.md](quotes.md)).

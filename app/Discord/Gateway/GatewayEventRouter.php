@@ -20,6 +20,8 @@ use App\Discord\Jobs\RegisterGuild;
 use App\Planning\Jobs\HandleEventInteraction;
 use App\Quotes\Jobs\CaptureFromMention;
 use App\Quotes\Jobs\HandleQuoteInteraction;
+use App\Quotes\Jobs\PickUpPostedQuote;
+use App\Quotes\WatchedChannels;
 use App\Stats\Jobs\HandlePrivacyCommand;
 use App\Stats\Jobs\IngestMessage;
 use App\Stats\Jobs\IngestPresence;
@@ -41,7 +43,7 @@ final readonly class GatewayEventRouter
     /** Default messages and replies; joins, pins, boosts… are not chat. */
     private const array COUNTED_MESSAGE_TYPES = [0, 19];
 
-    public function __construct(private OptedOutMembers $optedOut) {}
+    public function __construct(private OptedOutMembers $optedOut, private WatchedChannels $watchedChannels) {}
 
     /**
      * @param  array<mixed>  $payload
@@ -225,7 +227,8 @@ final readonly class GatewayEventRouter
 
     /**
      * Messages by people in a guild are counted; those that mention the bot
-     * also start a quote capture.
+     * also start a quote capture, and those in a watched channel are checked
+     * for a quote posted without the bot.
      *
      * @param  array<mixed>  $payload
      */
@@ -243,6 +246,8 @@ final readonly class GatewayEventRouter
 
         if ($mentionsBot) {
             dispatch(new CaptureFromMention($payload));
+        } elseif (($channelId = $this->string($payload, 'channel_id')) !== null && $this->watchedChannels->contains($channelId)) {
+            dispatch(new PickUpPostedQuote($payload));
         }
 
         $this->countMessage($payload, $author);

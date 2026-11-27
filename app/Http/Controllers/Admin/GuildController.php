@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateGuildRequest;
 use App\Http\Resources\GuildResource;
 use App\Models\Guild;
+use App\Models\User;
+use App\Quotes\Actions\WatchChannels;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +38,7 @@ final class GuildController extends Controller
         ]);
     }
 
-    public function update(UpdateGuildRequest $request, Guild $guild, UpdateGuildSettings $updateSettings): RedirectResponse
+    public function update(UpdateGuildRequest $request, Guild $guild, UpdateGuildSettings $updateSettings, WatchChannels $watchChannels): RedirectResponse
     {
         $updateSettings->handle(
             $guild,
@@ -47,6 +49,12 @@ final class GuildController extends Controller
             quotesChannelId: $request->string('quotes_channel_id')->value() ?: null,
             eventsChannelId: $request->string('events_channel_id')->value() ?: null,
         );
+
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            $watchChannels->handle($guild, $this->ids($request->array('watched_channel_ids')), $user->discordUser);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':name saved.', ['name' => $guild->name])]);
 

@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $guild_id
  * @property string $channel_id
  * @property int $requested_by_discord_user_id
- * @property string $status queued|running|done|failed
+ * @property string $status queued|running|done|failed, or watching (a watched channel's standing import)
  * @property string|null $before_message_id resume cursor (oldest message seen)
  * @property int $messages_scanned
  * @property int $quotes_found
@@ -30,6 +30,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['guild_id', 'channel_id', 'requested_by_discord_user_id', 'status', 'before_message_id', 'messages_scanned', 'quotes_found', 'error', 'started_at', 'finished_at'])]
 class QuoteImport extends Model
 {
+    /** A watched channel's standing import: never finishes until the channel is unwatched. */
+    public const string WATCHING = 'watching';
+
     /**
      * @return BelongsTo<Guild, $this>
      */

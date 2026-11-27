@@ -31,7 +31,18 @@ const form = useForm({
     admin_role_ids: [...props.guild.admin_role_ids],
     quotes_channel_id: props.guild.quotes_channel_id,
     events_channel_id: props.guild.events_channel_id,
+    watched_channel_ids: [...props.guild.watched_channel_ids],
 });
+
+function setWatched(
+    channelId: string,
+    checked: boolean | 'indeterminate',
+): void {
+    form.watched_channel_ids =
+        checked === true
+            ? [...form.watched_channel_ids, channelId]
+            : form.watched_channel_ids.filter((id) => id !== channelId);
+}
 
 type RoleList = 'allowed_role_ids' | 'admin_role_ids';
 
@@ -80,7 +91,11 @@ function save(): void {
                     <Badge v-if="!guild.bot_present" variant="destructive">
                         Bot not in server
                     </Badge>
-                    <span>{{ guild.member_count }} members synced</span>
+                    <span
+                        >{{ guild.member_count }}
+                        {{ guild.member_count === 1 ? 'member' : 'members' }}
+                        synced</span
+                    >
                 </CardDescription>
             </div>
         </CardHeader>
@@ -191,6 +206,35 @@ function save(): void {
                 </p>
                 <InputError :message="form.errors.events_channel_id" />
             </div>
+
+            <fieldset v-if="guild.channels.length" class="grid gap-2">
+                <legend class="mb-1 text-sm font-medium">
+                    Watch for posted quotes in
+                </legend>
+                <p class="-mt-1 text-xs text-muted-foreground">
+                    For when people post a quote without using the bot. Messages
+                    there that look like quotes go to Imports for review, and
+                    the bot reacts 📝 so people know it noticed.
+                </p>
+                <div
+                    class="grid max-h-48 gap-1 overflow-y-auto rounded-md border p-2 sm:grid-cols-2"
+                >
+                    <label
+                        v-for="channel in guild.channels"
+                        :key="channel.id"
+                        class="flex items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-accent/50"
+                    >
+                        <Checkbox
+                            :model-value="
+                                form.watched_channel_ids.includes(channel.id)
+                            "
+                            @update:model-value="setWatched(channel.id, $event)"
+                        />
+                        #{{ channel.name }}
+                    </label>
+                </div>
+                <InputError :message="form.errors.watched_channel_ids" />
+            </fieldset>
 
             <InputError
                 v-for="message in roleErrors"

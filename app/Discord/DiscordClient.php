@@ -67,6 +67,11 @@ interface DiscordClient
     public function editMessage(string $channelId, string $messageId, array $message): void;
 
     /**
+     * React to a message as the bot (a unicode emoji such as "📝").
+     */
+    public function addReaction(string $channelId, string $messageId, string $emoji): void;
+
+    /**
      * Create (no ID) or update a native guild scheduled event; returns its ID.
      *
      * @param  array<string, mixed>  $scheduledEvent

@@ -46,6 +46,7 @@ A single Discord application provides both the **website login** (OAuth2) and th
     - Embed Links
     - Read Message History (replies, channel imports)
     - Create Events and Manage Events (mirroring events as native Discord events)
+    - Add Reactions (📝 on quotes picked up from watched channels)
 
 Already invited the bot without the event permissions? Give its role **Create Events** and **Manage Events** in Server Settings → Roles. Without them, announcements still work; only the native Discord event is skipped (logged as a warning).
 

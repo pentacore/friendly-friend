@@ -30,11 +30,12 @@ use Illuminate\Support\Carbon;
  * @property list<array{id: string, name: string, position: int}> $channels text channels, for pickers
  * @property string|null $quotes_channel_id
  * @property string|null $events_channel_id
+ * @property list<string> $watched_channel_ids channels where posted quotes are picked up for review
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int|null $member_count  withCount() alias of members still in the guild
  */
-#[Fillable(['discord_id', 'name', 'icon', 'bot_present', 'enabled', 'allow_all_members', 'allowed_role_ids', 'admin_role_ids', 'roles', 'channels', 'quotes_channel_id', 'events_channel_id'])]
+#[Fillable(['discord_id', 'name', 'icon', 'bot_present', 'enabled', 'allow_all_members', 'allowed_role_ids', 'admin_role_ids', 'roles', 'channels', 'quotes_channel_id', 'events_channel_id', 'watched_channel_ids'])]
 class Guild extends Model
 {
     /** @use HasFactory<GuildFactory> */
@@ -97,6 +98,7 @@ class Guild extends Model
             'admin_role_ids' => 'array',
             'roles' => 'array',
             'channels' => 'array',
+            'watched_channel_ids' => 'array',
         ];
     }
 }

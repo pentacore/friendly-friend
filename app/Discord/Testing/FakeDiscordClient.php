@@ -49,6 +49,9 @@ final class FakeDiscordClient implements DiscordClient
 
     private ?Throwable $scheduledEventsFailure = null;
 
+    /** @var list<array{channel_id: string, message_id: string, emoji: string}> */
+    private array $reactions = [];
+
     /**
      * @param  list<GuildMemberData>  $members
      */
@@ -130,6 +133,19 @@ final class FakeDiscordClient implements DiscordClient
     public function editMessage(string $channelId, string $messageId, array $message): void
     {
         $this->edits[] = ['channel_id' => $channelId, 'message_id' => $messageId, 'message' => $message];
+    }
+
+    public function addReaction(string $channelId, string $messageId, string $emoji): void
+    {
+        $this->reactions[] = ['channel_id' => $channelId, 'message_id' => $messageId, 'emoji' => $emoji];
+    }
+
+    /**
+     * @return list<array{channel_id: string, message_id: string, emoji: string}>
+     */
+    public function reactions(): array
+    {
+        return $this->reactions;
     }
 
     public function saveScheduledEvent(string $guildId, ?string $scheduledEventId, array $scheduledEvent): string

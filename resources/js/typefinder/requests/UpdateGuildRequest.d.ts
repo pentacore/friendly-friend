@@ -11,4 +11,5 @@ export type UpdateGuildRequest = {
   admin_role_ids: string[];
   quotes_channel_id?: string | null;
   events_channel_id?: string | null;
+  watched_channel_ids?: string[];
 };

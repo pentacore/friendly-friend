@@ -42,6 +42,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
 - [x] Transport: rides with seats, pickup points, "needs a ride" list
 - [x] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
+- [x] Watched channels: quotes posted without the bot are picked up for review (📝 reaction)
 - [x] Date vote: propose several dates, everyone answers yes / if need be / no, organisers choose one (votes become RSVPs)
 - [x] Event questions (yes/no, pick one, free text) answered with the RSVP; counts for everyone, names for organisers
 - [x] "Answer by" deadline: closes Going/Maybe (Can't stays open), nudges Maybes a day before, greys out the Discord buttons
@@ -61,6 +62,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
 - [x] Events: vote on dates from Discord (a "Vote on dates" button opening a private picker)
 - [ ] Events: DM voters when a date is chosen
+- [ ] Watched channels: optionally publish picked-up quotes straight away (skip review) per server
 - [ ] Events: reorder questions, make a question required, ask questions from the Discord RSVP reply
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again

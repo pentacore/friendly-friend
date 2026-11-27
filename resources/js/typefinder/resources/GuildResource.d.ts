@@ -18,5 +18,6 @@ export type GuildResource = {
   channels: { id: string; name: string; position: number }[];
   quotes_channel_id: string | null;
   events_channel_id: string | null;
+  watched_channel_ids: string[];
   member_count: number;
 };

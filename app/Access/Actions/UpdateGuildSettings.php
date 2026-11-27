@@ -7,6 +7,7 @@ namespace App\Access\Actions;
 use App\Access\Jobs\SyncGuildMembers;
 use App\Discord\Jobs\RegisterGuildCommands;
 use App\Models\Guild;
+use App\Quotes\WatchedChannels;
 
 /**
  * Saves a server's access settings. Enabling a server pulls in its members
@@ -14,6 +15,8 @@ use App\Models\Guild;
  */
 final readonly class UpdateGuildSettings
 {
+    public function __construct(private WatchedChannels $watchedChannels) {}
+
     /**
      * @param  list<string>  $allowedRoleIds
      * @param  list<string>  $adminRoleIds
@@ -37,6 +40,7 @@ final readonly class UpdateGuildSettings
 
         if ($enabled !== $wasEnabled) {
             dispatch(new RegisterGuildCommands($guild->discord_id));
+            $this->watchedChannels->refresh();
         }
 
         return $guild;

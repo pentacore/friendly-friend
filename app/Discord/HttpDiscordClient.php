@@ -107,6 +107,13 @@ final readonly class HttpDiscordClient implements DiscordClient
             ->throw();
     }
 
+    public function addReaction(string $channelId, string $messageId, string $emoji): void
+    {
+        $this->request()
+            ->put("channels/{$channelId}/messages/{$messageId}/reactions/".rawurlencode($emoji).'/@me')
+            ->throw();
+    }
+
     public function saveScheduledEvent(string $guildId, ?string $scheduledEventId, array $scheduledEvent): string
     {
         $response = $scheduledEventId === null

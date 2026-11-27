@@ -4,23 +4,10 @@ declare(strict_types=1);
 
 namespace App\Quotes\Jobs;
 
-use App\Access\Actions\RecordDiscordUser;
-use App\Ai\CaptureInput;
-use App\Ai\QuoteDetector;
-use App\Ai\QuoteNormalizer;
-use App\Discord\Data\DiscordUserData;
 use App\Discord\DiscordClient;
 use App\Enums\QuoteSource;
-use App\Enums\QuoteStatus;
-use App\Enums\SaidAtPrecision;
-use App\Models\Quote;
 use App\Models\QuoteImport;
-use App\Quotes\Actions\DraftQuote;
-use App\Quotes\Data\NormalizedQuote;
-use App\Quotes\Data\SourceMessage;
-use App\Quotes\Discord\QuoteInteractions;
-use App\Quotes\Exceptions\AlreadyQuotedException;
-use Carbon\CarbonImmutable;
+use App\Quotes\Actions\CaptureChannelMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\Timeout;
@@ -45,13 +32,8 @@ final class ImportChannelQuotes implements ShouldQueue
 
     public function __construct(public readonly int $importId) {}
 
-    public function handle(
-        DiscordClient $discord,
-        QuoteDetector $detector,
-        QuoteNormalizer $normalizer,
-        DraftQuote $draftQuote,
-        RecordDiscordUser $recordUser,
-    ): void {
+    public function handle(DiscordClient $discord, CaptureChannelMessage $capture): void
+    {
         $import = QuoteImport::query()->with('guild')->find($this->importId);
 
         if ($import === null || in_array($import->status, ['done', 'failed'], true)) {
@@ -65,7 +47,7 @@ final class ImportChannelQuotes implements ShouldQueue
                 $messages = $discord->channelMessages($import->channel_id, $import->before_message_id, self::PAGE_SIZE);
 
                 foreach ($messages as $message) {
-                    $this->consider($import, $message, $detector, $normalizer, $draftQuote, $recordUser);
+                    $capture->handle($import, $import->guild, $message, QuoteSource::ChannelImport);
                 }
 
                 $oldest = end($messages);
@@ -88,52 +70,5 @@ final class ImportChannelQuotes implements ShouldQueue
 
         // More history left: continue in a fresh job.
         dispatch(new self($import->id));
-    }
-
-    /**
-     * @param  array<mixed>  $message
-     */
-    private function consider(QuoteImport $import, array $message, QuoteDetector $detector, QuoteNormalizer $normalizer, DraftQuote $draftQuote, RecordDiscordUser $recordUser): void
-    {
-        $content = is_string($message['content'] ?? null) ? trim($message['content']) : '';
-        $author = is_array($message['author'] ?? null) ? DiscordUserData::fromPayload($message['author']) : null;
-        $messageId = is_string($message['id'] ?? null) ? $message['id'] : null;
-
-        if ($content === '' || $messageId === null || ! $author instanceof DiscordUserData || ! $author->isValid() || ($message['author']['bot'] ?? false) === true) {
-            return;
-        }
-
-        if (Quote::query()->where('source_message_id', $messageId)->exists() || ! $detector->isQuote($content)) {
-            return;
-        }
-
-        $postedAt = is_string($message['timestamp'] ?? null) ? CarbonImmutable::parse($message['timestamp']) : null;
-        $normalized = $normalizer->normalize(new CaptureInput(
-            text: $content,
-            mentionNames: QuoteInteractions::mentionNames($message['mentions'] ?? null),
-            now: $postedAt,
-        ));
-
-        // Without a stated time, the quote was said around when it was posted.
-        if (! $normalized->saidAt instanceof CarbonImmutable && $postedAt instanceof CarbonImmutable) {
-            $normalized = new NormalizedQuote($normalized->lines, $normalized->context, $postedAt->startOfDay(), SaidAtPrecision::Day, $normalized->aiOutput);
-        }
-
-        try {
-            $quote = $draftQuote->handle(
-                $import->guild,
-                $recordUser->handle($author),
-                QuoteSource::ChannelImport,
-                $content,
-                $normalized,
-                new SourceMessage($messageId, $import->channel_id, "https://discord.com/channels/{$import->guild->discord_id}/{$import->channel_id}/{$messageId}"),
-                QuoteStatus::PendingReview,
-            );
-        } catch (AlreadyQuotedException) {
-            return;
-        }
-
-        $quote->update(['import_id' => $import->id]);
-        $import->increment('quotes_found');
     }
 }
