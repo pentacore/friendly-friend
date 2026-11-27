@@ -43,6 +43,9 @@ A single Discord application provides both the **website login** (OAuth2) and th
     - Send Messages in Threads
     - Embed Links
     - Read Message History (replies, channel imports)
+    - Create Events and Manage Events (mirroring events as native Discord events)
+
+Already invited the bot without the event permissions? Give its role **Create Events** and **Manage Events** in Server Settings → Roles. Without them, announcements still work; only the native Discord event is skipped (logged as a warning).
 
 Open the generated URL, pick a server and authorize. Repeat for every server the bot should be in. You need **Manage Server** on that server. If you limit which channels the bot can see, it must be able to read every channel you want stats and quotes from.
 

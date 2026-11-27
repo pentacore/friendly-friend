@@ -76,6 +76,10 @@ final class InteractionAck
      */
     private static function component(array $data): ?array
     {
+        if (EventCustomId::parse($data['custom_id'] ?? null) instanceof EventCustomId) {
+            return self::deferred(ephemeral: true);
+        }
+
         $customId = CustomId::parse($data['custom_id'] ?? null);
 
         if (! $customId instanceof CustomId) {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
@@ -20,6 +21,11 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// No test may reach a real service (Discord, AI providers): fake it with Http::fake() or a Fake* client.
+pest()->beforeEach(function (): void {
+    Http::preventStrayRequests();
+})->in('Feature');
 
 // Browser tests render the built assets (npm run build), never a running
 // dev server, so they behave the same locally and in CI.

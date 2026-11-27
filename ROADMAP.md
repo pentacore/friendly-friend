@@ -42,7 +42,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
 - [x] Transport: rides with seats, pickup points, "needs a ride" list
 - [x] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
-- [ ] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
+- [x] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
 - [x] Live updates per event over Reverb
 
 ### Ideas (not scheduled)
@@ -55,6 +55,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
 - [ ] Events: add an "Add to calendar" (.ics) link
 - [ ] Events: edit an expense (now: remove and add again); link a shopping item to the expense that paid for it (spec §14 `expense_id`)
+- [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again
 - [x] Sidebar grouped into Quotes, Together and Admin
@@ -110,6 +111,8 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
 
 - [x] Parallel tests failed with Postgres `out of shared memory` after the events schema grew: Sail's Postgres now runs with `max_locks_per_transaction=256`.
+
+- [x] Tests could reach real services: page tests called the Vite SSR dev server whenever it ran, and the real `DISCORD_BOT_TOKEN` from `.env` let jobs call Discord (it hit random fake server IDs, so nothing was created). Feature tests now block stray HTTP, SSR is off in tests, and the bot token is blanked in `phpunit.xml`.
 
 ## Upstream reports (other projects)
 

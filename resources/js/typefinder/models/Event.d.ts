@@ -31,6 +31,11 @@ export type Event = {
   currency: string;
   created_at: string | null;
   updated_at: string | null;
+  announce_channel_id: string | null;
+  discord_message_id: string | null;
+  discord_scheduled_event_id: string | null;
+  reminded_day_at: string | null;
+  reminded_hours_at: string | null;
   guild?: Guild | null;
   created_by?: DiscordUser | null;
   hosts?: (DiscordUser & { pivot: EventHostsPivot })[];
@@ -55,6 +60,11 @@ export type EventCreate = {
   timezone: string;
   status?: EventStatus;
   currency?: string;
+  announce_channel_id?: string | null;
+  discord_message_id?: string | null;
+  discord_scheduled_event_id?: string | null;
+  reminded_day_at?: string | null;
+  reminded_hours_at?: string | null;
 };
 
 export type EventUpdate = {
@@ -69,4 +79,9 @@ export type EventUpdate = {
   timezone?: string;
   status?: EventStatus;
   currency?: string;
+  announce_channel_id?: string | null;
+  discord_message_id?: string | null;
+  discord_scheduled_event_id?: string | null;
+  reminded_day_at?: string | null;
+  reminded_hours_at?: string | null;
 };

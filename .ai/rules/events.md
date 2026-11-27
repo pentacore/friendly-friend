@@ -41,3 +41,9 @@ paths:
 - Anything that can run out (ride seats) is checked inside a transaction with `lockForUpdate()`, and the action throws a domain exception (`RideFullException`) that the controller turns into an error toast.
 - Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. Payments change only the balance, never "paid" or "share".
 - Costs are managed with the `manageCosts` ability (view access), not `participate`, so a cancelled event can still be settled.
+
+## Discord
+
+- Everything Discord-side goes through `SyncEventToDiscord` (announcement + native event), dispatched by the actions: `CreateEvent`/`UpdateEvent`/`CancelEvent` with details, `RecordRsvp` with `details: false` (counts only). It's `ShouldBeUniqueUntilProcessing`, and a Discord 4xx (missing permission, deleted channel) is logged, never retried.
+- Message bodies come from the pure `Planning\Discord\EventAnnouncement`. RSVP buttons use `Discord\Interactions\EventCustomId` (`event:rsvp:<id>:<status>`), are acknowledged privately, and are handled by `HandleEventInteraction`, which keeps guests, note and ride flag from the website.
+- Reminders mention people only when their DMs are closed, with `allowed_mentions.users` listing exactly them.

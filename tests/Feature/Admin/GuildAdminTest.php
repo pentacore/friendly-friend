@@ -137,3 +137,16 @@ test('owners pick the channel where saved quotes are posted', function (): void 
     $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'quotes_channel_id' => null]);
     expect($guild->refresh()->quotes_channel_id)->toBeNull();
 });
+
+test('owners pick the channel where events are announced', function (): void {
+    $guild = Guild::factory()->create(['discord_id' => '555', 'channels' => [['id' => '778', 'name' => 'events', 'position' => 1]], ...guildRoles()]);
+    $payload = ['enabled' => true, 'allow_all_members' => false, 'allowed_role_ids' => ['100'], 'admin_role_ids' => []];
+    $owner = owner();
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'events_channel_id' => '999'])
+        ->assertSessionHasErrors('events_channel_id');
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'events_channel_id' => '778'])
+        ->assertSessionHasNoErrors();
+    expect($guild->refresh()->events_channel_id)->toBe('778');
+});

@@ -100,6 +100,24 @@ final readonly class HttpDiscordClient implements DiscordClient
         return is_string($sent) ? $sent : '';
     }
 
+    public function editMessage(string $channelId, string $messageId, array $message): void
+    {
+        $this->request()
+            ->patch("channels/{$channelId}/messages/{$messageId}", $this->withoutPings($message))
+            ->throw();
+    }
+
+    public function saveScheduledEvent(string $guildId, ?string $scheduledEventId, array $scheduledEvent): string
+    {
+        $response = $scheduledEventId === null
+            ? $this->request()->post("guilds/{$guildId}/scheduled-events", $scheduledEvent)
+            : $this->request()->patch("guilds/{$guildId}/scheduled-events/{$scheduledEventId}", $scheduledEvent);
+
+        $id = $response->throw()->json('id');
+
+        return is_string($id) ? $id : '';
+    }
+
     public function channelMessages(string $channelId, ?string $before = null, int $limit = 100): array
     {
         $messages = $this->request()

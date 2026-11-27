@@ -30,6 +30,7 @@ const form = useForm({
     allowed_role_ids: [...props.guild.allowed_role_ids],
     admin_role_ids: [...props.guild.admin_role_ids],
     quotes_channel_id: props.guild.quotes_channel_id,
+    events_channel_id: props.guild.events_channel_id,
 });
 
 type RoleList = 'allowed_role_ids' | 'admin_role_ids';
@@ -166,6 +167,29 @@ function save(): void {
                     </option>
                 </select>
                 <InputError :message="form.errors.quotes_channel_id" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="events-channel">Announce events in</Label>
+                <select
+                    id="events-channel"
+                    v-model="form.events_channel_id"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                    <option :value="null">Don't announce</option>
+                    <option
+                        v-for="channel in guild.channels"
+                        :key="channel.id"
+                        :value="channel.id"
+                    >
+                        #{{ channel.name }}
+                    </option>
+                </select>
+                <p class="text-xs text-muted-foreground">
+                    New events are posted there with Going / Maybe / Can't
+                    buttons, and reminders fall back to it when DMs are closed.
+                </p>
+                <InputError :message="form.errors.events_channel_id" />
             </div>
 
             <InputError

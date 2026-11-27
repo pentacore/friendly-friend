@@ -38,6 +38,7 @@ final class UpdateGuildRequest extends FormRequest
             'admin_role_ids' => ['present', 'array'],
             'admin_role_ids.*' => ['string', Rule::in($roleIds)],
             'quotes_channel_id' => ['nullable', 'string', Rule::in($channelIds)],
+            'events_channel_id' => ['nullable', 'string', Rule::in($channelIds)],
         ];
     }
 
@@ -50,6 +51,7 @@ final class UpdateGuildRequest extends FormRequest
             'allowed_role_ids.*.in' => 'That role is not an assignable role of this server.',
             'admin_role_ids.*.in' => 'That role is not an assignable role of this server.',
             'quotes_channel_id.in' => 'That is not a text channel of this server.',
+            'events_channel_id.in' => 'That is not a text channel of this server.',
         ];
     }
 }

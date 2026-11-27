@@ -41,6 +41,14 @@ final class FakeDiscordClient implements DiscordClient
     /** @var list<string> user IDs whose DMs are closed */
     private array $closedDms = [];
 
+    /** @var list<array{channel_id: string, message_id: string, message: array<string, mixed>}> */
+    private array $edits = [];
+
+    /** @var array<string, array<string, mixed>> scheduled event ID → last payload */
+    private array $scheduledEvents = [];
+
+    private ?Throwable $scheduledEventsFailure = null;
+
     /**
      * @param  list<GuildMemberData>  $members
      */
@@ -117,6 +125,49 @@ final class FakeDiscordClient implements DiscordClient
         $this->sent[] = ['channel_id' => $channelId, 'message' => $message];
 
         return (string) (1000 + count($this->sent));
+    }
+
+    public function editMessage(string $channelId, string $messageId, array $message): void
+    {
+        $this->edits[] = ['channel_id' => $channelId, 'message_id' => $messageId, 'message' => $message];
+    }
+
+    public function saveScheduledEvent(string $guildId, ?string $scheduledEventId, array $scheduledEvent): string
+    {
+        if ($this->scheduledEventsFailure instanceof Throwable) {
+            throw $this->scheduledEventsFailure;
+        }
+
+        $id = $scheduledEventId ?? (string) (5000 + count($this->scheduledEvents));
+        $this->scheduledEvents[$id] = ['guild_id' => $guildId, ...$scheduledEvent];
+
+        return $id;
+    }
+
+    /**
+     * Make saveScheduledEvent() fail, e.g. a 403 for a missing Manage Events permission.
+     */
+    public function failScheduledEventsWith(Throwable $failure): self
+    {
+        $this->scheduledEventsFailure = $failure;
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{channel_id: string, message_id: string, message: array<string, mixed>}>
+     */
+    public function editedMessages(): array
+    {
+        return $this->edits;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function scheduledEvents(): array
+    {
+        return $this->scheduledEvents;
     }
 
     public function channelMessages(string $channelId, ?string $before = null, int $limit = 100): array

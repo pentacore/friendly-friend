@@ -10,12 +10,14 @@ use App\Discord\Data\DiscordUserData;
 use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
 use App\Discord\Data\Payload;
+use App\Discord\Interactions\EventCustomId;
 use App\Discord\Interactions\InteractionAck;
 use App\Discord\Interactions\InteractionAcknowledger;
 use App\Discord\Interactions\PrivacyCommands;
 use App\Discord\Jobs\MarkGuildLeft;
 use App\Discord\Jobs\RefreshGuild;
 use App\Discord\Jobs\RegisterGuild;
+use App\Planning\Jobs\HandleEventInteraction;
 use App\Quotes\Jobs\CaptureFromMention;
 use App\Quotes\Jobs\HandleQuoteInteraction;
 use App\Stats\Jobs\HandlePrivacyCommand;
@@ -203,6 +205,12 @@ final readonly class GatewayEventRouter
         }
 
         app(InteractionAcknowledger::class)->acknowledge($id, $token, $body);
+
+        if (($payload['type'] ?? null) === InteractionAck::MESSAGE_COMPONENT && EventCustomId::parse(Payload::string($payload, 'data', 'custom_id')) instanceof EventCustomId) {
+            dispatch(new HandleEventInteraction($payload));
+
+            return;
+        }
 
         if (($payload['type'] ?? null) === InteractionAck::APPLICATION_COMMAND && Payload::string($payload, 'data', 'name') === PrivacyCommands::SLASH) {
             dispatch(new HandlePrivacyCommand($payload));

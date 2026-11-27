@@ -7,6 +7,7 @@ use App\Access\Jobs\SyncGuildMembers;
 use App\Discord\Jobs\RegisterGuildCommands;
 use App\Models\DiscordUser;
 use App\Models\Guild;
+use App\Planning\Jobs\SendEventReminders;
 use App\Quotes\Imports\StartChannelImport;
 use App\Quotes\Jobs\PruneExpiredDrafts;
 use App\Stats\Jobs\RollUpStats;
@@ -29,6 +30,8 @@ Artisan::command('discord:sync-members', function (): void {
 Schedule::job(new SyncAllGuilds)->cron('0 */3 * * *')->withoutOverlapping();
 
 Schedule::job(new PruneExpiredDrafts)->everyMinute()->withoutOverlapping();
+
+Schedule::job(new SendEventReminders)->everyFiveMinutes()->withoutOverlapping();
 
 // Today's rollups stay fresh during the day; yesterday's are finished after midnight.
 Schedule::job(new RollUpStats)->hourlyAt(5);

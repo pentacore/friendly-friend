@@ -1,6 +1,6 @@
 # Events
 
-Plan get-togethers per server: who's coming, food, rides, costs, and (in a later slice) Discord announcements.
+Plan get-togethers per server: who's coming, food, rides, costs, and announcements with RSVP buttons and reminders in Discord.
 
 ## Who can do what
 
@@ -39,6 +39,15 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 - **Balances** table: paid, share and balance per person.
 - Money is stored as integer minor units in the event's currency (`SEK`).
 
+## Discord
+
+Set **Announce events in** for a server on the Servers page (`guilds.events_channel_id`). Then:
+
+- **Announcement:** a new event is posted there as an embed (when, where, who's coming, a link to the page) with **Going / Maybe / Can't** buttons. It's edited whenever the details or the counts change, and shows "Cancelled:" with disabled buttons when called off. Posting is done by `Planning\Jobs\SyncEventToDiscord`, unique while queued, so a burst of RSVPs edits once.
+- **Buttons** are answered privately ("You're going to …") and keep the guests, note and ride flag set on the website. Only members with access through that server can answer.
+- **Native Discord event:** the event is mirrored as an external scheduled event (location, start, end; 6 hours if no end), updated on edits and cancelled with the event. One-way: Discord's "Interested" isn't read back. Needs **Create Events / Manage Events**; without it, this step is skipped and logged.
+- **Reminders** (`SendEventReminders`, every 5 minutes): a DM to everyone going, about 24 hours and 2 hours before. Each is sent once; an event planned at short notice only gets the 2-hour one. People with closed DMs are mentioned in the events channel instead, the one deliberate ping the bot makes.
+
 ## Live updates
 
 Every change broadcasts `event.changed` (`{ event_id, section }`) on the private channel `events.{id}`. Everyone viewing the event reloads just the changed part of the page. Channel access follows the event's server.
@@ -53,4 +62,5 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
 - `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).
+- Discord: `guilds.events_channel_id`, and on `events`: announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
 - `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats, note) and `event_ride_passengers` (one per person and ride: pickup_note).

@@ -31,12 +31,17 @@ use Illuminate\Support\Carbon;
  * @property string $timezone
  * @property EventStatus $status
  * @property string $currency
+ * @property string|null $announce_channel_id
+ * @property string|null $discord_message_id
+ * @property string|null $discord_scheduled_event_id
+ * @property Carbon|null $reminded_day_at
+ * @property Carbon|null $reminded_hours_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Guild $guild
  * @property-read DiscordUser $createdBy
  */
-#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'timezone', 'status', 'currency'])]
+#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'timezone', 'status', 'currency', 'announce_channel_id', 'discord_message_id', 'discord_scheduled_event_id', 'reminded_day_at', 'reminded_hours_at'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -159,6 +164,8 @@ class Event extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'status' => EventStatus::class,
+            'reminded_day_at' => 'datetime',
+            'reminded_hours_at' => 'datetime',
         ];
     }
 }

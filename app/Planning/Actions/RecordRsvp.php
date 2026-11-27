@@ -9,6 +9,7 @@ use App\Events\EventChanged;
 use App\Models\DiscordUser;
 use App\Models\Event;
 use App\Models\EventRsvp;
+use App\Planning\Jobs\SyncEventToDiscord;
 
 /**
  * Sets someone's answer to an event (website or Discord button). Guests
@@ -31,6 +32,7 @@ final readonly class RecordRsvp
         );
 
         broadcast(new EventChanged($event->id, EventChanged::OVERVIEW));
+        dispatch(new SyncEventToDiscord($event->id, details: false));
 
         return $rsvp;
     }

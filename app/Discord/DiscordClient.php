@@ -60,6 +60,20 @@ interface DiscordClient
     public function sendMessage(string $channelId, array $message): string;
 
     /**
+     * Replace a message the bot posted.
+     *
+     * @param  array<string, mixed>  $message
+     */
+    public function editMessage(string $channelId, string $messageId, array $message): void;
+
+    /**
+     * Create (no ID) or update a native guild scheduled event; returns its ID.
+     *
+     * @param  array<string, mixed>  $scheduledEvent
+     */
+    public function saveScheduledEvent(string $guildId, ?string $scheduledEventId, array $scheduledEvent): string;
+
+    /**
      * Up to 100 messages of a channel, newest first, older than $before.
      *
      * @return list<array<mixed>> Discord message objects

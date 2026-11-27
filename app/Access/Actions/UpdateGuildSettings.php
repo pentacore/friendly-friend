@@ -18,7 +18,7 @@ final readonly class UpdateGuildSettings
      * @param  list<string>  $allowedRoleIds
      * @param  list<string>  $adminRoleIds
      */
-    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds, ?string $quotesChannelId = null): Guild
+    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds, ?string $quotesChannelId = null, ?string $eventsChannelId = null): Guild
     {
         $wasEnabled = $guild->enabled;
 
@@ -28,6 +28,7 @@ final readonly class UpdateGuildSettings
             'allowed_role_ids' => array_values(array_unique($allowedRoleIds)),
             'admin_role_ids' => array_values(array_unique($adminRoleIds)),
             'quotes_channel_id' => $quotesChannelId,
+            'events_channel_id' => $eventsChannelId,
         ]);
 
         if ($enabled && ! $wasEnabled) {

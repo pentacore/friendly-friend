@@ -8,6 +8,7 @@ use App\Events\EventChanged;
 use App\Models\Event;
 use App\Planning\Data\EventDetails;
 use App\Planning\EventAttributes;
+use App\Planning\Jobs\SyncEventToDiscord;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,6 +26,7 @@ final readonly class UpdateEvent
         });
 
         broadcast(new EventChanged($event->id, EventChanged::OVERVIEW));
+        dispatch(new SyncEventToDiscord($event->id));
 
         return $event;
     }

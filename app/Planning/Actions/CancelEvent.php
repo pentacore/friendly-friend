@@ -7,6 +7,7 @@ namespace App\Planning\Actions;
 use App\Enums\EventStatus;
 use App\Events\EventChanged;
 use App\Models\Event;
+use App\Planning\Jobs\SyncEventToDiscord;
 
 /**
  * Calls an event off (or back on). Cancelled events stay visible, so their
@@ -19,5 +20,6 @@ final readonly class CancelEvent
         $event->update(['status' => $cancelled ? EventStatus::Cancelled : EventStatus::Planned]);
 
         broadcast(new EventChanged($event->id, EventChanged::OVERVIEW));
+        dispatch(new SyncEventToDiscord($event->id));
     }
 }

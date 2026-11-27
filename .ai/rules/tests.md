@@ -32,3 +32,7 @@ Postgres `jsonb` reorders keys, so compare stored JSON with `toEqual`, not `toBe
 ## Raw redirect headers
 
 `assertRedirect()` normalises relative URLs. When the scheme or host matters (e.g. trusted proxies), assert the raw `Location` header.
+
+## No real services
+
+Feature tests block stray HTTP (`Http::preventStrayRequests()` in `tests/Pest.php`). `phpunit.xml` turns Inertia SSR off and blanks `DISCORD_BOT_TOKEN`, so a real `.env` can't make tests act as the bot. Fake Discord with `FakeDiscordClient` / `FakeInteractionAcknowledger`, and HTTP with `Http::fake()`.

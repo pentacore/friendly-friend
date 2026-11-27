@@ -10,10 +10,12 @@ use App\Models\Event;
 use App\Models\Guild;
 use App\Planning\Data\EventDetails;
 use App\Planning\EventAttributes;
+use App\Planning\Jobs\SyncEventToDiscord;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Creates an event on a server. The creator is going.
+ * Creates an event on a server. The creator is going, and Discord gets
+ * the announcement and the native event.
  */
 final readonly class CreateEvent
 {
@@ -35,6 +37,7 @@ final readonly class CreateEvent
         });
 
         $this->recordRsvp->handle($event, $creator, RsvpStatus::Going);
+        dispatch(new SyncEventToDiscord($event->id));
 
         return $event;
     }
