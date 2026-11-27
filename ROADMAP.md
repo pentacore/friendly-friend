@@ -4,16 +4,16 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ## Status
 
-| Phase | What                                                                                                | State                               |
-| ----- | --------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| 1     | Foundation: Laravel 13, Sail PHP 8.5, Postgres, tooling, Typefinder, Boost, CI, prod image          | ✅ done                             |
-| 2     | Discord-only login, access by server roles                                                          | ✅ done                             |
-| 3     | Bot core: gateway process, event router, member sync, watchdog                                      | ✅ done                             |
-| 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                 | ✅ done                             |
-| 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import | ✅ done                             |
-| 5     | Quotes on the website                                                                               | ⏭ next                              |
-| 6     | Server stats with opt-out                                                                           | planned                             |
-| 7     | Event planning                                                                                      | planned (approved design, spec §14) |
+| Phase | What                                                                                                                              | State                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 1     | Foundation: Laravel 13, Sail PHP 8.5, Postgres, tooling, Typefinder, Boost, CI, prod image                                        | ✅ done                             |
+| 2     | Discord-only login, access by server roles                                                                                        | ✅ done                             |
+| 3     | Bot core: gateway process, event router, member sync, watchdog                                                                    | ✅ done                             |
+| 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                                               | ✅ done                             |
+| 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done                             |
+| 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done                             |
+| 6     | Server stats with opt-out                                                                                                         | ⏭ next                              |
+| 7     | Event planning                                                                                                                    | planned (approved design, spec §14) |
 
 ## Planned features
 
@@ -56,7 +56,9 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 - [x] Dark-mode browser tests: Pest + Playwright, `composer test:browser`, in CI.
 - [ ] **Playwright system libraries in Sail:** installed into the running container only (`playwright install-deps`). Bake them into the Sail runtime (`sail:publish`, Dockerfile) so a rebuild keeps them.
-- [ ] Replace the starter kit's Laravel logo in the sidebar with a Friendly Friend mark (the highlighted quote glyph).
+- [x] Replace the starter kit's Laravel logo with a Friendly Friend mark (the highlighted quote glyph).
+- [ ] Restore removed quotes (admins): `removed` quotes are kept but there's no undo in the UI yet.
+- [ ] Favicon and app icons still show the starter kit's; generate them from the new mark.
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
 - [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.
 - [ ] `GuildAccess` loads the user's memberships several times per request (middleware, `isAdmin`, `isOwner` in shared props). Memoize per request.
@@ -89,6 +91,7 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] The bot REST client retried every failure, including a 403 "DMs closed": retries only 429/5xx/connection errors.
 - [x] Postgres `jsonb` reorders object keys, so a test compared JSON by key order: compare by value.
 - [x] **Vue silently compiled pages with no props:** `defineProps<PageProps['x']>()` reads Typefinder's .d.ts through Vue's type cache, which the dev server never invalidates. Login error messages and new pages lost their props until a restart. Fixed with a Vite plugin that invalidates the cache on Typefinder output, plus browser tests to catch it.
+- [x] Dark-mode error text unreadable (the starter kit's dark `--destructive` token was too dark for text): brightened the token.
 - [x] Highlighter swipe hidden behind the card background (negative z-index without its own stacking context): `isolate`.
 - [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
 

@@ -16,6 +16,7 @@ export type SharedPageProps = {
 };
 
 export type PageProps = {
+  'Dashboard': { random: QuoteResource | null; recent: QuoteResource[]; total: number };
   'admin/Guilds': { guilds: GuildResource[] };
   'admin/ImportReview': { quote_import: QuoteImportResource; pending: QuoteResource[] };
   'admin/Imports': { imports: QuoteImportResource[] };

@@ -169,3 +169,18 @@ it('reviews imported quotes', function (bool $dark): void {
 
     expect($pending->refresh()->status)->toBe(QuoteStatus::Published);
 })->with(['light' => false, 'dark' => true]);
+
+it('shows the dashboard with a random quote', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/dashboard');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Another one')
+        ->assertSee('Latest quotes')
+        ->assertNoJavaScriptErrors();
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'dashboard-'.($dark ? 'dark' : 'light'))
+        ->click('Another one')
+        ->assertNoJavaScriptErrors();
+})->with(['light' => false, 'dark' => true]);

@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Inertia\Response;
 
 Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware(['auth', 'guild.access'])->group(function (): void {
-    Route::get('dashboard', fn (): Response => Inertia::render('Dashboard'))->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
 
 require __DIR__.'/auth.php';

@@ -35,6 +35,7 @@ paths:
 
 - Theme tokens only (`bg-background`, `text-muted-foreground`, `border`, `bg-card`…). Never use fixed colours, so light and dark both work. Default appearance is "system".
 - **Quote identity:** quote text uses `font-quote` (Bricolage Grotesque). The signature is a highlighter swipe behind the opening quote mark (`bg-highlight`, separate light and dark tokens in `app.css`), with the mark itself `text-black`. Use `components/quotes/QuoteText.vue` for any quote; don't restyle quotes per page.
+- The logo (`AppLogoIcon`) is the same highlighted quote mark: black glyph on the highlighter swipe, with its own fills (works on any background).
 - UI text is Instrument Sans. Keep everything around the quote quiet: the highlighter is the one bold element.
 - Copy is plain and specific ("Save changes", "Remove quote"). Empty states tell you how to get content ("right-click a message → Apps → Save quote").
 

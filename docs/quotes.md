@@ -118,3 +118,7 @@ vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discor
     - top quote savers
 
     All lists only cover quotes the user can see.
+
+## Dashboard
+
+After login, `/dashboard` (`DashboardController`) shows one random quote large, with voting, **Another one** (reloads only that quote) and a link to it. Below are shortcuts to this or that and the top lists, and the five latest quotes. With no quotes yet, it explains how to save the first one.
