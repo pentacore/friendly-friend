@@ -36,7 +36,29 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Admin: audit log (who removed, merged, restored what)
 - [ ] Web push notifications for the installed PWA (the web manifest already exists)
 
+### Search
+
+Today there are two searches: the quote feed (`QuoteController::index`, `search_vector @@ websearch_to_tsquery('simple', …)`, newest first) and admin people (`Admin\PeopleController::index`, `ilike` on names and aliases). Ideas in rough priority order:
+
+- [ ] Quotes: one shared search scope (e.g. `Quote::search($text)`) so the feed, person pages and a Discord command run the same query, and the items below land in one place
+- [ ] Quotes: match while typing. `websearch_to_tsquery` only matches whole words, so "Uncl" finds nothing until "Uncle" is typed in full. Turn the last term (or every term) into a prefix query (`word:*`, built with `to_tsquery` from sanitised words)
+- [ ] Quotes: find quotes by a person's current name and nicknames. `search_text` only holds `speaker_name` as written when the quote was saved, so renaming a person, adding an alias or `MergePeople` doesn't make their quotes findable under the new name. Either add the linked people's `display_name` and aliases to `search_text` (and rebuild it on rename, alias change and merge), or match the query against people too and OR in their quotes
+- [ ] Quotes: tolerate typos and missing accents ("hakan" → "Håkan", "kanelbule" → "kanelbulle"). `pg_trgm` is already installed (for `ResolvePerson`); add a trigram GIN index on `search_text` and fall back to `word_similarity` when full-text finds nothing. Accent folding needs the `unaccent` extension (an immutable wrapper for the generated column)
+- [ ] Quotes: sort by relevance (`ts_rank`) when there is a query, with a sort switch (newest / top score / best match) on the feed
+- [ ] Quotes: highlight the matched words in the quote cards
+- [ ] Quotes feed: a person picker next to the server select. The person filter is only reachable from a person page (`?person=slug`), and an unknown slug is silently ignored
+- [ ] Discord: `/quote search <text>` with autocomplete on the person option, reusing the shared scope (only `add` and `random` exist)
+- [ ] Global search / command palette (Ctrl+K) across quotes, people and events. The unused starter-kit `AppHeader.vue` has a search button that does nothing; wire it up or delete the component
+- [ ] Events: search by title, and reach past events older than the latest 30 (`EventController::index` caps them with no paging)
+- [ ] Quotes: search by meaning ("the one where Bo complained about IKEA", "cinnamon bun" finding "kanelbulle"). Embed each quote with laravel/ai embeddings in a queued job on save and edit, store the vector with `pgvector`, and run a hybrid query: full-text and trigram matches for exact words, vector similarity as a fallback or second ranking signal (always inside `visibleTo`). Needs `pgvector` in the Postgres image (Sail's default doesn't ship it) and an AI key (none set in dev yet). Do it after the Postgres items above. Cost limits: indexing is a one-off of roughly 30–150 tokens per quote (cents for the whole archive), then only new and edited quotes. Embed the query only when the word search finds few results or the search is submitted, never on every debounced keystroke, and cache query embeddings for a while. Ollama (local, supported by laravel/ai) is a zero-token option; Anthropic has no embedding models
+- [ ] Discord: let Jev route @mentions that ask for a quote ("find the one where…") to search instead of saving a new quote. Jev is a classifier (`Classification`), so it picks the intent, not the results. Extends the Jev `Choice` idea above. Cost: one small classification per @mention, cheaper than the AI parsing a save already does
+- [ ] _Low priority, possibly never:_ Quotes: turn plain-language queries into filters ("Bo's quotes from last summer" → person and date range) with an LLM using structured output. A general model fits this better than Jev. It is the only AI search item with a real per-search cost (a full model call, roughly 300–800 tokens in, and slow), so if built: call it only on submit or from the Discord command, and only when the query reads like a sentence rather than keywords; never send the list of people, let the model return the name as written and resolve it with `ResolvePerson`
+
+Considered and skipped for now: **Typesense / Meilisearch** (through Laravel Scout). They give prefix matching, typo tolerance, ranking and highlighting out of the box, but Postgres covers all of that at this data size (prefix `tsquery`, `pg_trgm`, `ts_rank`, `ts_headline`, `unaccent`). They would add a service to run and back up, an index to keep in sync (edits, merges, removals, per-server visibility filters) and a new dependency, and they still can't search by meaning. Revisit if the quote count grows by orders of magnitude.
+
 ## Follow-ups and known gaps
+
+- [ ] **Admin people search:** `%` and `_` typed into the box are not escaped in the `ilike` patterns, so they act as wildcards, and the `orWhereHas('aliases')` sits ungrouped at the top level, which breaks as soon as another filter is added. Wrap it in a `where(fn …)` group, escape the input, and consider `similarity()` ordering via `pg_trgm` like `ResolvePerson`
 
 - [ ] **Playwright system libraries in Sail:** installed into the running container only (`playwright install-deps`). Bake them into the Sail runtime (`sail:publish`, Dockerfile) so a rebuild keeps them.
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
