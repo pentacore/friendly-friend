@@ -21,6 +21,8 @@ export type PageProps = {
   'people/Show': { person: { id: number; slug: string; display_name: string; aliases: string[]; avatar_url: string | null; quote_count: number }; quotes: SimplePaginatedResourceCollection<QuoteResource> };
   'quotes/Index': { quotes: SimplePaginatedResourceCollection<QuoteResource>; filters: { q: string; guild: number | null; person: string | null }; guilds: { id: number; name: string }[]; person: { slug: string; display_name: string } | null };
   'quotes/Show': { quote: QuoteResource; revisions: QuoteRevisionResource[] };
+  'quotes/ThisOrThat': { pair: QuoteResource[] | null };
+  'quotes/Top': { all_time: QuoteResource[]; this_month: QuoteResource[]; elo: QuoteResource[]; most_quoted: { slug: string; display_name: string; quote_count: number }[]; top_submitters: { name: string; avatar_url: string; quote_count: number }[] };
 };
 
 export type PageName = keyof PageProps;

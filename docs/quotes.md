@@ -107,3 +107,14 @@ vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discor
 - 👍/👎 on every quote card and quote page. Clicking the same vote again removes it, and clicking the other one switches. `RecordVote` recomputes the cached `quotes.score` from `quote_votes` (one vote per user per quote).
 - The buttons update straight away (optimistic) and roll back if the request fails. The request is `POST /quotes/{id}/vote` (JSON, Inertia `useHttp`), answered with `VoteResultResource`.
 - **Live:** `QuoteScoreChanged` is broadcast on the private channel `guilds.{id}.quotes` (Reverb), authorised for anyone who can see that server's quotes. Pages call `provideLiveQuoteScores()` once (one listener per server), and `VoteButtons` read the shared live score.
+
+## This or that, and top lists
+
+- **This or that** (`/this-or-that`) shows two quotes; pick the funnier one with a click or the ← / → keys. `RecordMatchup` updates both quotes' **Elo** (K = 32, start 1000) and `matchup_count`. Pairs favour quotes with the fewest matchups, plus a little randomness.
+- **Top lists** (`/top`):
+    - funniest of all time and this month, by score
+    - this-or-that champions, by Elo, after at least 3 matchups
+    - most quoted people
+    - top quote savers
+
+    All lists only cover quotes the user can see.

@@ -5,10 +5,15 @@ declare(strict_types=1);
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteVoteController;
+use App\Http\Controllers\ThisOrThatController;
+use App\Http\Controllers\TopController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
+    Route::get('this-or-that', [ThisOrThatController::class, 'show'])->name('this-or-that.show');
+    Route::post('this-or-that', [ThisOrThatController::class, 'store'])->name('this-or-that.store');
+    Route::get('top', TopController::class)->name('top');
     Route::get('quotes/random', [QuoteController::class, 'random'])->name('quotes.random');
     Route::get('quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
     Route::put('quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');

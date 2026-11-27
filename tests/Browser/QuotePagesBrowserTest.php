@@ -6,6 +6,7 @@ use App\Models\Guild;
 use App\Models\Person;
 use App\Models\Quote;
 use App\Models\QuoteLine;
+use App\Models\QuoteMatchup;
 use App\Models\User;
 
 /**
@@ -98,3 +99,32 @@ it('votes on a quote', function (): void {
 
     visit("/quotes/{$this->single->id}")->assertSeeIn('[data-test="score"]', '1');
 });
+
+it('plays this or that', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/this-or-that');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Which one is funnier?')->assertNoJavaScriptErrors();
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'this-or-that-'.($dark ? 'dark' : 'light'))
+        ->click('[data-test="pick-0"]')
+        ->assertSee('Which one is funnier?')
+        ->assertNoJavaScriptErrors();
+
+    expect(QuoteMatchup::query()->count())->toBe(1);
+})->with(['light' => false, 'dark' => true]);
+
+it('shows the top lists', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/top');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Funniest of all time')
+        ->assertSee('Most quoted')
+        ->assertNoJavaScriptErrors();
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'top-'.($dark ? 'dark' : 'light'));
+})->with(['light' => false, 'dark' => true]);
