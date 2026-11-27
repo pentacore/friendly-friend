@@ -110,15 +110,15 @@ return [
     | Rendered into the <meta name="reverb-config"> tag that app.ts reads at
     | runtime, so one built image works for every deploy. They differ from the
     | server-side options above (the `reverb` Docker name vs the public host).
-    | The VITE_REVERB_* names are the old build-time ones, still read so an
-    | existing .env keeps working.
+    | Unset, the page falls back to APP_URL's host and the server's port and
+    | scheme, which is right for local development.
     |
     */
 
     'browser' => [
-        'host' => env('REVERB_BROWSER_HOST', env('VITE_REVERB_HOST')),
-        'port' => env('REVERB_BROWSER_PORT', env('VITE_REVERB_PORT')),
-        'scheme' => env('REVERB_BROWSER_SCHEME', env('VITE_REVERB_SCHEME')),
+        'host' => env('REVERB_BROWSER_HOST'),
+        'port' => env('REVERB_BROWSER_PORT'),
+        'scheme' => env('REVERB_BROWSER_SCHEME'),
     ],
 
 ];

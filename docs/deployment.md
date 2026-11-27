@@ -60,7 +60,7 @@ REVERB_BROWSER_SCHEME=https
 # Discord + AI keys: see docs/discord-app.md (DISCORD_REDIRECT_URI must use https://quotes.example.com)
 ```
 
-Each page carries the browser endpoint in `<meta name="reverb-config">` (from `config/reverb.php` → `browser`, with `REVERB_APP_KEY`), so changing it only needs a restart, not a new image. The old `VITE_REVERB_HOST/PORT/SCHEME` names still work as a fallback.
+Each page carries the browser endpoint in `<meta name="reverb-config">` (from `config/reverb.php` → `browser`, with `REVERB_APP_KEY`), so changing it only needs a restart, not a new image.
 
 ```bash
 docker compose -f compose.prod.yaml pull
