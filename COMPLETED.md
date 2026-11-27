@@ -76,6 +76,9 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Events: organisers reorder questions (↑/↓).
 - [x] Events: a currency per event (SEK, NOK, DKK, EUR, GBP, USD), fixed once there are costs.
 - [x] Events: an expense can say which shopping list items it paid for (spec §14 `expense_id`).
+- [x] Jev goes through OpenRouter (`OPENROUTER_API_KEY`, no waitlisted TypeSafe key), in one place: `App\Ai\Jev`.
+- [x] Jev classifies what an @mention wants: save a quote, a random quote (posted in the channel) or help (DMed); capture stays the default.
+- [x] Jev picks between several fuzzy person matches in `ResolvePerson` (or says it's someone new).
 
 ## Bugs found and fixed along the way
 

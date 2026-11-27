@@ -22,7 +22,7 @@ Checked in order:
 2. Alias, case-insensitive.
 3. A person's display name, case-insensitive.
 4. A member **of the quote's server**, by server nickname, global display name or username.
-5. Fuzzy match (Postgres `pg_trgm` similarity ≥ 0.5) on people and aliases. "Fredrick" finds Fredrik.
+5. Fuzzy match (Postgres `pg_trgm` similarity ≥ 0.5) on people and aliases. "Fredrick" finds Fredrik. When **several people** match (up to 5), **Jev** picks one, or "someone else" (a new person). It sees the name as written, the line, each candidate's aliases and whether they're in this server. Without Jev, or if it fails, the closest match wins.
 6. Otherwise a **new person** with that name.
 
 The preview always shows who each line was matched to, so a wrong guess is caught before saving.
@@ -52,14 +52,14 @@ The preview always shows who each line was matched to, so a wrong guess is caugh
 
 Members with access through an **enabled** server can do all of this. The bot registers its commands in every enabled server: on connect, when a server is enabled, or by hand with `vendor/bin/sail artisan discord:register-commands`.
 
-| How                                                                       | What happens                                                                                                             |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Right-click a message → **Apps → Save quote**                             | Quotes that message: its author is the speaker, its time is exact. A private preview appears.                            |
-| Reply to a message and **@mention the bot**                               | Same, for the replied-to message. The preview arrives by **DM**.                                                         |
-| **@bot** with text, e.g. `@bot Bo said "I can fix it" before breaking it` | Speakers, text, context and time are worked out from what you wrote. The preview arrives by DM.                          |
-| **`/quote add`** `text` `[who]` `[who_name]` `[context]` `[when]`         | `who` picks a member; `who_name` is for someone not on Discord; `Name: text` lines make a conversation. Private preview. |
-| **`/quote random`** `[person]`                                            | Posts a random saved quote from this server, visible to everyone (or only to you, if the server chose that).             |
-| **`/quote import`** `channel`                                             | Admins of that server: scan a channel's history for old quotes (see below).                                              |
+| How                                                                       | What happens                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Right-click a message → **Apps → Save quote**                             | Quotes that message: its author is the speaker, its time is exact. A private preview appears.                                                                                                                                                                                                                              |
+| Reply to a message and **@mention the bot**                               | Same, for the replied-to message. The preview arrives by **DM**.                                                                                                                                                                                                                                                           |
+| **@bot** with text, e.g. `@bot Bo said "I can fix it" before breaking it` | Speakers, text, context and time are worked out from what you wrote. The preview arrives by DM. With Jev, asking for **a random quote** (`@bot random quote`, `@bot a quote from @Bo`) replies with one in the channel (by DM if the server keeps random quotes private), and asking for **help** DMs what the bot can do. |
+| **`/quote add`** `text` `[who]` `[who_name]` `[context]` `[when]`         | `who` picks a member; `who_name` is for someone not on Discord; `Name: text` lines make a conversation. Private preview.                                                                                                                                                                                                   |
+| **`/quote random`** `[person]`                                            | Posts a random saved quote from this server, visible to everyone (or only to you, if the server chose that).                                                                                                                                                                                                               |
+| **`/quote import`** `channel`                                             | Admins of that server: scan a channel's history for old quotes (see below).                                                                                                                                                                                                                                                |
 
 **Format:** a quote by one person is shown as `"quote text" - Person`, and a conversation as `**Name:** text` lines. Both formats are also understood as **input**, in `@bot` messages, `/quote add text:`, the edit form and channel imports.
 
@@ -81,9 +81,19 @@ The per-message step (detect, normalise, store as `pending_review`) is `Quotes\A
 
 Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
 
-1. **Jev** (TypeSafe's fast structured-decision model, through laravel/ai `Classification`), if `TYPESAFE_API_KEY` is set (waitlisted access). It's cheap and gives calibrated probabilities (threshold 0.5).
+1. **Jev** (see below), if `OPENROUTER_API_KEY` is set. It's cheap and gives calibrated probabilities (threshold 0.5).
 2. A cheap LLM yes/no (`QuoteDetectorAgent`), if a quote AI provider key is set.
 3. Heuristics: `Name: text`, quotation marks, "said".
+
+### Jev (through OpenRouter)
+
+Jev is TypeSafe's fast, cheap decision model. Every Jev call goes through `App\Ai\Jev`, which asks laravel/ai's **OpenRouter** provider (model `~typesafe/jev-latest`, OpenRouter's decisions endpoint), so Jev is on whenever `OPENROUTER_API_KEY` is set. It's used for three decisions, and each falls back to what happens without it when it's off or fails:
+
+| Where                                | Question                                                                | Without Jev          |
+| ------------------------------------ | ----------------------------------------------------------------------- | -------------------- |
+| `QuoteDetector` (imports, watched)   | Is this message a quote?                                                | LLM, then heuristics |
+| `MentionIntentClassifier` (`@bot …`) | Save a quote, a random quote, or help? Anything but "save" needs ≥ 0.6. | Always save          |
+| `ResolvePerson`                      | Which of several fuzzy matches is the speaker?                          | Closest match        |
 
 ```bash
 vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discord user id>

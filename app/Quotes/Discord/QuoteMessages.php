@@ -67,6 +67,23 @@ final class QuoteMessages
     }
 
     /**
+     * What the bot can do, for a mention that asks for help.
+     *
+     * @return array<string, mixed>
+     */
+    public static function help(): array
+    {
+        return self::notice(implode("\n", [
+            '**What I can do**',
+            '• Reply to a message and @mention me, or right-click it → Apps → **Save quote**, to save it as a quote.',
+            '• **/quote add**, or @mention me with what was said ("@me Bo said …"), to save a quote you write yourself.',
+            '• **/quote random** [person], or ask me for a random quote, to see one.',
+            '• **/privacy** to opt out of server stats.',
+            'Every saved quote is also on the website.',
+        ]));
+    }
+
+    /**
      * One speaker: `"text" - Person`. A conversation: `**Name:** text` lines.
      */
     private static function quoteBody(Quote $quote, bool $markNewPeople): string

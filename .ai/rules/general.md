@@ -17,7 +17,7 @@ The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase
 
 ## Stack
 
-Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vue 3 + TypeScript (vite-plus, Tailwind 4, shadcn-vue), Socialite with socialiteproviders/discord (the only login), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data, maintained by the project owner), DiscordPHP (bot transport only) and laravel/ai (OpenAI, Anthropic or Gemini with failover; Jev/TypeSafe optional for classification).
+Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vue 3 + TypeScript (vite-plus, Tailwind 4, shadcn-vue), Socialite with socialiteproviders/discord (the only login), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data, maintained by the project owner), DiscordPHP (bot transport only) and laravel/ai (OpenAI, Anthropic or Gemini with failover; Jev, TypeSafe's decision model, optional through OpenRouter).
 
 ## Keeping rules current
 
