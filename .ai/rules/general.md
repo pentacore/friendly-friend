@@ -13,7 +13,7 @@ A private website and Discord bot for a group of friends across **one or more Di
 - server activity stats (messages, reactions, voice, games) with an opt-out
 - event planning: RSVP, food, transport, costs, Discord announcements and reminders
 
-The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase plans are in `docs/superpowers/plans/`, and the backlog is `ROADMAP.md`.
+The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase plans are in `docs/superpowers/plans/`, the backlog of open items is `ROADMAP.md`, and what's done is in `COMPLETED.md`.
 
 ## Stack
 
@@ -23,7 +23,7 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 
 - These rule files are the project's conventions and design decisions. **Every commit that introduces or changes a convention, a design decision or a trap updates the matching rule file in the same commit.** If a decision spans the project, put it here; if it's about one area, put it in that area's file. Create a new rule file with a `paths` frontmatter for a new area.
 - After adding or renaming rule files, run `vendor/bin/sail artisan boost:index-rules` to regenerate `index.md`. Never edit `index.md` by hand.
-- Bugs, follow-ups, upstream issues and feature ideas go in `ROADMAP.md`, also in the same commit. Fixed bugs stay listed there, and their lesson becomes a rule here.
+- Bugs, follow-ups, upstream issues and feature ideas go in `ROADMAP.md`, also in the same commit. `ROADMAP.md` holds only open items: when one is done (or a bug is found and fixed in the same change), it goes to `COMPLETED.md` in that commit, and a fixed bug's lesson becomes a rule here.
 
 ## Shape of the app (each part has one job)
 

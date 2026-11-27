@@ -6,7 +6,7 @@
 
 - A commit that introduces or changes a convention, a design decision or a trap updates the matching `.ai/rules/*.md` file. New areas get a new rule file with `paths` frontmatter, then run `vendor/bin/sail artisan boost:index-rules`.
 - A commit that changes commands, schema, config, architecture or a feature updates `docs/**`.
-- Bugs, follow-ups, upstream issues and ideas go into `ROADMAP.md`.
+- Bugs, follow-ups, upstream issues and ideas go into `ROADMAP.md` (open items only). Done items move to `COMPLETED.md` in the same commit.
 - After changing anything in `.ai/`, run `vendor/bin/sail artisan boost:update` so `AGENTS.md`/`CLAUDE.md` are regenerated. CI warns on PRs that change code without docs or rules.
 
 ## Commands
