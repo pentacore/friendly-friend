@@ -75,7 +75,7 @@ Only the person who started the quote can use the buttons. Unsaved drafts expire
 
 ## Channel import (`/quote import` or `quotes:import`)
 
-`ImportChannelQuotes` walks the channel's history backwards (5 pages of 100 per job run, resumable), skips bots, links, empty messages and messages already quoted, and turns the ones that look like quotes into quotes with status **`pending_review`**. Their submitter is the message author, and their time is the stated time or the day it was posted. They wait for an admin on the website (Phase 5).
+`ImportChannelQuotes` walks the channel's history backwards (5 pages of 100 per job run, resumable), skips bots, links, empty messages and messages already quoted, and turns the ones that look like quotes into quotes with status **`pending_review`**. Their submitter is the message author, and their time is the stated time or the day it was posted. They wait for an admin on the website: **Imports** in the sidebar (`/admin/imports`) lists each import with its progress (polled every 3 s while it runs). The review page shows the found quotes next to a link to the original message, with **Approve** (`ConfirmQuote`: creates people and publishes, keeping the original date), **Not a quote** (`removed`, so it's never imported again), **Edit**, and **Approve all**. Only that server's admins (and owners) can review.
 
 Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
 

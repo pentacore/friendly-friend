@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $started_at
  * @property Carbon|null $finished_at
  * @property-read Guild $guild
+ * @property-read int|null $pending_count  withCount() of quotes waiting for review
  */
 #[Fillable(['guild_id', 'channel_id', 'requested_by_discord_user_id', 'status', 'before_message_id', 'messages_scanned', 'quotes_found', 'error', 'started_at', 'finished_at'])]
 class QuoteImport extends Model

@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Enums\QuoteStatus;
 use App\Models\Guild;
 use App\Models\Person;
 use App\Models\Quote;
+use App\Models\QuoteImport;
 use App\Models\QuoteLine;
 use App\Models\QuoteMatchup;
 use App\Models\User;
@@ -143,4 +145,27 @@ it('lets admins manage people', function (bool $dark): void {
         ->assertNoJavaScriptErrors();
     $page->script('document.fonts.ready');
     $page->screenshot(filename: 'admin-people-'.($dark ? 'dark' : 'light'));
+})->with(['light' => false, 'dark' => true]);
+
+it('reviews imported quotes', function (bool $dark): void {
+    $admin = User::factory()->memberOf($this->guild, ['900'])->create();
+    $import = QuoteImport::query()->create([
+        'guild_id' => $this->guild->id, 'channel_id' => '321', 'status' => 'done',
+        'requested_by_discord_user_id' => $admin->discord_user_id, 'messages_scanned' => 10, 'quotes_found' => 1,
+    ]);
+    $pending = Quote::factory()->for($this->guild)->withLine('Kim', 'an old classic')
+        ->create(['status' => QuoteStatus::PendingReview, 'import_id' => $import->id, 'published_at' => null]);
+    $this->actingAs($admin);
+
+    $page = visit('/admin/imports');
+    $page = $dark ? $page->inDarkMode() : $page;
+    $page->assertSee('Review 1')->click('Review 1')
+        ->assertSee('an old classic')
+        ->assertNoJavaScriptErrors();
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'admin-import-review-'.($dark ? 'dark' : 'light'))
+        ->click('Approve')
+        ->assertSee('All reviewed');
+
+    expect($pending->refresh()->status)->toBe(QuoteStatus::Published);
 })->with(['light' => false, 'dark' => true]);

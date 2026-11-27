@@ -24,7 +24,12 @@ paths:
 
 - Broadcast events are typed by Typefinder (`BroadcastEvents['…']`). Declare payloads with `#[TypefinderBroadcast(payload: [...])]` (TS types), because `broadcastWith()` can't be evaluated statically.
 - A page subscribes **once** per channel (e.g. `provideLiveQuoteScores()` with `useEcho`) and shares the values through `provide`/`inject`. Components never open their own subscriptions per item.
+- Admin-only progress that changes rarely (imports) polls with `usePoll(…, { only: [...] })` while something is running, instead of adding a broadcast channel.
 - Interactions that shouldn't reload the page (votes) use `useHttp` with an optimistic local update and a rollback on failure. The endpoint answers with a resource.
+
+## Naming
+
+- Don't name page props after JavaScript keywords (`import`, `default`, `class`): templates can't use them. Use `quote_import` and so on.
 
 ## Design
 

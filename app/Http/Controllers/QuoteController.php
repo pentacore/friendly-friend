@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Access\AccessSnapshot;
+use App\Enums\QuoteStatus;
 use App\Http\Requests\Quotes\QuoteIndexRequest;
 use App\Http\Requests\Quotes\UpdateQuoteRequest;
 use App\Http\Resources\QuoteResource;
@@ -91,7 +92,8 @@ final class QuoteController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Quote updated.')]);
 
-        return to_route('quotes.show', $quote);
+        // Imported quotes are edited from the review queue; they have no public page yet.
+        return $quote->status === QuoteStatus::Published ? to_route('quotes.show', $quote) : back();
     }
 
     public function destroy(Quote $quote, RemoveQuote $removeQuote): RedirectResponse

@@ -6,6 +6,7 @@
 
 export type { GuildResource } from './GuildResource';
 export type { PersonAdminResource } from './PersonAdminResource';
+export type { QuoteImportResource } from './QuoteImportResource';
 export type { QuoteResource } from './QuoteResource';
 export type { QuoteRevisionResource } from './QuoteRevisionResource';
 export type { VoteResultResource } from './VoteResultResource';
