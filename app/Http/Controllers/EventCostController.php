@@ -15,6 +15,7 @@ use App\Planning\Actions\Costs\AddExpense;
 use App\Planning\Actions\Costs\RecordPayment;
 use App\Planning\Actions\Costs\RemoveExpense;
 use App\Planning\Actions\Costs\RemovePayment;
+use App\Planning\Actions\Costs\UpdateExpense;
 use App\Planning\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,13 +42,37 @@ final class EventCostController extends Controller
         return back();
     }
 
+    public function updateExpense(ExpenseRequest $request, Event $event, EventExpense $expense, UpdateExpense $update): RedirectResponse
+    {
+        $this->authorizeExpense($request, $event, $expense);
+
+        $update->handle(
+            $expense,
+            $request->integer('paid_by'),
+            $request->string('description')->trim()->value(),
+            $request->amount(),
+            $request->mode(),
+            $request->shares(),
+        );
+
+        return back();
+    }
+
     public function destroyExpense(Request $request, Event $event, EventExpense $expense, RemoveExpense $remove): RedirectResponse
     {
-        $me = $this->member($request)->id;
-        abort_unless($expense->added_by_discord_user_id === $me || $expense->paid_by_discord_user_id === $me || Gate::allows('update', $event), 403);
+        $this->authorizeExpense($request, $event, $expense);
         $remove->handle($expense);
 
         return back();
+    }
+
+    /**
+     * Whoever added it, whoever paid, or an organiser.
+     */
+    private function authorizeExpense(Request $request, Event $event, EventExpense $expense): void
+    {
+        $me = $this->member($request)->id;
+        abort_unless($expense->added_by_discord_user_id === $me || $expense->paid_by_discord_user_id === $me || Gate::allows('update', $event), 403);
     }
 
     public function storePayment(PaymentRequest $request, Event $event, RecordPayment $record): RedirectResponse

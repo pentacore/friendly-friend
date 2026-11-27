@@ -93,3 +93,22 @@ export function daysBetween(from: string, to: string): number {
 
     return Math.round((toDate(to) - toDate(from)) / 86_400_000);
 }
+
+/** An ISO time as YYYY-MM-DDTHH:mm in the given timezone (to prefill datetime-local inputs). */
+export function localInputIn(iso: string, timeZone: string): string {
+    const parts = Object.fromEntries(
+        new Intl.DateTimeFormat('en-CA', {
+            timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23',
+        })
+            .formatToParts(new Date(iso))
+            .map((part) => [part.type, part.value]),
+    );
+
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}

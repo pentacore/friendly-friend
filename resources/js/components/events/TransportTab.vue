@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { Car, MapPin, Trash2, X } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { Car, MapPin, Pencil, Trash2, X } from '@lucide/vue';
+import { computed, nextTick, ref } from 'vue';
 import {
     destroy,
     join,
     leave,
     store,
+    update,
 } from '@/actions/App/Http/Controllers/EventRideController';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useEventAction } from '@/composables/useEventAction';
+import { localInputIn } from '@/lib/eventDates';
 import type { EventResource, PageProps, RideDirection } from '@/typefinder';
 
 type Transport = PageProps['events/Show']['transport'];
@@ -67,19 +69,58 @@ const offer = ref({
     note: '',
 });
 const offering = ref(false);
+/** The ride being edited, or null when offering a new one. */
+const editingId = ref<number | null>(null);
+const offerForm = ref<HTMLElement | null>(null);
+
+function blankOffer() {
+    return {
+        direction: 'both' as RideDirection,
+        seats: 3,
+        departs_from: '',
+        departs_at: '',
+        note: '',
+    };
+}
+
+function startEdit(ride: Ride): void {
+    editingId.value = ride.id;
+    offer.value = {
+        direction: ride.direction,
+        seats: ride.seats,
+        departs_from: ride.departs_from ?? '',
+        departs_at: ride.departs_at
+            ? localInputIn(ride.departs_at, props.event.timezone)
+            : '',
+        note: ride.note ?? '',
+    };
+    offering.value = true;
+    nextTick(() =>
+        offerForm.value?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        }),
+    );
+}
+
+function closeOffer(): void {
+    offering.value = false;
+    editingId.value = null;
+    offer.value = blankOffer();
+}
 
 function submitOffer(): void {
     send(
-        store(props.event.id),
+        editingId.value !== null
+            ? update([props.event.id, editingId.value])
+            : store(props.event.id),
         {
             ...offer.value,
             departs_from: offer.value.departs_from || null,
             departs_at: offer.value.departs_at || null,
             note: offer.value.note || null,
         },
-        () => {
-            offering.value = false;
-        },
+        closeOffer,
     );
 }
 
@@ -141,6 +182,17 @@ const field =
                                 }}</span>
                             </p>
                         </div>
+                        <Button
+                            v-if="ride.can_manage"
+                            size="icon"
+                            variant="ghost"
+                            class="size-8"
+                            aria-label="Edit this ride"
+                            :disabled="busy"
+                            @click="startEdit(ride)"
+                        >
+                            <Pencil class="size-3.5" />
+                        </Button>
                         <Button
                             v-if="ride.can_manage"
                             size="icon"
@@ -258,6 +310,7 @@ const field =
 
         <section
             v-if="event.can.participate"
+            ref="offerForm"
             class="rounded-xl border bg-card p-4"
         >
             <Button v-if="!offering" variant="outline" @click="offering = true"
@@ -321,13 +374,12 @@ const field =
                     />
                 </div>
                 <div class="flex justify-end gap-2 sm:col-span-2">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        @click="offering = false"
+                    <Button type="button" variant="ghost" @click="closeOffer"
                         >Never mind</Button
                     >
-                    <Button type="submit" :disabled="busy">Offer ride</Button>
+                    <Button type="submit" :disabled="busy">{{
+                        editingId !== null ? 'Save ride' : 'Offer ride'
+                    }}</Button>
                 </div>
             </form>
         </section>

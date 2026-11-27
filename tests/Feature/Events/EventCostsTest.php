@@ -106,3 +106,19 @@ it('rejects zero, negative and nonsense amounts', function (string $amount): voi
     $this->actingAs($this->bo)->post(route('events.costs.payments.store', $this->event), ['from' => $this->bo->discord_user_id, 'to' => $this->anna->discord_user_id, 'amount' => $amount])
         ->assertSessionHasErrors('amount');
 })->with(['0', '0.00', '-5', 'lots', '1.234']);
+
+it('edits an expense, replacing how it is split', function (): void {
+    $this->actingAs($this->anna)->post(route('events.costs.expenses.store', $this->event), ['description' => 'Food', 'amount' => '300', 'paid_by' => $this->anna->discord_user_id, 'split_mode' => 'equal', 'people' => ids($this->anna, $this->bo, $this->cleo)]);
+    $expense = EventExpense::query()->sole();
+
+    $this->actingAs($this->cleo)->put(route('events.costs.expenses.update', [$this->event, $expense]), ['description' => 'Mine', 'amount' => '1', 'paid_by' => $this->cleo->discord_user_id, 'split_mode' => 'equal', 'people' => ids($this->cleo)])
+        ->assertForbidden();
+
+    $this->actingAs($this->anna)->put(route('events.costs.expenses.update', [$this->event, $expense]), [
+        'description' => 'Food and drinks', 'amount' => '200', 'paid_by' => $this->anna->discord_user_id, 'split_mode' => 'exact',
+        'people' => ids($this->anna, $this->bo), 'exact' => [$this->anna->discord_user_id => '50', $this->bo->discord_user_id => '150'],
+    ])->assertSessionHasNoErrors();
+
+    expect($expense->fresh())->description->toBe('Food and drinks')->amount->toBe(20000)
+        ->and($expense->shares()->orderBy('amount')->pluck('amount')->all())->toBe([5000, 15000]);
+});

@@ -15,6 +15,7 @@ use App\Planning\Actions\Transport\CancelRide;
 use App\Planning\Actions\Transport\JoinRide;
 use App\Planning\Actions\Transport\LeaveRide;
 use App\Planning\Actions\Transport\OfferRide;
+use App\Planning\Actions\Transport\UpdateRide;
 use App\Planning\Exceptions\RideFullException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,26 @@ final class EventRideController extends Controller
             $request->departsAt($event),
             $request->filled('note') ? $request->string('note')->trim()->value() : null,
         );
+
+        return back();
+    }
+
+    public function update(OfferRideRequest $request, Event $event, EventRide $ride, UpdateRide $update): RedirectResponse
+    {
+        $this->authorizeManage($request, $event, $ride);
+
+        try {
+            $update->handle(
+                $ride,
+                $request->enum('direction', RideDirection::class) ?? $ride->direction,
+                $request->integer('seats', $ride->seats),
+                $request->filled('departs_from') ? $request->string('departs_from')->trim()->value() : null,
+                $request->departsAt($event),
+                $request->filled('note') ? $request->string('note')->trim()->value() : null,
+            );
+        } catch (RideFullException) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('More people are already in this ride than that.')]);
+        }
 
         return back();
     }

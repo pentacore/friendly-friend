@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ArrowRight, Check, Trash2, Undo2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { ArrowRight, Check, Pencil, Trash2, Undo2 } from '@lucide/vue';
+import { computed, nextTick, ref } from 'vue';
 import {
     destroyExpense,
     destroyPayment,
     storeExpense,
+    updateExpense,
     storePayment,
 } from '@/actions/App/Http/Controllers/EventCostController';
 import InputError from '@/components/InputError.vue';
@@ -38,6 +39,50 @@ const draft = ref({
     exact: {} as Record<number, string>,
 });
 const adding = ref(false);
+/** The expense being edited, or null when adding one. */
+const editingId = ref<number | null>(null);
+const expenseForm = ref<HTMLElement | null>(null);
+
+function startEdit(expense: Costs['expenses'][number]): void {
+    editingId.value = expense.id;
+    draft.value = {
+        description: expense.description,
+        amount: (expense.amount / 100).toFixed(2),
+        paid_by: expense.paid_by.id,
+        split_mode: expense.split_mode,
+        people:
+            expense.split_mode === 'attendees'
+                ? props.costs.people.map((p) => p.id)
+                : expense.shares.map((s) => s.member.id),
+        exact: Object.fromEntries(
+            expense.shares.map((s) => [
+                s.member.id,
+                (s.amount / 100).toFixed(2),
+            ]),
+        ),
+    };
+    adding.value = true;
+    nextTick(() =>
+        expenseForm.value?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        }),
+    );
+}
+
+function closeForm(): void {
+    adding.value = false;
+    editingId.value = null;
+    draft.value = {
+        ...draft.value,
+        description: '',
+        amount: '',
+        exact: {},
+        paid_by: props.me,
+        split_mode: 'equal',
+        people: props.costs.people.map((p) => p.id),
+    };
+}
 
 function togglePerson(id: number, on: boolean | 'indeterminate'): void {
     draft.value.people =
@@ -46,18 +91,14 @@ function togglePerson(id: number, on: boolean | 'indeterminate'): void {
             : draft.value.people.filter((p) => p !== id);
 }
 
-function addExpense(): void {
-    send(storeExpense(props.event.id), { ...draft.value }, () => {
-        if (Object.keys(props.errors).length === 0) {
-            adding.value = false;
-            draft.value = {
-                ...draft.value,
-                description: '',
-                amount: '',
-                exact: {},
-            };
-        }
-    });
+function saveExpense(): void {
+    send(
+        editingId.value !== null
+            ? updateExpense([props.event.id, editingId.value])
+            : storeExpense(props.event.id),
+        { ...draft.value },
+        closeForm,
+    );
 }
 
 function markPaid(transfer: Costs['settle_up'][number]): void {
@@ -157,6 +198,17 @@ const field =
                             size="icon"
                             variant="ghost"
                             class="size-7"
+                            :aria-label="`Edit ${expense.description}`"
+                            :disabled="busy"
+                            @click="startEdit(expense)"
+                        >
+                            <Pencil class="size-3.5" />
+                        </Button>
+                        <Button
+                            v-if="expense.can_remove"
+                            size="icon"
+                            variant="ghost"
+                            class="size-7"
                             :aria-label="`Remove ${expense.description}`"
                             :disabled="busy"
                             @click="
@@ -181,8 +233,9 @@ const field =
                 >
                 <form
                     v-else
+                    ref="expenseForm"
                     class="grid gap-3 rounded-lg border p-3"
-                    @submit.prevent="addExpense"
+                    @submit.prevent="saveExpense"
                 >
                     <div class="grid gap-3 sm:grid-cols-[1fr_8rem]">
                         <div class="grid gap-1.5">
@@ -285,15 +338,12 @@ const field =
                         <InputError :message="errors.people || errors.exact" />
                     </fieldset>
                     <div class="flex justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            @click="adding = false"
+                        <Button type="button" variant="ghost" @click="closeForm"
                             >Never mind</Button
                         >
-                        <Button type="submit" :disabled="busy"
-                            >Add expense</Button
-                        >
+                        <Button type="submit" :disabled="busy">{{
+                            editingId !== null ? 'Save expense' : 'Add expense'
+                        }}</Button>
                     </div>
                 </form>
             </section>

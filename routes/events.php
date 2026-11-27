@@ -46,6 +46,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
 
     Route::scopeBindings()->prefix('events/{event}/rides')->name('events.rides.')->controller(EventRideController::class)->group(function (): void {
         Route::post('/', 'store')->name('store');
+        Route::put('{ride}', 'update')->name('update');
         Route::delete('{ride}', 'destroy')->name('destroy');
         Route::put('{ride}/seat', 'join')->name('join');
         Route::delete('{ride}/seat', 'leave')->name('leave');
@@ -53,6 +54,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
 
     Route::scopeBindings()->prefix('events/{event}')->name('events.costs.')->controller(EventCostController::class)->group(function (): void {
         Route::post('expenses', 'storeExpense')->name('expenses.store');
+        Route::put('expenses/{expense}', 'updateExpense')->name('expenses.update');
         Route::delete('expenses/{expense}', 'destroyExpense')->name('expenses.destroy');
         Route::post('payments', 'storePayment')->name('payments.store');
         Route::delete('payments/{payment}', 'destroyPayment')->name('payments.destroy');

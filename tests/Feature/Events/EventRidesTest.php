@@ -78,3 +78,19 @@ it('keeps rides to their own event', function (): void {
 
     $this->actingAs($this->rider)->put(route('events.rides.join', [$this->event, $ride]))->assertNotFound();
 });
+
+it('lets the driver edit a ride, but not below the seats already taken', function (): void {
+    $ride = offerRide($this->driver, $this->event, 3);
+    $this->actingAs($this->rider)->put(route('events.rides.join', [$this->event, $ride]));
+    $second = User::factory()->memberOf($this->guild)->create();
+    $this->actingAs($second)->put(route('events.rides.join', [$this->event, $ride]));
+
+    $this->actingAs($this->rider)->put(route('events.rides.update', [$this->event, $ride]), ['direction' => 'to', 'seats' => 4])->assertForbidden();
+    $this->actingAs($this->driver)->put(route('events.rides.update', [$this->event, $ride]), ['direction' => 'to', 'seats' => 1])
+        ->assertSessionHas('inertia.flash_data.toast.type', 'error');
+    $this->actingAs($this->driver)->put(route('events.rides.update', [$this->event, $ride]), ['direction' => 'both', 'seats' => 2, 'departs_from' => 'The mall', 'departs_at' => '2026-12-05T17:00'])
+        ->assertSessionHasNoErrors();
+
+    expect($ride->fresh())->seats->toBe(2)->departs_from->toBe('The mall')
+        ->and($ride->fresh()?->departs_at?->toIso8601String())->toBe('2026-12-05T16:00:00+00:00');
+});

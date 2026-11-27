@@ -60,12 +60,12 @@ Organisers can ask everyone coming something, on the Overview tab:
 - **Still needs a ride there:** everyone going or maybe who ticked "I need a ride" and isn't yet in a ride that goes there (`to` or `both`).
 - **Rides**, grouped as There, Back, There and back: the driver, where and when they leave (in the event's timezone), a note, and the seats as a bar with "N free".
 - **Take a seat** with an optional pickup note. The ride is locked while seating, so two people can't take the last seat. The driver can't sit in their own ride. Leave with ×; the driver and organisers can remove passengers and cancel the ride.
-- **Offer a ride:** which way, free seats (1 to 8), leaving from, leaving at, note. To change a ride, cancel it and offer a new one.
+- **Offer a ride:** which way, free seats (1 to 8), leaving from, leaving at, note. The driver or an organiser can **edit** a ride (not below the seats already taken).
 
 ## Costs tab
 
 - **Expenses:** what, how much (type `450` or `120,50`), who paid, and who shares it: **equally** (leftover öre go to the first people, so it always adds up), **exact amounts** (they must add up to the total), or **everyone going**: worked out whenever the costs are shown, from who's going right now, with each guest as an extra share (if nobody is going, the payer carries it). The people to choose from are everyone going or maybe, the hosts, and anyone already in the costs.
-- **Settle up:** everyone's balance (paid minus share, adjusted by payments) and the transfers that square it: the biggest debtor pays the biggest creditor, repeated. **Mark as paid** records the payment; anyone can do it, and the person who recorded it (or an organiser) can undo it.
+- **Settle up:** everyone's balance (paid minus share, adjusted by payments) and the transfers that square it: the biggest debtor pays the biggest creditor, repeated. Expenses can be edited (pencil) by whoever added them, whoever paid, or an organiser. **Mark as paid** records the payment; anyone can do it, and the person who recorded it (or an organiser) can undo it.
 - **Balances** table: paid, share and balance per person.
 - Money is stored as integer minor units in the event's currency (`SEK`).
 

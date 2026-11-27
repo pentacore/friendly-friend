@@ -59,14 +59,15 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
 - [x] Events: "Add to calendar" (.ics download)
-- [ ] Events: edit an expense (now: remove and add again); link a shopping item to the expense that paid for it (spec §14 `expense_id`)
+- [x] Events: edit an expense
+- [ ] Events: link a shopping item to the expense that paid for it (spec §14 `expense_id`)
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
 - [x] Events: vote on dates from Discord (a "Vote on dates" button opening a private picker)
 - [x] Events: DM voters when a date is chosen
 - [ ] Watched channels: optionally publish picked-up quotes straight away (skip review) per server
 - [ ] Events: reorder questions, make a question required, ask questions from the Discord RSVP reply
 - [ ] Events: per-event currency picker (always SEK for now)
-- [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again
+- [x] Events: edit a ride (not below the seats already taken)
 - [x] Sidebar grouped into Quotes, Together and Admin
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Stats: per-channel breakdown on `/stats` (channel names are already cached on `guilds.channels`)
