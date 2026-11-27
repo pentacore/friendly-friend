@@ -56,6 +56,7 @@ paths:
 ## Navigation
 
 - The sidebar (`AppSidebar.vue`) is grouped by what you came to do: Dashboard, then **Quotes**, **Together** (events, stats), and **Admin** (only shown to admins and owners). New pages go into one of these groups, not a flat list. `NavMain` takes one group (`label`, `items`) and marks a link active on its sub-pages too.
+- The header search (`GlobalSearch.vue`, Ctrl+K, `SearchController`) is the one search across kinds. Something new worth finding (a new kind of page) gets a section there, limited to what the user can see, rather than its own global search box.
 
 ## Server-side rendering (same output on server and browser)
 

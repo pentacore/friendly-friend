@@ -65,6 +65,28 @@ it('searches while typing and marks the matches', function (bool $dark): void {
     $page->screenshot(filename: 'quotes-search-'.($dark ? 'dark' : 'light'));
 })->with(['light' => false, 'dark' => true]);
 
+it('finds a quote from the header search with Ctrl+K and opens it with Enter', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/dashboard');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->keys('html > body', 'Control+k')
+        ->type('[aria-label="Search quotes, people and events"]', 'philosofical')
+        ->wait(1)
+        ->assertSee("I'm not drunk, I'm philosophical")
+        ->assertSee('No exact quote matches; these are close.')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'global-search-'.($dark ? 'dark' : 'light'));
+
+    $page->keys('[aria-label="Search quotes, people and events"]', 'Enter')
+        ->wait(1)
+        ->assertPathIs("/quotes/{$this->single->id}")
+        ->assertSee('at the barbecue');
+})->with(['light' => false, 'dark' => true]);
+
 it('renders a quote page', function (bool $dark): void {
     $this->actingAs($this->user);
 

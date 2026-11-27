@@ -39,11 +39,7 @@ A design discussion comes before any plan.
 
 ## Ready to pick up
 
-### Search
-
-Quote search runs through one scope, `Quote::search()`: prefix matching while typing, accents ignored, close spellings when nothing matches exactly, people's current names and nicknames, best-match order and highlighted matches, on the feed and in `/quote search`. What's left:
-
-- [ ] Global search / command palette (Ctrl+K) across quotes, people and events. The unused starter-kit `AppHeader.vue` has a search button that does nothing; wire it up or delete the component
+Nothing right now: everything open needs a decision, a brainstorm or setup first.
 
 ## Setup outside the code
 

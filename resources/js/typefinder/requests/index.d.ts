@@ -11,6 +11,7 @@ export type { DateOptionRequest } from './DateOptionRequest';
 export type { DateVoteRequest } from './DateVoteRequest';
 export type { EventIndexRequest, EventIndexRequestQuery } from './EventIndexRequest';
 export type { ExpenseRequest } from './ExpenseRequest';
+export type { GlobalSearchRequest, GlobalSearchRequestQuery } from './GlobalSearchRequest';
 export type { JoinRideRequest } from './JoinRideRequest';
 export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';

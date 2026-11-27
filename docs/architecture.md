@@ -43,6 +43,8 @@ The scheduler only queues these jobs. A job that must not run twice at once is `
 
 [quotes.md](quotes.md) · [events.md](events.md) · [stats.md](stats.md) · [admin.md](admin.md) · [bot.md](bot.md) · [auth.md](auth.md)
 
+**Search everywhere:** the header's search box (`components/GlobalSearch.vue`, opened with **Ctrl+K** / **Cmd+K** or **/**) asks `GET /search?q=` (`SearchController`, JSON for `useHttp`, `SearchResultsResource`) for up to five each of quotes (the shared `Quote::applySearch`, close spellings when nothing matches exactly), people with a quote you can see (name or nickname anywhere, accents ignored, closest first) and events (title or place). Arrow keys and Enter open a result; the last row opens the quote feed with the same search.
+
 ## Dashboards
 
 - **Horizon** `/horizon`: always open in `local`. Elsewhere the `viewHorizon` gate (`app/Providers/HorizonServiceProvider.php`) denies everyone until Phase 2, which limits it to Discord admins.

@@ -63,6 +63,7 @@ final class LayoutGate
         'events.calendar' => 'an .ics download',
         'calendar.feed' => 'the iCal feed calendar apps subscribe to',
         'privacy.download' => 'the JSON download of your data',
+        'search' => 'JSON for the header search box (Ctrl+K)',
         'auth.discord.redirect' => 'redirects to Discord',
         'auth.discord.callback' => 'the OAuth callback',
     ];

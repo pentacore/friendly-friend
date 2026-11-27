@@ -10,4 +10,5 @@ export type { PersonAdminResource } from './PersonAdminResource';
 export type { QuoteImportResource } from './QuoteImportResource';
 export type { QuoteResource } from './QuoteResource';
 export type { QuoteRevisionResource } from './QuoteRevisionResource';
+export type { SearchResultsResource } from './SearchResultsResource';
 export type { VoteResultResource } from './VoteResultResource';
