@@ -69,6 +69,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] **SSR hydration mismatches**: dates and numbers now use one locale, timezone and "now" from the server; SSR also crashed (Echo on the server, `window` in setup) on every page with live updates and on event pages, silently falling back to client rendering. Fixed, with a hydration browser test in CI and SSR switched off in production (no SSR server there).
 - [x] Telescope's tables are created only in local development (`shouldRun()`), not in production or tests.
 - [x] Expired drafts: the preview turns into "expired" (no buttons) when the draft is pruned; drafts now live 14 minutes, inside Discord's 15-minute token for editing the reply.
+- [x] The Discord edit form keeps line breaks inside a conversation line (as indented continuation lines, which the parser reads back).
 
 ## Bugs found and fixed along the way
 

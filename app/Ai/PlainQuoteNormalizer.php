@@ -116,17 +116,27 @@ final readonly class PlainQuoteNormalizer implements QuoteNormalizer
     }
 
     /**
-     * "Name: text" on every non-empty line, or null if it isn't a dialogue.
+     * "Name: text" lines, or null if it isn't a dialogue. An indented line
+     * continues the previous speaker's line (that's how the edit form keeps
+     * line breaks inside a line).
      *
      * @return list<NormalizedLine>|null
      */
     private function dialogue(string $text): ?array
     {
-        $rows = array_values(array_filter(array_map(trim(...), explode("\n", $text)), fn (string $row): bool => $row !== ''));
+        $rows = array_values(array_filter(explode("\n", str_replace("\r\n", "\n", $text)), fn (string $row): bool => trim($row) !== ''));
         $lines = [];
 
         foreach ($rows as $row) {
-            if (preg_match('/^([^:]{1,40}):\s*(.+)$/u', $row, $match) !== 1) {
+            $last = array_key_last($lines);
+
+            if ($last !== null && preg_match('/^\s+\S/u', $row) === 1) {
+                $lines[$last] = new NormalizedLine($lines[$last]->speakerName, $lines[$last]->text."\n".trim($row), $lines[$last]->speakerDiscordId);
+
+                continue;
+            }
+
+            if (preg_match('/^([^:]{1,40}):\s*(.+)$/u', trim($row), $match) !== 1) {
                 return null;
             }
 

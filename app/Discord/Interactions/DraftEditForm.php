@@ -77,7 +77,8 @@ final readonly class DraftEditForm
         $lines = $oneSpeaker
             ? '"'.$quote->lines->map(fn (QuoteLine $line): string => $line->text)->implode("\n").'" - '.$first->speaker_name
             : $quote->lines
-                ->map(fn (QuoteLine $line): string => $line->speaker_name.': '.str_replace("\n", ' / ', $line->text))
+                // Line breaks inside a line become indented continuation lines.
+                ->map(fn (QuoteLine $line): string => $line->speaker_name.': '.str_replace("\n", "\n  ", $line->text))
                 ->implode("\n");
 
         return [

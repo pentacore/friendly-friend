@@ -104,3 +104,18 @@ it('understands the "text" - Person format', function (string $input, string $sp
     'en dash, no spaces' => ['"hej"–Kim', 'Kim', 'hej'],
     'multi-line text' => ["\"line one\nline two\" - Martin", 'Martin', "line one\nline two"],
 ]);
+
+it('continues a speaker\'s line on indented lines', function (): void {
+    $quote = plain(new CaptureInput(text: "Martin: roses are red\n  violets are blue\nBo: that's not even\n    a poem"));
+
+    expect(array_map(fn (NormalizedLine $line): array => [$line->speakerName, $line->text], $quote->lines))->toBe([
+        ['Martin', "roses are red\nviolets are blue"],
+        ['Bo', "that's not even\na poem"],
+    ]);
+});
+
+it('does not start a dialogue with an indented line', function (): void {
+    $quote = plain(new CaptureInput(text: "  just some text\nBo: hi", knownSpeaker: new NormalizedLine('Kim', '')));
+
+    expect($quote->lines)->toHaveCount(1)->and($quote->lines[0]->speakerName)->toBe('Kim');
+});

@@ -212,3 +212,18 @@ it('round-trips a single-speaker quote through the edit form', function (): void
     expect($line->speaker_name)->toBe('Bo')
         ->and($line->text)->toBe("I'm not drunk, I'm philosophical");
 });
+
+it('keeps line breaks inside a conversation line through the edit form', function (): void {
+    $quote = Quote::factory()->draft()->for($this->guild)->create();
+    $quote->lines()->create(['position' => 0, 'speaker_name' => 'Martin', 'text' => "roses are red\nviolets are blue"]);
+    $quote->lines()->create(['position' => 1, 'speaker_name' => 'Bo', 'text' => 'no']);
+    $editForm = app(DraftEditForm::class);
+    $editForm->remember($quote->load('lines'));
+
+    $value = DraftEditForm::cached($quote->id)['components'][0]['components'][0]['value'] ?? '';
+    expect($value)->toBe("Martin: roses are red\n  violets are blue\nBo: no");
+
+    $parsed = $editForm->parse(['lines' => $value]);
+    expect($parsed->lines[0]->text)->toBe("roses are red\nviolets are blue")
+        ->and($parsed->lines[1]->text)->toBe('no');
+});
