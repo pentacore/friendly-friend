@@ -82,7 +82,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Favicon, touch icons, web manifest, a Discord avatar and a bot banner, generated from the logo mark (`scripts/render-icons.mjs`).
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
 - [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.
-- [ ] `GuildAccess` loads the user's memberships several times per request (middleware, `isAdmin`, `isOwner` in shared props). Memoize per request.
+- [x] `GuildAccess` loaded the user's memberships several times per request: now once per `DiscordUser` instance.
 - [ ] The edit form flattens line breaks inside a conversation line to `/` (Discord text inputs have no structure). Single-speaker quotes keep their line breaks.
 - [ ] Expired drafts: the preview message stays with its buttons, which then answer "expired". Could edit the preview to say "expired" when pruning (needs the interaction token or DM message ID).
 - [ ] Draft lifetime (15 min) equals the interaction token lifetime. A preview edited at minute 14 still works, but there's no margin.

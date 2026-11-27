@@ -6,6 +6,8 @@ use App\Access\GuildAccess;
 use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Models\GuildMember;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @param  list<string>  $roles
@@ -96,4 +98,22 @@ it('lists the enabled guilds a user can access', function (): void {
     memberIn(Guild::factory()->disabled()->create(), ['100'], $user);
 
     expect(app(GuildAccess::class)->accessibleGuildIds($user))->toBe([$allowed->id]);
+});
+
+it('loads a user\'s memberships once per user instance', function (): void {
+    $guild = Guild::factory()->create();
+    $user = User::factory()->memberOf($guild, ['900'])->create();
+    $member = $user->discordUser;
+    $access = app(GuildAccess::class);
+
+    DB::enableQueryLog();
+    $access->allows($member);
+    $access->isAdmin($member);
+    $access->accessibleGuildIds($member);
+    $access->adminGuildIds($member);
+    $queries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'guild_members'));
+    DB::disableQueryLog();
+
+    expect($queries)->toHaveCount(1)
+        ->and($access->allows($member->fresh() ?? $member))->toBeTrue();
 });

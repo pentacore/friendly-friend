@@ -17,6 +17,8 @@ use Illuminate\Support\Collection;
  */
 final readonly class GuildAccess
 {
+    private const string MEMBERSHIPS = 'activeMemberships';
+
     public function allows(DiscordUser $user): bool
     {
         return $this->isOwner($user)
@@ -114,18 +116,28 @@ final readonly class GuildAccess
     }
 
     /**
-     * Memberships the user still holds in enabled guilds.
+     * Memberships the user still holds in enabled guilds. Loaded once per
+     * DiscordUser instance (kept as the `activeMemberships` relation), so the
+     * middleware, gates, shared props and AccessSnapshot of one request share
+     * a single query. A fresh instance (e.g. after login records memberships)
+     * loads again.
      *
      * @return Collection<int, GuildMember>
      */
     private function activeMemberships(DiscordUser $user): Collection
     {
-        return $user->memberships()
-            ->where('in_guild', true)
-            ->whereRelation('guild', 'enabled', true)
-            ->with('guild')
-            ->orderBy('id')
-            ->get();
+        if (! $user->relationLoaded(self::MEMBERSHIPS)) {
+            $user->setRelation(self::MEMBERSHIPS, $user->memberships()
+                ->where('in_guild', true)
+                ->whereRelation('guild', 'enabled', true)
+                ->with('guild')
+                ->orderBy('id')
+                ->get());
+        }
+
+        $memberships = $user->getRelation(self::MEMBERSHIPS);
+
+        return $memberships instanceof Collection ? $memberships : new Collection;
     }
 
     /**
