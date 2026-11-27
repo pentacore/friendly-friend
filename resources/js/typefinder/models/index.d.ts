@@ -8,9 +8,12 @@ export type { DiscordUser, DiscordUserCreate, DiscordUserUpdate } from './Discor
 export type { Event, EventCreate, EventUpdate } from './Event';
 export type { EventBringClaim, EventBringClaimCreate, EventBringClaimUpdate } from './EventBringClaim';
 export type { EventBringItem, EventBringItemCreate, EventBringItemUpdate } from './EventBringItem';
+export type { EventExpense, EventExpenseCreate, EventExpenseUpdate } from './EventExpense';
+export type { EventExpenseShare, EventExpenseShareCreate, EventExpenseShareUpdate } from './EventExpenseShare';
 export type { EventHostsPivot } from './EventHostsPivot';
 export type { EventMeal, EventMealCreate, EventMealUpdate } from './EventMeal';
 export type { EventMealCooksPivot } from './EventMealCooksPivot';
+export type { EventPayment, EventPaymentCreate, EventPaymentUpdate } from './EventPayment';
 export type { EventRide, EventRideCreate, EventRideUpdate } from './EventRide';
 export type { EventRidePassenger, EventRidePassengerCreate, EventRidePassengerUpdate } from './EventRidePassenger';
 export type { EventRsvp, EventRsvpCreate, EventRsvpUpdate } from './EventRsvp';

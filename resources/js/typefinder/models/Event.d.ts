@@ -6,8 +6,10 @@
 
 import type { DiscordUser } from './DiscordUser';
 import type { EventBringItem } from './EventBringItem';
+import type { EventExpense } from './EventExpense';
 import type { EventHostsPivot } from './EventHostsPivot';
 import type { EventMeal } from './EventMeal';
+import type { EventPayment } from './EventPayment';
 import type { EventRide } from './EventRide';
 import type { EventRsvp } from './EventRsvp';
 import type { EventShoppingItem } from './EventShoppingItem';
@@ -37,6 +39,8 @@ export type Event = {
   shopping_items?: EventShoppingItem[];
   meals?: EventMeal[];
   rides?: EventRide[];
+  expenses?: EventExpense[];
+  payments?: EventPayment[];
 };
 
 export type EventCreate = {

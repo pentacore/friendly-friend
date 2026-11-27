@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventCostController;
 use App\Http\Controllers\EventFoodController;
 use App\Http\Controllers\EventRideController;
 use App\Http\Controllers\EventRsvpController;
@@ -36,5 +37,12 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
         Route::delete('{ride}', 'destroy')->name('destroy');
         Route::put('{ride}/seat', 'join')->name('join');
         Route::delete('{ride}/seat', 'leave')->name('leave');
+    });
+
+    Route::scopeBindings()->prefix('events/{event}')->name('events.costs.')->controller(EventCostController::class)->group(function (): void {
+        Route::post('expenses', 'storeExpense')->name('expenses.store');
+        Route::delete('expenses/{expense}', 'destroyExpense')->name('expenses.destroy');
+        Route::post('payments', 'storePayment')->name('payments.store');
+        Route::delete('payments/{payment}', 'destroyPayment')->name('payments.destroy');
     });
 });

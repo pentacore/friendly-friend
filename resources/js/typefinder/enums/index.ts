@@ -12,3 +12,4 @@ export * from './QuoteStatus';
 export * from './RideDirection';
 export * from './RsvpStatus';
 export * from './SaidAtPrecision';
+export * from './SplitMode';

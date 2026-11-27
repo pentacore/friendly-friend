@@ -7,12 +7,14 @@
 export type { BringItemRequest } from './BringItemRequest';
 export type { ClaimRequest } from './ClaimRequest';
 export type { CookRequest } from './CookRequest';
+export type { ExpenseRequest } from './ExpenseRequest';
 export type { JoinRideRequest } from './JoinRideRequest';
 export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';
 export type { MealRequest } from './MealRequest';
 export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { OfferRideRequest } from './OfferRideRequest';
+export type { PaymentRequest } from './PaymentRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
 export type { RsvpRequest } from './RsvpRequest';
 export type { SaveEventRequest } from './SaveEventRequest';

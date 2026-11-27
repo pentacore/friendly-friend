@@ -229,13 +229,13 @@ Approved 2026-11-27. It gets its own implementation plans when we start it.
 
 **Data**
 
-- `events`: guild_id, created_by_discord_user_id, title, description (markdown), location, location_url, starts_at, ends_at, timezone (default Europe/Stockholm), status (`planned`/`cancelled`), currency (default `SEK`), announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
+- `events`: guild_id, created_by_discord_user_id, title, description (markdown; _shown as plain text with line breaks for now, see ROADMAP_), location, location_url, starts_at, ends_at, timezone (default Europe/Stockholm), status (`planned`/`cancelled`), currency (default `SEK`), announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
 - `event_hosts` (event_id, discord_user_id).
 - `event_rsvps`: event_id, discord_user_id, status (`going`/`maybe`/`declined`), guests (int), note, needs_ride (bool).
 - Dietary needs live on the person (`discord_users.dietary_notes`), are set once in Settings, and are summarised per event for the organisers.
 - Food:
     - `event_bring_items` (label, quantity_needed) and `event_bring_claims` (item, person, quantity, note)
-    - `event_shopping_items` (label, quantity, checked_by, checked_at, expense_id)
+    - `event_shopping_items` (label, quantity, checked_by, checked_at, expense_id) _(Implemented without `expense_id` for now; see ROADMAP.)_
     - `event_meals` (date, slot `breakfast`/`lunch`/`dinner`/`snack`, title, notes) with cooks in `event_meal_cooks`
 - Transport: `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats) and `event_ride_passengers` (ride, person, pickup_note).
 - Costs:

@@ -1,6 +1,6 @@
 # Events
 
-Plan get-togethers per server: who's coming, food, rides, and (in later slices) costs and Discord announcements.
+Plan get-togethers per server: who's coming, food, rides, costs, and (in a later slice) Discord announcements.
 
 ## Who can do what
 
@@ -32,6 +32,13 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 - **Take a seat** with an optional pickup note. The ride is locked while seating, so two people can't take the last seat. The driver can't sit in their own ride. Leave with ×; the driver and organisers can remove passengers and cancel the ride.
 - **Offer a ride:** which way, free seats (1 to 8), leaving from, leaving at, note. To change a ride, cancel it and offer a new one.
 
+## Costs tab
+
+- **Expenses:** what, how much (type `450` or `120,50`), who paid, and who shares it: **equally** (leftover öre go to the first people, so it always adds up) or **exact amounts** (they must add up to the total). The people to choose from are everyone going or maybe, the hosts, and anyone already in the costs.
+- **Settle up:** everyone's balance (paid minus share, adjusted by payments) and the transfers that square it: the biggest debtor pays the biggest creditor, repeated. **Mark as paid** records the payment; anyone can do it, and the person who recorded it (or an organiser) can undo it.
+- **Balances** table: paid, share and balance per person.
+- Money is stored as integer minor units in the event's currency (`SEK`).
+
 ## Live updates
 
 Every change broadcasts `event.changed` (`{ event_id, section }`) on the private channel `events.{id}`. Everyone viewing the event reloads just the changed part of the page. Channel access follows the event's server.
@@ -45,4 +52,5 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_shopping_items`: label, quantity (free text), added_by, checked_by, checked_at.
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
+- `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).
 - `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats, note) and `event_ride_passengers` (one per person and ride: pickup_note).

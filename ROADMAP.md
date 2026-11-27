@@ -41,7 +41,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Events per server: RSVP (going/maybe/can't, guests, note, needs a ride), attendee list
 - [x] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
 - [x] Transport: rides with seats, pickup points, "needs a ride" list
-- [ ] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
+- [x] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
 - [ ] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
 - [x] Live updates per event over Reverb
 
@@ -54,6 +54,8 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
 - [ ] Events: add an "Add to calendar" (.ics) link
+- [ ] Events: edit an expense (now: remove and add again); link a shopping item to the expense that paid for it (spec §14 `expense_id`)
+- [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again
 - [x] Sidebar grouped into Quotes, Together and Admin
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)

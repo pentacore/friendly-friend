@@ -29,6 +29,11 @@ final class EventPolicy
         return EventRules::canParticipate($this->access($user), $event);
     }
 
+    public function manageCosts(User $user, Event $event): bool
+    {
+        return EventRules::canManageCosts($this->access($user), $event);
+    }
+
     private function access(User $user): AccessSnapshot
     {
         $snapshot = AccessSnapshot::forRequest(request());

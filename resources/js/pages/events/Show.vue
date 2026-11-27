@@ -10,6 +10,7 @@ import {
 } from '@lucide/vue';
 import { cancel } from '@/actions/App/Http/Controllers/EventController';
 import AttendeeList from '@/components/events/AttendeeList.vue';
+import CostsTab from '@/components/events/CostsTab.vue';
 import EventDateBadge from '@/components/events/EventDateBadge.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import FoodTab from '@/components/events/FoodTab.vue';
@@ -32,7 +33,9 @@ import { formatEventWhen } from '@/lib/eventDates';
 import { edit, index, show } from '@/routes/events';
 import type { PageProps } from '@/typefinder';
 
-const props = defineProps<PageProps['events/Show']>();
+const props = defineProps<
+    PageProps['events/Show'] & { errors: Record<string, string> }
+>();
 
 setLayoutProps({
     breadcrumbs: [
@@ -45,13 +48,14 @@ useLiveEvent(props.event.id, {
     overview: ['event', 'attendees', 'transport'],
     food: ['food'],
     transport: ['transport'],
-    costs: [],
+    costs: ['costs'],
 });
 
 const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'food', label: 'Food' },
     { id: 'transport', label: 'Transport' },
+    { id: 'costs', label: 'Costs' },
 ] as const;
 
 type Tab = (typeof tabs)[number]['id'];
@@ -228,6 +232,14 @@ function setCancelled(cancelled: boolean): void {
             :event="event"
             :transport="transport"
             :me="me"
+        />
+
+        <CostsTab
+            v-else-if="tab === 'costs'"
+            :event="event"
+            :costs="costs"
+            :me="me"
+            :errors="errors"
         />
 
         <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">

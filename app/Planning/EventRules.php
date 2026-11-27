@@ -35,11 +35,20 @@ final class EventRules
     }
 
     /**
-     * RSVP, claim, tick, drive, ride and add costs. Not on cancelled events,
-     * except costs, which may still need settling.
+     * RSVP, claim, tick, drive and ride. Not on cancelled events (costs
+     * have their own rule).
      */
     public static function canParticipate(AccessSnapshot $access, Event $event): bool
     {
         return self::canView($access, $event) && ! $event->isCancelled();
+    }
+
+    /**
+     * Add expenses and record payments: anyone who can see the event, also
+     * after it was cancelled, because money may already have been spent.
+     */
+    public static function canManageCosts(AccessSnapshot $access, Event $event): bool
+    {
+        return self::canView($access, $event);
     }
 }

@@ -160,3 +160,27 @@ it('arranges rides', function (bool $dark): void {
 
     expect(EventRide::query()->count())->toBe(2);
 })->with(['light' => false, 'dark' => true]);
+
+it('splits costs and settles up', function (bool $dark): void {
+    EventRsvp::query()->create(['event_id' => $this->event->id, 'discord_user_id' => $this->user->discord_user_id, 'status' => 'going']);
+    $this->actingAs($this->user);
+
+    $page = visit("/events/{$this->event->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->click('[role="tab"]:nth-child(4)')
+        ->assertSee('Add expenses and this works out who pays whom.')
+        ->click('Add an expense')
+        ->fill('#expense-description', 'Crayfish, 3 kg')
+        ->fill('#expense-amount', '450')
+        ->click('[data-test="costs"] form button[type="submit"]')
+        ->assertSee('Split 4 ways')
+        ->assertSee("You're owed")
+        ->assertSee('Mark as paid')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-costs-'.($dark ? 'dark' : 'light'));
+
+    $page->click('Mark as paid')->assertSee('Paid back')->assertNoJavaScriptErrors();
+})->with(['light' => false, 'dark' => true]);

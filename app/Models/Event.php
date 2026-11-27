@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\RsvpStatus;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -105,6 +106,43 @@ class Event extends Model
     public function rides(): HasMany
     {
         return $this->hasMany(EventRide::class);
+    }
+
+    /**
+     * @return HasMany<EventExpense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(EventExpense::class);
+    }
+
+    /**
+     * @return HasMany<EventPayment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(EventPayment::class);
+    }
+
+    /**
+     * Who can be in the costs: anyone going or maybe, the hosts, and
+     * anyone already in an expense or payment.
+     *
+     * @return list<int> discord_users.id
+     */
+    public function costPeopleIds(): array
+    {
+        $ids = [
+            $this->created_by_discord_user_id,
+            ...$this->hosts()->pluck('discord_users.id')->all(),
+            ...$this->rsvps()->where('status', '!=', RsvpStatus::Declined)->pluck('discord_user_id')->all(),
+            ...$this->expenses()->pluck('paid_by_discord_user_id')->all(),
+            ...EventExpenseShare::query()->whereIn('event_expense_id', $this->expenses()->select('id'))->pluck('discord_user_id')->all(),
+            ...$this->payments()->pluck('from_discord_user_id')->all(),
+            ...$this->payments()->pluck('to_discord_user_id')->all(),
+        ];
+
+        return array_values(array_unique(array_filter(array_map(intval(...), array_filter($ids, is_numeric(...))))));
     }
 
     public function isCancelled(): bool

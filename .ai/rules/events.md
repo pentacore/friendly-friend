@@ -39,3 +39,5 @@ paths:
 - The event page has one tab per section (Overview, Food, …). A section's data is one lazy prop (`food` from `FoodPlan::for()`), and its writes reload only that prop (`useEventAction(['food'])`). Child routes use `scopeBindings()`, so an item of another event is a 404.
 - Organiser-only data (dietary needs) is `null` for everyone else, never just hidden in the UI.
 - Anything that can run out (ride seats) is checked inside a transaction with `lockForUpdate()`, and the action throws a domain exception (`RideFullException`) that the controller turns into an error toast.
+- Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. Payments change only the balance, never "paid" or "share".
+- Costs are managed with the `manageCosts` ability (view access), not `participate`, so a cancelled event can still be settled.
