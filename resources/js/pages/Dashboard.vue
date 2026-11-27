@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { ArrowRight, Scale, Shuffle, Trophy } from '@lucide/vue';
+import { ArrowRight, ChartColumn, Scale, Shuffle, Trophy } from '@lucide/vue';
 import QuoteCard from '@/components/quotes/QuoteCard.vue';
 import QuoteText from '@/components/quotes/QuoteText.vue';
 import VoteButtons from '@/components/quotes/VoteButtons.vue';
+import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import { Button } from '@/components/ui/button';
 import { provideLiveQuoteScores } from '@/composables/useLiveQuoteScores';
-import { dashboard, top } from '@/routes';
+import { formatDuration, plural } from '@/lib/statsFormat';
+import { dashboard, stats, top } from '@/routes';
 import { index, show } from '@/routes/quotes';
 import { show as thisOrThat } from '@/routes/this-or-that';
 import type { PageProps } from '@/typefinder';
@@ -104,6 +106,33 @@ function anotherOne(): void {
                 />
             </Link>
         </nav>
+
+        <Link
+            v-if="week"
+            :href="stats({ query: { days: 7 } })"
+            class="group flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border p-4 transition-colors hover:border-foreground/30"
+            data-test="week-card"
+        >
+            <ChartColumn class="size-5 text-muted-foreground" />
+            <span class="min-w-0 flex-1">
+                <span class="block font-medium">This week</span>
+                <span class="text-sm text-muted-foreground">
+                    {{ plural(week.messages, 'message', 'messages') }},
+                    {{ formatDuration(week.voice_seconds) }} in voice, from
+                    {{ plural(week.members, 'person', 'people') }}.
+                </span>
+            </span>
+            <span v-if="week.top" class="flex items-center gap-2 text-sm">
+                <MemberAvatar :member="week.top" />
+                <span>
+                    <span class="text-muted-foreground">Chattiest:</span>
+                    {{ week.top.name }}
+                </span>
+            </span>
+            <ArrowRight
+                class="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            />
+        </Link>
 
         <section
             v-if="recent.length"

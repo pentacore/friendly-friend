@@ -21,6 +21,8 @@ Days (reactions, rollups, the heatmap) use `STATS_TIMEZONE` (default `Europe/Sto
 2. The jobs check the server is enabled and the member hasn't opted out (again, against the database), then upsert a counter or move a session.
 3. When the bot starts a fresh gateway session, `GUILD_CREATE` carries who is in voice and who is playing what. `SeedGuildSessions` keeps sessions that still match, closes the rest and opens what's missing. Events missed while the bot was down are lost; time in voice during the outage counts only for people still in the same channel afterwards.
 
+- **Dashboard:** a "This week" card (messages, voice time, people, the chattiest person) linking to `/stats` for the last 7 days. Hidden when nothing was counted.
+
 ## Rollups
 
 `RollUpStats` turns sessions into daily totals:
@@ -40,7 +42,7 @@ vendor/bin/sail artisan stats:rollup --days=30
 - **`/stats`** (sidebar → Stats): one server or all you can see, over a week, a month or a year.
     - a one-line summary
     - a weekday × hour heatmap of messages (in `STATS_TIMEZONE`)
-    - boards: most messages, most time in voice, time together, most played, favourite reactions, who reacts to whom, most reactions given
+    - boards: most messages, most time in voice, time together, busiest channels (named from the server's cached channel list; channels the bot can't see show as "a hidden channel"), most played, favourite reactions, who reacts to whom, most reactions given
 - **Person pages** (`/people/{slug}`): the last 30 days for that person, if they're linked to a Discord user and haven't opted out. Shows a summary, their own heatmap, who they spend the most voice time with, what they play, and the emoji they react with.
 
 Everything is read through `App\Stats\StatsQuery`, limited to the servers the viewer can see.

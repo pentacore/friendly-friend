@@ -70,8 +70,8 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Events: edit a ride (not below the seats already taken)
 - [x] Sidebar grouped into Quotes, Together and Admin
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
-- [ ] Stats: per-channel breakdown on `/stats` (channel names are already cached on `guilds.channels`)
-- [ ] Stats: a small "this week" card on the dashboard
+- [x] Stats: busiest channels on `/stats`
+- [x] Stats: a "this week" card on the dashboard
 - [ ] Stats: streaks and records (longest voice session, most messages in a day)
 
 ## Follow-ups and known gaps

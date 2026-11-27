@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Stats;
 
 use App\Models\DiscordUser;
+use App\Models\Guild;
 use App\Models\Person;
 use App\Models\StatDailyActivity;
 use App\Models\StatDailyVoice;
@@ -204,6 +205,38 @@ final readonly class StatsQuery
             'total' => $this->int($row, 'total'),
             'players' => $this->int($row, 'players'),
         ])->all());
+    }
+
+    /**
+     * Messages per channel, named from the servers' cached channel lists
+     * (channels the bot can no longer see show as "a hidden channel").
+     *
+     * @return list<array{channel_id: string, name: string, guild: string, total: int}>
+     */
+    public function topChannels(int $limit = 10): array
+    {
+        $rows = $this->messages()
+            ->selectRaw('guild_id, channel_id, sum(count)::int as total')
+            ->groupBy('guild_id', 'channel_id')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->toBase()
+            ->get();
+
+        $guilds = Guild::query()->whereIn('id', $rows->map(fn (object $row): int => $this->int($row, 'guild_id'))->all())->get()->keyBy('id');
+
+        return array_values($rows->map(function (object $row) use ($guilds): array {
+            $guild = $guilds->get($this->int($row, 'guild_id'));
+            $channelId = $this->string($row, 'channel_id');
+            $channel = $guild instanceof Guild ? collect($guild->channels)->firstWhere('id', $channelId) : null;
+
+            return [
+                'channel_id' => $channelId,
+                'name' => is_array($channel) ? '#'.$channel['name'] : 'a hidden channel',
+                'guild' => $guild instanceof Guild ? $guild->name : '',
+                'total' => $this->int($row, 'total'),
+            ];
+        })->all());
     }
 
     /**

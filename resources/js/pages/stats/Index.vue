@@ -188,6 +188,25 @@ const nothingYet = computed(
                 </StatsBoard>
 
                 <StatsBoard
+                    title="Busiest channels"
+                    :rows="channels"
+                    :value="(row) => row.total"
+                    empty="No messages yet."
+                >
+                    <template #label="{ row }">
+                        <span class="truncate">{{ row.name }}</span>
+                        <span
+                            v-if="guilds.length > 1 && !filters.guild"
+                            class="shrink-0 truncate text-xs text-muted-foreground"
+                            >{{ row.guild }}</span
+                        >
+                    </template>
+                    <template #value="{ row }">
+                        {{ formatNumber(row.total) }}
+                    </template>
+                </StatsBoard>
+
+                <StatsBoard
                     title="Most played"
                     :rows="games"
                     :value="(row) => row.total"

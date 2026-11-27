@@ -16,7 +16,7 @@ export type SharedPageProps = {
 };
 
 export type PageProps = {
-  'Dashboard': { random: QuoteResource | null; recent: QuoteResource[]; total: number };
+  'Dashboard': { random: QuoteResource | null; recent: QuoteResource[]; total: number; week: { messages: number; voice_seconds: number; members: number; top: { name: string; avatar_url: string; total: number } | null } | null };
   'admin/Guilds': { guilds: GuildResource[] };
   'admin/ImportReview': { quote_import: QuoteImportResource; pending: QuoteResource[] };
   'admin/Imports': { imports: QuoteImportResource[] };
@@ -34,7 +34,7 @@ export type PageProps = {
   'quotes/Top': { all_time: QuoteResource[]; this_month: QuoteResource[]; elo: QuoteResource[]; most_quoted: { slug: string; display_name: string; quote_count: number }[]; top_submitters: { name: string; avatar_url: string; quote_count: number }[] };
   'settings/Food': { dietary_notes: string };
   'settings/Privacy': { opted_out_at: string | null };
-  'stats/Index': { filters: { guild: number | null; days: number }; guilds: { id: number; name: string }[]; totals: { messages: number; voice_seconds: number; reactions: number; members: number }; heatmap: { weekday: number; hour: number; count: number }[]; messages: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; voice: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; reactors: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; voice_pairs: { first: { id: number; name: string; avatar_url: string; person_slug: string | null }; second: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; reaction_pairs: { first: { id: number; name: string; avatar_url: string; person_slug: string | null }; second: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; emoji: { emoji: string; name: string; image_url: string | null; total: number }[]; games: { name: string; total: number; players: number }[] };
+  'stats/Index': { filters: { guild: number | null; days: number }; guilds: { id: number; name: string }[]; totals: { messages: number; voice_seconds: number; reactions: number; members: number }; heatmap: { weekday: number; hour: number; count: number }[]; messages: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; voice: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; reactors: { member: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; voice_pairs: { first: { id: number; name: string; avatar_url: string; person_slug: string | null }; second: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; reaction_pairs: { first: { id: number; name: string; avatar_url: string; person_slug: string | null }; second: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[]; emoji: { emoji: string; name: string; image_url: string | null; total: number }[]; games: { name: string; total: number; players: number }[]; channels: { channel_id: string; name: string; guild: string; total: number }[] };
 };
 
 export type PageName = keyof PageProps;

@@ -104,3 +104,27 @@ it('shows a person\'s stats unless they opted out', function (): void {
     $this->actingAs($this->user)->get(route('people.show', $person->slug))
         ->assertInertia(fn (Assert $page): Assert => $page->where('stats', null));
 });
+
+it('names the busiest channels from the server\'s channel list', function (): void {
+    $this->guild->update(['channels' => [['id' => '777', 'name' => 'general', 'position' => 1]]]);
+    StatMessage::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $this->bo->id, 'channel_id' => '777', 'hour' => '2026-11-20T19:00:00Z', 'count' => 9]);
+    StatMessage::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $this->bo->id, 'channel_id' => '999', 'hour' => '2026-11-20T19:00:00Z', 'count' => 2]);
+
+    $this->actingAs($this->user)->get(route('stats'))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('channels', [
+            ['channel_id' => '777', 'name' => '#general', 'guild' => 'Friends', 'total' => 9],
+            ['channel_id' => '999', 'name' => 'a hidden channel', 'guild' => 'Friends', 'total' => 2],
+        ]));
+});
+
+it('shows this week on the dashboard, and nothing when nothing was counted', function (): void {
+    $this->actingAs($this->user)->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('week', null));
+
+    messages($this->guild, $this->bo, 5);
+
+    $this->actingAs($this->user)->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('week.messages', 5)
+            ->where('week.top.name', $this->bo->display_name));
+});

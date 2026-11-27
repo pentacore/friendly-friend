@@ -33,6 +33,7 @@ final class StatsController extends Controller
         'reaction_pairs' => '{ first: '.self::MEMBER.'; second: '.self::MEMBER.'; total: number }[]',
         'emoji' => '{ emoji: string; name: string; image_url: string | null; total: number }[]',
         'games' => '{ name: string; total: number; players: number }[]',
+        'channels' => '{ channel_id: string; name: string; guild: string; total: number }[]',
     ])]
     public function __invoke(StatsRequest $request): Response
     {
@@ -55,6 +56,7 @@ final class StatsController extends Controller
             'reaction_pairs' => $stats->reactionPairs(),
             'emoji' => $stats->topEmoji(),
             'games' => $stats->games(),
+            'channels' => $stats->topChannels(),
         ]);
     }
 }
