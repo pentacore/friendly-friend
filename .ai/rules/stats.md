@@ -10,7 +10,7 @@ paths:
 - Stats store **counts and sessions only**. Never store message content.
 - Everything is keyed by `guild_id` + `discord_user_id` (internal IDs), so members who never log in count too, and every stat works per server or combined. `IngestMessage` records unknown authors through `RecordDiscordUser`; the other jobs skip members we don't know yet (member sync adds them).
 - Counters (`stat_messages` per hour in UTC, `stat_reactions` per day in `config('stats.timezone')`) are **idempotent upserts** on their bucket (`count = count + 1`). `stat_reactions` has a `nulls not distinct` unique index, because `target_discord_user_id` is null when unknown.
-- Voice and games are **sessions** with `ended_at` null while open. A partial unique index allows one open voice session per member and server, and one per game. `RecordVoiceState` and `RecordActivities` bring sessions in line with the current state (keep matches, close the rest, open what's missing). Every ingest path and the reconnect seed go through them.
+- Voice and games are **sessions** with `ended_at` null while open. A partial unique index allows one open voice session per member and server, and one per game. `RecordVoiceState` and `RecordActivities` bring sessions in line with the current state (keep matches, close the rest, open what's missing); after a restart, closed sessions end at the previous heartbeat (`closedAt`), not at reconnect time. Every ingest path and the reconnect seed go through them.
 - Only `config('stats.activity_types')` count as games (0 = Playing). The router filters them, so presence jobs carry only names.
 
 ## Opt-out (checked twice)

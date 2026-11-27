@@ -17,8 +17,9 @@ final readonly class RecordActivities
 {
     /**
      * @param  array<string, int>  $playing  activity name => Discord activity type
+     * @param  CarbonImmutable|null  $closedAt  when stopped games ended, if earlier than $at (bot downtime)
      */
-    public function handle(Guild $guild, DiscordUser $member, array $playing, CarbonImmutable $at): void
+    public function handle(Guild $guild, DiscordUser $member, array $playing, CarbonImmutable $at, ?CarbonImmutable $closedAt = null): void
     {
         $open = StatActivitySession::query()
             ->where('guild_id', $guild->id)
@@ -28,7 +29,7 @@ final readonly class RecordActivities
 
         foreach ($open as $session) {
             if (! array_key_exists($session->activity_name, $playing)) {
-                $session->update(['ended_at' => $at->max($session->started_at)]);
+                $session->update(['ended_at' => ($closedAt ?? $at)->max($session->started_at)]);
             }
         }
 

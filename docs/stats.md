@@ -19,7 +19,7 @@ Days (reactions, rollups, the heatmap) use `STATS_TIMEZONE` (default `Europe/Sto
 
 1. The bot (`GatewayEventRouter`) turns `MESSAGE_CREATE`, `MESSAGE_REACTION_ADD`, `VOICE_STATE_UPDATE` and `PRESENCE_UPDATE` into small queued jobs in `App\Stats\Jobs`. Events from members who opted out are dropped here (see [bot.md](bot.md)).
 2. The jobs check the server is enabled and the member hasn't opted out (again, against the database), then upsert a counter or move a session.
-3. When the bot starts a fresh gateway session, `GUILD_CREATE` carries who is in voice and who is playing what. `SeedGuildSessions` keeps sessions that still match, closes the rest and opens what's missing. Events missed while the bot was down are lost; time in voice during the outage counts only for people still in the same channel afterwards.
+3. When the bot starts a fresh gateway session, `GUILD_CREATE` carries who is in voice and who is playing what. `SeedGuildSessions` keeps sessions that still match, closes the rest and opens what's missing. Events missed while the bot was down are lost. Sessions that no longer match end at the bot's last heartbeat before the restart (`BotHeartbeat::downSince()`, only within 10 minutes of a start); people still in the same channel or game afterwards are assumed to have stayed.
 
 - **Dashboard:** a "This week" card (messages, voice time, people, the chattiest person) linking to `/stats` for the last 7 days. Hidden when nothing was counted.
 

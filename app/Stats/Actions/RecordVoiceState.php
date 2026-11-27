@@ -16,7 +16,10 @@ use Carbon\CarbonImmutable;
  */
 final readonly class RecordVoiceState
 {
-    public function handle(Guild $guild, DiscordUser $member, ?string $channelId, CarbonImmutable $at): void
+    /**
+     * @param  CarbonImmutable|null  $closedAt  when the old session ended, if earlier than $at (bot downtime)
+     */
+    public function handle(Guild $guild, DiscordUser $member, ?string $channelId, CarbonImmutable $at, ?CarbonImmutable $closedAt = null): void
     {
         $open = StatVoiceSession::query()
             ->where('guild_id', $guild->id)
@@ -29,7 +32,7 @@ final readonly class RecordVoiceState
         }
 
         if ($open !== null) {
-            $open->update(['ended_at' => $at->max($open->started_at)]);
+            $open->update(['ended_at' => ($closedAt ?? $at)->max($open->started_at)]);
         }
 
         if ($channelId !== null) {

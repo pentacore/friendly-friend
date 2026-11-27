@@ -21,6 +21,10 @@ final readonly class BotHeartbeat
 
     private const string KEY = 'discord:bot:heartbeat';
 
+    private const string STARTED_KEY = 'discord:bot:started';
+
+    private const int RESTART_WINDOW_MINUTES = 10;
+
     /**
      * Stored as an ISO-8601 string: Redis returns plain numbers as strings,
      * so a string round-trips the same on every cache store.
@@ -35,6 +39,39 @@ final readonly class BotHeartbeat
         $beat = Cache::get(self::KEY);
 
         return is_string($beat) ? CarbonImmutable::parse($beat) : null;
+    }
+
+    /**
+     * Called once when `bot:run` starts, before connecting: remembers when
+     * this process started and the previous process's last beat.
+     */
+    public function markStarted(): void
+    {
+        Cache::forever(self::STARTED_KEY, [
+            'started' => Date::now()->toIso8601String(),
+            'previous' => $this->lastBeatAt()?->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * The last sign of life before this process started, for closing stats
+     * sessions that ended while the bot was down. Only during the first
+     * minutes after a start; later reconnects (outages mid-run) get null.
+     */
+    public function downSince(): ?CarbonImmutable
+    {
+        $marker = Cache::get(self::STARTED_KEY);
+
+        if (! is_array($marker) || ! is_string($marker['started'] ?? null) || ! is_string($marker['previous'] ?? null)) {
+            return null;
+        }
+
+        $started = CarbonImmutable::parse($marker['started']);
+        $previous = CarbonImmutable::parse($marker['previous']);
+
+        return $started->diffInMinutes(Date::now(), absolute: true) <= self::RESTART_WINDOW_MINUTES && $previous->lessThan($started)
+            ? $previous
+            : null;
     }
 
     public function isOnline(): bool

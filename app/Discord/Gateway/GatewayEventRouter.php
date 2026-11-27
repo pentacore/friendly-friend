@@ -43,7 +43,11 @@ final readonly class GatewayEventRouter
     /** Default messages and replies; joins, pins, boosts… are not chat. */
     private const array COUNTED_MESSAGE_TYPES = [0, 19];
 
-    public function __construct(private OptedOutMembers $optedOut, private WatchedChannels $watchedChannels) {}
+    public function __construct(
+        private OptedOutMembers $optedOut,
+        private WatchedChannels $watchedChannels,
+        private BotHeartbeat $heartbeat,
+    ) {}
 
     /**
      * @param  array<mixed>  $payload
@@ -122,7 +126,7 @@ final readonly class GatewayEventRouter
             }
         }
 
-        dispatch(new SeedGuildSessions($guildId, $voice, $playing, $this->now()));
+        dispatch(new SeedGuildSessions($guildId, $voice, $playing, $this->now(), $this->heartbeat->downSince()?->toIso8601String()));
     }
 
     /**

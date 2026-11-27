@@ -38,6 +38,7 @@ final class SeedGuildSessions implements ShouldQueue
         public readonly array $voice,
         public readonly array $playing,
         public readonly string $at,
+        public readonly ?string $downSince = null,
     ) {}
 
     public function handle(Tracking $tracking, RecordVoiceState $recordVoice, RecordActivities $recordActivities): void
@@ -49,6 +50,8 @@ final class SeedGuildSessions implements ShouldQueue
         }
 
         $at = CarbonImmutable::parse($this->at);
+        // Sessions that ended while the bot was down end at its last sign of life.
+        $closedAt = $this->downSince !== null ? CarbonImmutable::parse($this->downSince) : $at;
 
         $openVoice = $this->discordIdsOf(StatVoiceSession::query()->where('guild_id', $guild->id)->whereNull('ended_at')->select('discord_user_id'));
         $openGames = $this->discordIdsOf(StatActivitySession::query()->where('guild_id', $guild->id)->whereNull('ended_at')->select('discord_user_id'));
@@ -61,7 +64,7 @@ final class SeedGuildSessions implements ShouldQueue
             $member = $members->get($discordId);
 
             if ($member !== null) {
-                $recordVoice->handle($guild, $member, $this->voice[$discordId] ?? null, $at);
+                $recordVoice->handle($guild, $member, $this->voice[$discordId] ?? null, $at, $closedAt);
             }
         }
 
@@ -69,7 +72,7 @@ final class SeedGuildSessions implements ShouldQueue
             $member = $members->get($discordId);
 
             if ($member !== null) {
-                $recordActivities->handle($guild, $member, $this->playing[$discordId] ?? [], $at);
+                $recordActivities->handle($guild, $member, $this->playing[$discordId] ?? [], $at, $closedAt);
             }
         }
     }

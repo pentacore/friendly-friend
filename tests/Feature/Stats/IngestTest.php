@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Discord\Data\DiscordUserData;
+use App\Discord\Gateway\BotHeartbeat;
 use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Models\StatActivitySession;
@@ -14,6 +15,7 @@ use App\Stats\Jobs\IngestPresence;
 use App\Stats\Jobs\IngestReaction;
 use App\Stats\Jobs\IngestVoiceState;
 use App\Stats\Jobs\SeedGuildSessions;
+use Illuminate\Support\Facades\Date;
 
 beforeEach(function (): void {
     $this->guild = Guild::factory()->create(['discord_id' => '555']);
@@ -102,4 +104,28 @@ it('reseeds sessions after a reconnect: keeps matches, closes stale ones, opens 
         ->and($game->fresh()?->ended_at)->not->toBeNull()
         ->and(StatVoiceSession::query()->where('discord_user_id', $friend->id)->whereNull('ended_at')->value('channel_id'))->toBe('701')
         ->and(StatActivitySession::query()->where('discord_user_id', $friend->id)->whereNull('ended_at')->value('activity_name'))->toBe('Doom');
+});
+
+it('ends sessions that stopped during bot downtime at the bot\'s last sign of life', function (): void {
+    $left = DiscordUser::factory()->create(['discord_id' => '44']);
+    $stale = StatVoiceSession::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $left->id, 'channel_id' => '700', 'started_at' => '2026-11-20T18:00:00Z']);
+
+    dispatch_sync(new SeedGuildSessions('555', [], [], '2026-11-20T23:00:00+00:00', '2026-11-20T19:30:00+00:00'));
+
+    expect($stale->fresh()?->ended_at?->toIso8601String())->toBe('2026-11-20T19:30:00+00:00');
+});
+
+it('remembers the previous heartbeat only right after a restart', function (): void {
+    $heartbeat = app(BotHeartbeat::class);
+    Date::setTestNow('2026-11-20T19:30:00Z');
+    $heartbeat->beat();
+
+    Date::setTestNow('2026-11-20T23:00:00Z');
+    $heartbeat->markStarted();
+    $heartbeat->beat();
+
+    expect($heartbeat->downSince()?->toIso8601String())->toBe('2026-11-20T19:30:00+00:00');
+
+    Date::setTestNow('2026-11-20T23:30:00Z');
+    expect($heartbeat->downSince())->toBeNull();
 });

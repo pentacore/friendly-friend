@@ -89,7 +89,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Draft lifetime (15 min) equals the interaction token lifetime. A preview edited at minute 14 still works, but there's no margin.
 - [ ] Telescope's migration also runs in production (creates unused tables). Harmless; could be excluded.
 - [ ] `docs-updated` CI check only warns on pull requests; direct pushes to `main` aren't checked.
-- [ ] **Stats after bot downtime:** events missed while the bot is down are lost. On reconnect, sessions that still match are assumed to have continued, and the rest are closed at reconnect time rather than at the last heartbeat, which can overcount voice and game time after a long outage. Could close stale sessions at the previous heartbeat instead.
+- [x] **Stats after bot downtime:** sessions that ended while the bot was down now end at its last heartbeat before the restart (only in the first 10 minutes after a start; events missed during the outage are still lost).
 - [ ] **Stats need the Presence intent** turned on in the developer portal (game sessions), and the bot must see a channel to count messages there (see "Bot can't see most channels").
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
 - [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.

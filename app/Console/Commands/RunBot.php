@@ -67,6 +67,7 @@ final class RunBot extends Command
         }
 
         // The router drops opted-out members' events using this cached set.
+        $heartbeat->markStarted();
         $optedOut->refresh();
         $watchedChannels->refresh();
 
