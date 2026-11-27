@@ -37,6 +37,8 @@ Browser (Vue/Inertia) ──► web ──► PostgreSQL / Redis
 
 In dev, nothing runs these until you start the scheduler: `vendor/bin/sail artisan schedule:work`.
 
+The scheduler only queues these jobs. A job that must not run twice at once is `ShouldBeUnique` (`PruneExpiredDrafts`, `SendEventReminders`, `RollUpStats`), because `withoutOverlapping()` on `Schedule::job()` lets go as soon as the job is queued. Redis gives a still-running job to another worker after `retry_after` (630 s, `config/queue.php`), so every job stops before that.
+
 ## Features
 
 [quotes.md](quotes.md) · [events.md](events.md) · [stats.md](stats.md) · [admin.md](admin.md) · [bot.md](bot.md) · [auth.md](auth.md)

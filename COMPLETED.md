@@ -80,6 +80,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Jev classifies what an @mention wants: save a quote, a random quote (posted in the channel) or help (DMed); capture stays the default.
 - [x] Jev picks between several fuzzy person matches in `ResolvePerson` (or says it's someone new).
 - [x] Typefinder 8.6: the upstream fixes for #245–#249 are in. The local Vue type-cache plugin and the `buildCommand: false` switch are gone, and broadcast payloads come from `broadcastWith()`'s PHPDoc shape instead of `#[TypefinderBroadcast]`.
+- [x] Conventions adopted from media manager: `ai-rules.md` (narrowest glob, owner's rules, skills for procedures) with a test that every rule glob matches a file, the `formatting-project` and `running-browser-tests` skills, owner approval for new production packages (`dependencies.md`), a rule that a behaviour change updates every description of it, and Dependabot for Composer and npm.
 
 ## Bugs found and fixed along the way
 
@@ -108,3 +109,5 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
 - [x] Parallel tests failed with Postgres `out of shared memory` after the events schema grew: Sail's Postgres now runs with `max_locks_per_transaction=256`.
 - [x] Tests could reach real services: page tests called the Vite SSR dev server whenever it ran, and the real `DISCORD_BOT_TOKEN` from `.env` let jobs call Discord (it hit random fake server IDs, so nothing was created). Feature tests now block stray HTTP, SSR is off in tests, and the bot token is blanked in `phpunit.xml`.
+- [x] **Channel imports could run twice at once:** `ImportChannelQuotes` may run 600 s, but redis handed a reserved job to a second worker after `retry_after` (90 s). `retry_after` is 630 s now, and a test keeps every job's timeout below it.
+- [x] **`withoutOverlapping()` on scheduled jobs protected nothing:** `Schedule::job()` releases the lock once the job is queued, so two `SendEventReminders` runs could overlap and DM a reminder twice. It and `PruneExpiredDrafts` are `ShouldBeUnique` now, and a test bans the lock on scheduled jobs.

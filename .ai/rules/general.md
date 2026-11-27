@@ -21,8 +21,7 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 
 ## Keeping rules current
 
-- These rule files are the project's conventions and design decisions. **Every commit that introduces or changes a convention, a design decision or a trap updates the matching rule file in the same commit.** If a decision spans the project, put it here; if it's about one area, put it in that area's file. Create a new rule file with a `paths` frontmatter for a new area.
-- After adding or renaming rule files, run `vendor/bin/sail artisan boost:index-rules` to regenerate `index.md`. Never edit `index.md` by hand.
+- These rule files are the project's conventions and design decisions. **Every commit that introduces or changes a convention, a design decision or a trap updates the matching rule file in the same commit.** If a decision spans the project, put it here; if it's about one area, put it in that area's file. Create a new rule file with a `paths` frontmatter for a new area. How to write and file rules (narrowest glob, owner's decisions, skills for procedures) is in `ai-rules.md`.
 - Bugs, follow-ups, upstream issues and feature ideas go in `ROADMAP.md`, also in the same commit. `ROADMAP.md` holds only open items: when one is done (or a bug is found and fixed in the same change), it goes to `COMPLETED.md` in that commit, and a fixed bug's lesson becomes a rule here.
 
 ## Shape of the app (each part has one job)

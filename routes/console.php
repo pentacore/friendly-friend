@@ -27,11 +27,11 @@ Artisan::command('discord:sync-members', function (): void {
     $this->info("Synced members of {$guilds->count()} server(s).");
 })->purpose('Refresh all members of every enabled Discord server now (bot token)');
 
-Schedule::job(new SyncAllGuilds)->cron('0 */3 * * *')->withoutOverlapping();
+Schedule::job(new SyncAllGuilds)->cron('0 */3 * * *');
 
-Schedule::job(new PruneExpiredDrafts)->everyMinute()->withoutOverlapping();
+Schedule::job(new PruneExpiredDrafts)->everyMinute();
 
-Schedule::job(new SendEventReminders)->everyFiveMinutes()->withoutOverlapping();
+Schedule::job(new SendEventReminders)->everyFiveMinutes();
 
 // Today's rollups stay fresh during the day; yesterday's are finished after midnight.
 Schedule::job(new RollUpStats)->hourlyAt(5);

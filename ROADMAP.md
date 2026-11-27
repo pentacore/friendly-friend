@@ -62,6 +62,13 @@ Considered and skipped for now: **Typesense / Meilisearch** (through Laravel Sco
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
 - [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.
 
+## Held dependency updates
+
+Dependabot skips these (`ignore` in `.github/dependabot.yml`). Lift a hold when its reason is gone.
+
+- [ ] **Vite+:** `vite-plus`, the `vite` alias in `devDependencies` and the `vite` override in `package.json` must name the same release, and Dependabot only bumps one of them. Bump all three by hand (the release's `vite` dependency names the `@voidzero-dev/vite-plus-core` version).
+- [ ] **TypeScript 7:** vue-tsc runs `typescript/lib/tsc`, which TypeScript 7 no longer ships (vuejs/language-tools#6167). Lift once vue-tsc or its successor checks `.vue` files on TypeScript 7.
+
 ## Upstream reports (other projects)
 
 - [ ] **pest-plugin-browser:** each browser test run leaves its `playwright run-server` processes behind (about 60, 120 MB each, had piled up in the Sail container). Also, its console capture only wraps `console.log`, so `assertNoConsoleLogs()` misses `console.error` (e.g. Vue hydration errors).

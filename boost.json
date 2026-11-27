@@ -24,6 +24,9 @@
         "echo-vue-development",
         "echo-development",
         "tailwindcss-development",
-        "typefinder-development"
+        "typefinder-development",
+        "formatting-project",
+        "running-browser-tests",
+        "working-in-a-worktree"
     ]
 }

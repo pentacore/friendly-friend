@@ -70,7 +70,9 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            // Must exceed the longest job #[Timeout] (ImportChannelQuotes, 600 s), or redis hands a
+            // still-running job to a second worker. tests/Unit/Architecture/QueueTimeoutsTest.php pins it.
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 630),
             'block_for' => null,
             'after_commit' => false,
         ],
