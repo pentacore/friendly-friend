@@ -198,3 +198,17 @@ it('lets only admins start a channel import', function (): void {
         ->and(responseText($this->discord))->toContain('Scanning');
     Queue::assertPushed(ImportChannelQuotes::class);
 });
+
+it('round-trips a single-speaker quote through the edit form', function (): void {
+    interact(P::saveQuoteMenu(P::message()));
+    $quote = Quote::query()->sole();
+
+    $prefill = DraftEditForm::cached($quote->id)['components'][0]['components'][0]['value'];
+    expect($prefill)->toBe('"im not drunk im philosophical" - Bo');
+
+    interact(P::modal(CustomId::for('modal', $quote->id), ['lines' => '"I\'m not drunk, I\'m philosophical" - Bo', 'context' => '', 'when' => '']));
+
+    $line = $quote->refresh()->lines()->sole();
+    expect($line->speaker_name)->toBe('Bo')
+        ->and($line->text)->toBe("I'm not drunk, I'm philosophical");
+});

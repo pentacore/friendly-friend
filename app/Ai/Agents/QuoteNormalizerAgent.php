@@ -32,6 +32,7 @@ final class QuoteNormalizerAgent implements Agent, HasStructuredOutput
             Rules:
             - Keep the wording. Quotes are deliberately out of context and unfair; never soften, censor, correct the meaning or add words. Only fix obvious typing slips, capitalisation and punctuation, and remove Discord markup noise.
             - One line per speaker turn. For a single statement return one line.
+            - Input is often written as `"quote text" - Person` (one speaker) or as `Name: text` lines (a conversation).
             - "speaker" is the name exactly as the input refers to the person ("Martin", "Martin's uncle", "@Bo" becomes "Bo"). If a known speaker is given, use that name for every line.
             - "context" is a short neutral setting ("at the barbecue", "about the dishwasher") taken only from the input, or null.
             - "said_at": an ISO-8601 date (YYYY-MM-DD) if the input says when (resolve relative words like "yesterday" against the given current date), otherwise null. "said_at_precision": "day" for a specific day, "approximate" for vague periods ("last summer", in which case said_at is the start of that period), otherwise null.

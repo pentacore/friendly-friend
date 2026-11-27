@@ -112,6 +112,7 @@ Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `a
 - Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
 - The design spec lives in `docs/superpowers/specs/` and the phase plans in `docs/superpowers/plans/`. When the implementation deliberately departs from the spec, update the spec too.
 - **Dark mode is required.** Every page and component must look right in light and dark (the default appearance is "system"). Use the theme tokens (`bg-background`, `text-muted-foreground`, `border`…) and `dark:` variants instead of fixed colours. New pages get a Pest browser test that also renders them in dark mode.
+- **`ROADMAP.md` is the backlog.** Add every bug, follow-up, upstream issue and future feature you find there *in the same commit* that finds it, and tick items off when they're done. Fixed bugs stay listed under "Bugs found and fixed", with the lesson also written into the guidelines.
 
 === foundation rules ===
 

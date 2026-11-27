@@ -91,3 +91,16 @@ it('keeps vague "when" phrases as context', function (): void {
     expect($quote->saidAt)->toBeNull()
         ->and($quote->context)->toBe('last summer at the lake');
 });
+
+it('understands the "text" - Person format', function (string $input, string $speaker, string $text): void {
+    $quote = plain(new CaptureInput(text: $input));
+
+    expect($quote->lines)->toHaveCount(1)
+        ->and($quote->lines[0]->speakerName)->toBe($speaker)
+        ->and($quote->lines[0]->text)->toBe($text);
+})->with([
+    'hyphen' => ['"I can totally fix that" - Martin', 'Martin', 'I can totally fix that'],
+    'em dash, curly quotes' => ['“cheese is a vegetable” — uncle Bo', 'uncle Bo', 'cheese is a vegetable'],
+    'en dash, no spaces' => ['"hej"–Kim', 'Kim', 'hej'],
+    'multi-line text' => ["\"line one\nline two\" - Martin", 'Martin', "line one\nline two"],
+]);

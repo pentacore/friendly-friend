@@ -12,8 +12,9 @@ use Throwable;
 
 /**
  * Deterministic parsing without AI: the fallback when no AI provider is
- * configured or the AI fails. Understands "Name: text" dialogue lines and
- * "Name said "text" …", plus simple dates ("yesterday", 2026-10-31).
+ * configured or the AI fails. Understands `"text" - Person`, "Name: text"
+ * dialogue lines and `Name said "text" …`, plus simple dates ("yesterday",
+ * 2026-10-31).
  */
 final readonly class PlainQuoteNormalizer implements QuoteNormalizer
 {
@@ -96,6 +97,11 @@ final readonly class PlainQuoteNormalizer implements QuoteNormalizer
      */
     private function parseFreeText(string $text): array
     {
+        // "text" - Person (checked first: the quote itself may contain a colon).
+        if (preg_match('/^["“”](.+)["“”]\s*[-–—]\s*(.{1,60})$/su', $text, $match) === 1) {
+            return [[new NormalizedLine(trim($match[2]), trim($match[1]))], null];
+        }
+
         $dialogue = $this->dialogue($text);
 
         if ($dialogue !== null) {

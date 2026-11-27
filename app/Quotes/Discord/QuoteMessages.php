@@ -66,20 +66,28 @@ final class QuoteMessages
         return ['content' => $text, 'components' => [], ...($ephemeral ? ['flags' => self::EPHEMERAL] : [])];
     }
 
+    /**
+     * One speaker: `"text" - Person`. A conversation: `**Name:** text` lines.
+     */
     private static function quoteBody(Quote $quote, bool $markNewPeople): string
     {
-        $lines = $quote->lines->map(function (QuoteLine $line) use ($markNewPeople): string {
-            $speaker = $line->speaker_name.($markNewPeople && $line->isNewPerson() ? ' *(new person)*' : '');
-            $text = str_replace("\n", "\n> ", $line->text);
+        $mark = fn (QuoteLine $line): string => $markNewPeople && $line->isNewPerson() ? ' *(new person)*' : '';
+        $first = $quote->lines->first();
 
-            return "> **{$speaker}:** {$text}";
-        })->implode("\n");
+        if ($first !== null && $quote->lines->every(fn (QuoteLine $line): bool => $line->speaker_name === $first->speaker_name)) {
+            $text = $quote->lines->map(fn (QuoteLine $line): string => $line->text)->implode("\n");
+            $body = "\"{$text}\" - {$first->speaker_name}".$mark($first);
+        } else {
+            $body = $quote->lines
+                ->map(fn (QuoteLine $line): string => "**{$line->speaker_name}:**{$mark($line)} {$line->text}")
+                ->implode("\n");
+        }
 
         $meta = array_filter([
             $quote->context !== null ? "*{$quote->context}*" : null,
             $quote->said_at?->timezone(config()->string('quotes.timezone'))->isoFormat('D MMM YYYY'),
         ]);
 
-        return $lines.($meta !== [] ? "\n".implode(' · ', $meta) : '');
+        return $body.($meta !== [] ? "\n".implode(' · ', $meta) : '');
     }
 }

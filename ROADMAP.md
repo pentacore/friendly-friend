@@ -1,0 +1,97 @@
+# Roadmap
+
+Everything that is planned, known to be missing, or was found along the way. **Keep this file current:** add bugs, follow-ups and feature ideas as soon as they come up, in the same commit as the work that found them, and tick them off when done. Design details live in `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`.
+
+## Status
+
+| Phase | What                                                                                                | State                               |
+| ----- | --------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 1     | Foundation: Laravel 13, Sail PHP 8.5, Postgres, tooling, Typefinder, Boost, CI, prod image          | ✅ done                             |
+| 2     | Discord-only login, access by server roles                                                          | ✅ done                             |
+| 3     | Bot core: gateway process, event router, member sync, watchdog                                      | ✅ done                             |
+| 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                 | ✅ done                             |
+| 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import | ✅ done                             |
+| 5     | Quotes on the website                                                                               | ⏭ next                              |
+| 6     | Server stats with opt-out                                                                           | planned                             |
+| 7     | Event planning                                                                                      | planned (approved design, spec §14) |
+
+## Planned features
+
+### Phase 5: Quotes on the website
+
+- [ ] Quote feed (newest first, filter by person and server), quote page with permalink and edit history
+- [ ] Full-text search (Postgres `tsvector` over lines and context; deferred from Phase 4)
+- [ ] Editing on the web (submitter and admins, `QuotePolicy`), every edit writes a revision
+- [ ] Voting (👍/👎) with live counts over Reverb
+- [ ] This-or-that with Elo ranking
+- [ ] Top lists (all-time, this month, by Elo, most quoted people, top submitters)
+- [ ] People pages; admin: merge people, manage aliases, link a person to a Discord user
+- [ ] **Import review queue** for `pending_review` quotes from channel imports (approve, edit, reject, approve all), with import progress over Reverb
+- [ ] Remove quotes (admins)
+- [ ] Show quotes in the `"quote text" - Person` style on the web too (as in Discord)
+
+### Phase 6: Stats
+
+- [ ] Message, voice, reaction/emoji and game/presence tracking per server; hourly/daily rollups; dashboards (heatmap, leaderboards, "who hangs out with whom")
+- [ ] Opt-out on the website and with `/privacy optout|optin|status`; purge on opt-out; cached opted-out set checked in the bot router and again in the jobs
+
+### Phase 7: Event planning (spec §14)
+
+- [ ] Events per server: RSVP (going/maybe/can't, guests, note, needs a ride), attendee list
+- [ ] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
+- [ ] Transport: rides with seats, pickup points, "needs a ride" list
+- [ ] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
+- [ ] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
+- [ ] Live updates per event over Reverb
+
+### Ideas (not scheduled)
+
+- [ ] Jev (TypeSafe) `Choice` to classify what an @mention wants (save quote, random quote, help) instead of always treating it as a capture
+- [ ] Jev to pick between ambiguous fuzzy person matches in `ResolvePerson`
+- [ ] Sync Discord's native event "Interested" back to RSVPs (needs the `GUILD_SCHEDULED_EVENTS` intent)
+- [ ] Let server admins (not only owners) manage their own server's settings
+- [ ] Per-server opt-in for posting `/quote random` publicly vs privately
+
+## Follow-ups and known gaps
+
+- [ ] **Dark mode browser tests:** the rule exists (`.ai/guidelines/workflow.md`), but Pest browser tests aren't set up in Sail/CI yet (Playwright). Add them with the first Phase 5 pages.
+- [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
+- [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.
+- [ ] `GuildAccess` loads the user's memberships several times per request (middleware, `isAdmin`, `isOwner` in shared props). Memoize per request.
+- [ ] The edit form flattens line breaks inside a conversation line to `/` (Discord text inputs have no structure). Single-speaker quotes keep their line breaks.
+- [ ] Expired drafts: the preview message stays with its buttons, which then answer "expired". Could edit the preview to say "expired" when pruning (needs the interaction token or DM message ID).
+- [ ] Draft lifetime (15 min) equals the interaction token lifetime. A preview edited at minute 14 still works, but there's no margin.
+- [ ] Telescope's migration also runs in production (creates unused tables). Harmless; could be excluded.
+- [ ] `docs-updated` CI check only warns on pull requests; direct pushes to `main` aren't checked.
+- [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.
+
+## Bugs found and fixed along the way
+
+Kept as a record of pitfalls. The lessons are also written into `.ai/guidelines/`.
+
+- [x] Larastan max errors in starter-kit code (nullable `$request->user()`, `Route::inertia` returning mixed): fixed at the source, no baseline.
+- [x] PHPStan cache was committed (`storage/framework/phpstan`): removed from history before the first push, now git-ignored.
+- [x] Fuzzy matching threshold 0.6 missed "Fredrick" vs "Fredrik" (0.55): lowered to 0.5, and the preview shows every match.
+- [x] Bot heartbeat always "offline": Redis returns numbers as strings. Stored as an ISO string now, with a regression test against real Redis.
+- [x] Bot stayed alive after a fatal gateway close (4004/4014) without reconnecting: traffic-based liveness plus a watchdog that exits so Docker restarts it.
+- [x] Invalid bot token caused a DiscordPHP unhandled-promise trace and a 3-minute wait: token preflight over REST.
+- [x] DiscordPHP logged a libdave voice error on every start: `disableVoiceClient`.
+- [x] `REVERB_HOST=localhost` in dev: server-side broadcasts never reached the Reverb container. Split into server (`REVERB_*`) and browser (`VITE_REVERB_*`) endpoints.
+- [x] Prod image baked `localhost:8080` and the example Reverb key into the frontend: compose build args.
+- [x] First deploy migration race: one-shot `migrate` service.
+- [x] Prod logs invisible: `LOG_CHANNEL=stderr`.
+- [x] No trusted proxies, so http URLs appeared behind TLS: `TRUSTED_PROXIES` (`app.trusted_proxies`).
+- [x] Prod `web` never healthy: the base image's check polls a disabled admin API; `/up` healthcheck now.
+- [x] Servers page counted members with one query per server: `withCount`.
+- [x] PHP turns numeric snowflake array keys into ints, which broke linking mention names: build maps with string IDs (rule in guidelines).
+- [x] The bot REST client retried every failure, including a 403 "DMs closed": retries only 429/5xx/connection errors.
+- [x] Postgres `jsonb` reorders object keys, so a test compared JSON by key order: compare by value.
+- [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
+
+## Upstream reports (other projects)
+
+- [ ] **Rector:** removing a redundant `(int)` cast changed `(int) ((int) $id >> 22) % 6` into `(int) $id >> 22 % 6` (different precedence, wrong result). Worked around in `DiscordUser::avatarUrl()` and pinned by a test. Report to rectorphp/rector.
+- [ ] **laravel-typefinder:** the README documents `vendor:publish --tag=typefinder-skill`, but 8.5.0 ships the skill as a Boost skill (`resources/boost/skills`) and has no such tag.
+- [ ] **laravel-typefinder / Vite plugin:** generating needs a database (schema), which Docker image builds don't have. A built-in way to skip build-time generation when types are committed would help (we use `TYPEFINDER_SKIP_BUILD` with `buildCommand: false`).
+- [ ] **pest-plugin-drift:** `pest --drift` rejected its directory argument in this setup ("only accepts the directory to convert as argument"); the tests were converted by hand.
+- [ ] **DiscordPHP:** an invalid token produces an unhandled promise rejection (`InvalidTokenException`) on the gateway lookup, and the client stays alive after critical close codes.

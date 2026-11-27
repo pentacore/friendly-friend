@@ -70,15 +70,21 @@ final readonly class DraftEditForm
      */
     private function modal(Quote $quote): array
     {
-        $lines = $quote->lines
-            ->map(fn (QuoteLine $line): string => $line->speaker_name.': '.str_replace("\n", ' / ', $line->text))
-            ->implode("\n");
+        $first = $quote->lines->first();
+        $oneSpeaker = $first !== null && $quote->lines->every(fn (QuoteLine $line): bool => $line->speaker_name === $first->speaker_name);
+
+        // Same format as the posted quote: `"text" - Person`, or "Name: text" lines.
+        $lines = $oneSpeaker
+            ? '"'.$quote->lines->map(fn (QuoteLine $line): string => $line->text)->implode("\n").'" - '.$first->speaker_name
+            : $quote->lines
+                ->map(fn (QuoteLine $line): string => $line->speaker_name.': '.str_replace("\n", ' / ', $line->text))
+                ->implode("\n");
 
         return [
             'custom_id' => CustomId::for(CustomId::MODAL, $quote->id),
             'title' => 'Edit quote',
             'components' => [
-                $this->input('lines', 'One line per speaker: "Name: what they said"', 2, $lines, true, 4000),
+                $this->input('lines', '"Quote" - Person, or Name: text lines', 2, $lines, true, 4000),
                 $this->input('context', 'Context (optional)', 1, (string) $quote->context, false, 300),
                 $this->input('when', 'When (e.g. yesterday, 2026-10-31)', 1, $quote->said_at?->toDateString() ?? '', false, 80),
             ],

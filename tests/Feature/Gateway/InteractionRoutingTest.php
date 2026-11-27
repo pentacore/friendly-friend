@@ -39,7 +39,7 @@ it('answers an edit click with the cached form, or says the draft expired', func
     $body = InteractionAck::body(P::button(CustomId::for('edit', $quote->id)));
     expect($body['type'])->toBe(9)
         ->and($body['data']['custom_id'])->toBe(CustomId::for('modal', $quote->id))
-        ->and($body['data']['components'][0]['components'][0]['value'])->toBe('Martin: hi');
+        ->and($body['data']['components'][0]['components'][0]['value'])->toBe('"hi" - Martin');
 
     expect(InteractionAck::body(P::button(CustomId::for('edit', 12345))))->toMatchArray(['type' => 4]);
 });
