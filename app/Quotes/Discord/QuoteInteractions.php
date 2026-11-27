@@ -28,6 +28,7 @@ use App\Quotes\Actions\DraftQuote;
 use App\Quotes\Actions\PublishQuote;
 use App\Quotes\Actions\UpdateDraft;
 use App\Quotes\Data\NormalizedLine;
+use App\Quotes\Data\ResolvedSpeaker;
 use App\Quotes\Data\SourceMessage;
 use App\Quotes\Exceptions\AlreadyQuotedException;
 use App\Quotes\Imports\StartChannelImport;
@@ -235,12 +236,13 @@ final readonly class QuoteInteractions
     }
 
     /**
-     * A random published quote from this server, optionally by one person (a
-     * Discord user ID). Used by `/quote random` and by mentions asking for one.
+     * A random published quote from this server, optionally by one person: a
+     * Discord user ID, or a resolved speaker (a person, or a Discord member
+     * without a person yet). Used by `/quote random` and by mentions asking for one.
      *
      * @return array<string, mixed>
      */
-    public function randomQuote(Guild $guild, ?string $personDiscordId = null): array
+    public function randomQuote(Guild $guild, ?string $personDiscordId = null, ?ResolvedSpeaker $speaker = null): array
     {
         $quote = Quote::query()
             ->whereBelongsTo($guild)
@@ -248,6 +250,12 @@ final readonly class QuoteInteractions
             ->when($personDiscordId, fn (Builder $query, string $discordId) => $query->whereHas(
                 'lines.person.discordUser',
                 fn (Builder $user) => $user->where('discord_id', $discordId),
+            ))
+            ->when($speaker, fn (Builder $query, ResolvedSpeaker $speaker) => $query->whereHas(
+                'lines',
+                fn (Builder $lines) => $speaker->personId !== null
+                    ? $lines->where('person_id', $speaker->personId)
+                    : $lines->whereHas('person', fn (Builder $person) => $person->where('discord_user_id', $speaker->discordUserId)),
             ))
             ->inRandomOrder()
             ->with(['lines', 'submittedBy'])

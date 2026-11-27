@@ -20,6 +20,9 @@ use App\Models\Guild;
 use App\Models\Quote;
 use App\Quotes\Actions\CancelDraft;
 use App\Quotes\Actions\DraftQuote;
+use App\Quotes\Actions\ResolvePerson;
+use App\Quotes\Data\NormalizedLine;
+use App\Quotes\Data\ResolvedSpeaker;
 use App\Quotes\Discord\QuoteInteractions;
 use App\Quotes\Discord\QuoteMessages;
 use App\Quotes\Exceptions\AlreadyQuotedException;
@@ -54,6 +57,7 @@ final class CaptureFromMention implements ShouldQueue
         CancelDraft $cancelDraft,
         DraftEditForm $editForm,
         MentionIntentClassifier $intents,
+        ResolvePerson $resolvePerson,
     ): void {
         $message = $this->message;
         $guild = Guild::query()->enabled()->where('discord_id', $message['guild_id'] ?? '')->first();
@@ -86,7 +90,7 @@ final class CaptureFromMention implements ShouldQueue
             $intent = $intents->intent($text);
 
             if ($intent === MentionIntent::RandomQuote) {
-                $this->postRandomQuote($discord, $interactions, $guild, $member->discordId);
+                $this->postRandomQuote($discord, $interactions, $resolvePerson, $guild, $member->discordId, $text);
 
                 return;
             }
@@ -153,12 +157,19 @@ final class CaptureFromMention implements ShouldQueue
 
     /**
      * Replies in the channel with a random quote, from the first person
-     * mentioned besides the bot if there is one.
+     * mentioned besides the bot, or else a person named after "from"/"by"
+     * ("a quote from Uncle Rolf"). A name nobody matches means anyone.
      */
-    private function postRandomQuote(DiscordClient $discord, QuoteInteractions $interactions, Guild $guild, string $askerId): void
+    private function postRandomQuote(DiscordClient $discord, QuoteInteractions $interactions, ResolvePerson $resolvePerson, Guild $guild, string $askerId, string $text): void
     {
         $personId = array_key_first($this->otherMentionNames());
-        $quote = $interactions->randomQuote($guild, $personId !== null ? (string) $personId : null);
+        $name = $personId === null ? $this->namedPerson($text) : null;
+        $speaker = $name !== null ? $resolvePerson->handle($guild, new NormalizedLine($name, '')) : null;
+        $quote = $interactions->randomQuote(
+            $guild,
+            $personId !== null ? (string) $personId : null,
+            $speaker instanceof ResolvedSpeaker && ! $speaker->isNew() ? $speaker : null,
+        );
         $channelId = $this->message['channel_id'] ?? null;
         $messageId = $this->message['id'] ?? null;
 
@@ -169,6 +180,22 @@ final class CaptureFromMention implements ShouldQueue
         }
 
         $discord->sendMessage($channelId, [...$quote, 'message_reference' => ['message_id' => $messageId]]);
+    }
+
+    /**
+     * The name after "from", "by" or "of" (Swedish "från", "av"), without
+     * trailing politeness and punctuation: "a quote from Bo please" → "Bo".
+     */
+    private function namedPerson(string $text): ?string
+    {
+        if (preg_match('/\b(?:from|by|of|från|av)\s+(.+)$/iu', $text, $match) !== 1) {
+            return null;
+        }
+
+        $name = trim((string) preg_replace('/(?:[\s,]+(?:please|pls|plz|tack|thanks))+$|[\s.!?,]+$/iu', '', $match[1]));
+        $name = trim((string) preg_replace('/[\s.!?,]+$/u', '', $name));
+
+        return $name !== '' && mb_strlen($name) <= 40 ? $name : null;
     }
 
     private function draftFromText(Guild $guild, DiscordUser $submitter, QuoteNormalizer $normalizer, DraftQuote $draftQuote, string $text): Quote

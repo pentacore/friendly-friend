@@ -52,7 +52,6 @@ Considered and skipped for now: **Typesense / Meilisearch** (through Laravel Sco
 
 ## Follow-ups and known gaps
 
-- [ ] Jev on a mention: "a quote from Bo" (a name, not an @mention) gives a random quote from anyone. Resolving the name (e.g. with `ResolvePerson`) would narrow it.
 - [ ] **Playwright system libraries in Sail:** installed into the running container only (`playwright install-deps`). Bake them into the Sail runtime (`sail:publish`, Dockerfile) so a rebuild keeps them.
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `OPENROUTER_API_KEY` turns on Jev (optional).
 - [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.
