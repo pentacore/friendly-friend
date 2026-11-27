@@ -40,7 +40,7 @@ final class QuoteResource extends JsonResource
      *     submitted_by: array{name: string, avatar_url: string},
      *     published_at: string|null,
      *     source_message_url: string|null,
-     *     can: array{update: bool, delete: bool},
+     *     can: array{update: bool, delete: bool, restore: bool},
      * }
      */
     #[Override]
@@ -79,6 +79,7 @@ final class QuoteResource extends JsonResource
             'can' => [
                 'update' => $access instanceof AccessSnapshot && QuoteRules::canUpdate($access, $quote),
                 'delete' => $access instanceof AccessSnapshot && QuoteRules::canDelete($access, $quote),
+                'restore' => $access instanceof AccessSnapshot && QuoteRules::canRestore($access, $quote),
             ],
         ];
     }

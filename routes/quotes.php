@@ -18,6 +18,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::get('quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
     Route::put('quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');
     Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('quotes.destroy');
+    Route::post('quotes/{quote}/restore', [QuoteController::class, 'restore'])->name('quotes.restore');
     Route::post('quotes/{quote}/vote', [QuoteVoteController::class, 'store'])->name('quotes.vote');
 });
 

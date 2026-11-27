@@ -72,6 +72,6 @@ it('presents a quote with its permissions and the user\'s vote', function (): vo
     expect($data['lines'][0])->toBe(['speaker_name' => 'Martin', 'text' => 'hi', 'person' => null])
         ->and($data['score'])->toBe(3)
         ->and($data['my_vote'])->toBe(1)
-        ->and($data['can'])->toBe(['update' => true, 'delete' => false])
+        ->and($data['can'])->toBe(['update' => true, 'delete' => false, 'restore' => false])
         ->and($data['guild']['id'])->toBe($this->mine->id);
 });

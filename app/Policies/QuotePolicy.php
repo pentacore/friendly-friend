@@ -29,6 +29,11 @@ final class QuotePolicy
         return QuoteRules::canDelete($this->access($user), $quote);
     }
 
+    public function restore(User $user, Quote $quote): bool
+    {
+        return QuoteRules::canRestore($this->access($user), $quote);
+    }
+
     public function review(User $user, Quote $quote): bool
     {
         return QuoteRules::canReview($this->access($user), $quote);

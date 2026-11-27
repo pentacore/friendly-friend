@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    ArchiveRestore,
     CalendarDays,
     ChartColumn,
     LayoutGrid,
@@ -29,6 +30,7 @@ import { dashboard, stats, top } from '@/routes';
 import { index as guildsIndex } from '@/routes/admin/guilds';
 import { index as eventsIndex } from '@/routes/events';
 import { index as importsIndex } from '@/routes/admin/imports';
+import { index as removedQuotesIndex } from '@/routes/admin/removed-quotes';
 import { index as peopleIndex } from '@/routes/admin/people';
 import { index as quotesIndex, random as randomQuote } from '@/routes/quotes';
 import { show as thisOrThat } from '@/routes/this-or-that';
@@ -46,6 +48,11 @@ const sections = computed<NavSection[]>(() => {
             ? [
                   { title: 'People', href: peopleIndex(), icon: Users },
                   { title: 'Imports', href: importsIndex(), icon: Inbox },
+                  {
+                      title: 'Removed quotes',
+                      href: removedQuotesIndex(),
+                      icon: ArchiveRestore,
+                  },
               ]
             : []),
         ...(user?.is_owner

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\GuildController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\PeopleController;
+use App\Http\Controllers\Admin\RemovedQuoteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'guild.access', 'can:manage-guilds'])
@@ -21,6 +22,7 @@ Route::middleware(['auth', 'guild.access', 'can:admin'])
     ->group(function (): void {
         Route::get('people', [PeopleController::class, 'index'])->name('people.index');
         Route::get('imports', [ImportController::class, 'index'])->name('imports.index');
+        Route::get('removed-quotes', [RemovedQuoteController::class, 'index'])->name('removed-quotes.index');
         Route::get('imports/{import}', [ImportController::class, 'show'])->name('imports.show');
         Route::post('imports/{import}/approve-all', [ImportController::class, 'approveAll'])->name('imports.approve-all');
         Route::post('imports/{import}/quotes/{quote}/approve', [ImportController::class, 'approve'])->name('imports.approve');

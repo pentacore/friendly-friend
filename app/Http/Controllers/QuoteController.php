@@ -16,6 +16,7 @@ use App\Models\Quote;
 use App\Models\User;
 use App\Quotes\Actions\EditQuote;
 use App\Quotes\Actions\RemoveQuote;
+use App\Quotes\Actions\RestoreQuote;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -105,6 +106,17 @@ final class QuoteController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Quote removed.')]);
 
         return to_route('quotes.index');
+    }
+
+    public function restore(Quote $quote, RestoreQuote $restoreQuote): RedirectResponse
+    {
+        Gate::authorize('restore', $quote);
+
+        $restoreQuote->handle($quote);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Quote restored.')]);
+
+        return to_route('quotes.show', $quote);
     }
 
     public function random(Request $request): RedirectResponse

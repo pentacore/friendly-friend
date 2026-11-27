@@ -20,5 +20,5 @@ export type QuoteResource = {
   submitted_by: { name: string; avatar_url: string };
   published_at: string | null;
   source_message_url: string | null;
-  can: { update: boolean; delete: boolean };
+  can: { update: boolean; delete: boolean; restore: boolean };
 };

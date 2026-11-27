@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Link, router, setLayoutProps } from '@inertiajs/vue3';
-import { ExternalLink, Pencil, Trash2 } from '@lucide/vue';
+import { ArchiveRestore, ExternalLink, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
-import { destroy } from '@/actions/App/Http/Controllers/QuoteController';
+import {
+    destroy,
+    restore,
+} from '@/actions/App/Http/Controllers/QuoteController';
 import QuoteEditForm from '@/components/quotes/QuoteEditForm.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,6 +67,24 @@ const editedAt = new Intl.DateTimeFormat(undefined, {
             class="flex flex-col gap-6"
             :data-test="`quote-${quote.id}`"
         >
+            <div
+                v-if="quote.status === 'removed'"
+                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed p-3 text-sm"
+                data-test="removed-banner"
+            >
+                <span class="text-muted-foreground">
+                    Removed. Only admins of {{ quote.guild.name }} can see it.
+                </span>
+                <Button
+                    v-if="quote.can.restore"
+                    size="sm"
+                    variant="secondary"
+                    @click="router.visit(restore(quote.id))"
+                >
+                    <ArchiveRestore class="size-4" />Restore quote
+                </Button>
+            </div>
+
             <QuoteText :lines="quote.lines" size="lg" />
 
             <p v-if="quote.context" class="text-muted-foreground italic">

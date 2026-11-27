@@ -14,9 +14,25 @@ use App\Models\Quote;
  */
 final class QuoteRules
 {
+    /**
+     * Published quotes of servers you can see; removed ones only for that
+     * server's admins (so they can restore them).
+     */
     public static function canView(AccessSnapshot $access, Quote $quote): bool
     {
-        return $quote->status === QuoteStatus::Published && $access->canSeeGuild($quote->guild_id);
+        return match ($quote->status) {
+            QuoteStatus::Published => $access->canSeeGuild($quote->guild_id),
+            QuoteStatus::Removed => $access->moderates($quote->guild_id),
+            default => false,
+        };
+    }
+
+    /**
+     * Putting a removed quote back (the server's admins).
+     */
+    public static function canRestore(AccessSnapshot $access, Quote $quote): bool
+    {
+        return $quote->status === QuoteStatus::Removed && $access->moderates($quote->guild_id);
     }
 
     /**
@@ -35,7 +51,7 @@ final class QuoteRules
 
     public static function canDelete(AccessSnapshot $access, Quote $quote): bool
     {
-        return $access->moderates($quote->guild_id);
+        return $quote->status !== QuoteStatus::Removed && $access->moderates($quote->guild_id);
     }
 
     /**

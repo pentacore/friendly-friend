@@ -78,7 +78,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Dark-mode browser tests: Pest + Playwright, `composer test:browser`, in CI.
 - [ ] **Playwright system libraries in Sail:** installed into the running container only (`playwright install-deps`). Bake them into the Sail runtime (`sail:publish`, Dockerfile) so a rebuild keeps them.
 - [x] Replace the starter kit's Laravel logo with a Friendly Friend mark (the highlighted quote glyph).
-- [ ] Restore removed quotes (admins): `removed` quotes are kept but there's no undo in the UI yet.
+- [x] Restore removed quotes (admins): Admin → Removed quotes, and a Restore button on the quote page.
 - [x] Favicon, touch icons, web manifest, a Discord avatar and a bot banner, generated from the logo mark (`scripts/render-icons.mjs`).
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
 - [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.

@@ -110,6 +110,8 @@ For when people post a quote as a normal message and forget the bot. On the Serv
 
 ## Editing and removing on the website
 
+Removed quotes stay in the database. That server's admins still see them (with a "Removed" banner on the quote page) and find them all under **Admin → Removed quotes**, where **Restore quote** puts them back with their votes, Elo and history.
+
 - **Edit** (quote page, the submitter or that server's admins): change the lines, context and date. `EditQuote` rewrites the lines, gives every speaker a person (`EnsureLinePeople`, the same as saving in Discord), rebuilds the search text and records a revision, which shows under _Edit history_.
 - **Remove** (that server's admins): `RemoveQuote` sets the status to `removed`. The quote disappears everywhere but isn't deleted, so its source message can't be quoted again by accident.
 

@@ -15,7 +15,7 @@ paths:
 - Speakers are resolved only by `Actions\ResolvePerson` (Discord user, alias, name, server member, `pg_trgm` fuzzy match ≥ 0.5, otherwise a new person). The preview always shows the match.
 - In drafts a line may have no `person_id`. People are created only by `EnsureLinePeople`, when a quote is saved (`ConfirmQuote`) or edited (`EditQuote`), so cancelled drafts never leave stray people.
 - Every capture path is draft, then a private preview, then Save/Edit/Cancel. Drafts expire after 15 minutes (`PruneExpiredDrafts`). Imports and watched channels become `pending_review` for admins (`CaptureChannelMessage`); a watched channel's quotes collect in its standing import (status `watching`, `QuoteImport::WATCHING`), so one review screen covers both.
-- A Discord message can only be quoted once (`source_message_id` is unique). Removing a quote sets `removed`; it isn't deleted.
+- A Discord message can only be quoted once (`source_message_id` is unique). Removing a quote sets `removed`; it isn't deleted, stays visible to that server's admins, and `RestoreQuote` puts it back (`QuoteRules::canRestore`).
 - Every save and edit writes a `quote_revisions` snapshot (`RecordRevision`), and every content change rebuilds `search_text` (`Quote::refreshSearchText`).
 - People are shared across servers, so managing them (aliases, Discord links, merges via `MergePeople`) is behind the general `admin` gate. Aliases are unique case-insensitively, and a Discord account belongs to at most one person.
 - Permissions live in `QuoteRules` (view / update / delete / review), shared by `QuotePolicy` and `QuoteResource`.
