@@ -16,6 +16,7 @@
 ## Commands
 
 - Run **every** PHP, Composer, artisan and npm command through Sail (`vendor/bin/sail …`). Host PHP is 8.3, but the project needs PHP 8.5.
+- Agents: pass `CLAUDECODE=1` into the container so `laravel/pao` (dev) turns Pest, Paratest, PHPStan and Rector output into one JSON line: `vendor/bin/sail bash -c 'CLAUDECODE=1 php artisan test --compact …'` (Sail and `docker exec` don't forward host variables; use `docker exec -e CLAUDECODE=1 …`). Exit codes are the same either way. A script that reads the human `Tests:` line must not set it.
 - After backend changes that affect types (models, enums, requests, resources, Inertia actions, broadcast events): `vendor/bin/sail artisan typefinder:generate`, and commit `resources/js/typefinder/`.
 
 ## Skills for procedures
