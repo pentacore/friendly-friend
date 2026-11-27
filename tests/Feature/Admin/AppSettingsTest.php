@@ -114,3 +114,11 @@ it('expires drafts after the minutes the setting says', function (): void {
     expect(Quote::query()->find($old->id))->toBeNull()
         ->and(Quote::query()->find($fresh->id))->not->toBeNull();
 });
+
+it('tells the top lists page how many rounds a ranked quote needs', function (): void {
+    Setting::query()->create(['key' => AppSetting::TopListMinMatchups->value, 'value' => 5]);
+
+    $this->actingAs(User::factory()->member()->create())->get(route('top'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('quotes/Top')->where('min_matchups', 5));
+});

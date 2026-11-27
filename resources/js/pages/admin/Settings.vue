@@ -5,13 +5,7 @@ import { update } from '@/actions/App/Http/Controllers/Admin/SettingsController'
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -113,17 +107,15 @@ function save(): void {
                 </Card>
             </div>
 
-            <Card>
-                <CardFooter class="justify-end pt-6">
-                    <Button
-                        type="submit"
-                        :disabled="!form.isDirty || form.processing"
-                    >
-                        <Spinner v-if="form.processing" />
-                        Save settings
-                    </Button>
-                </CardFooter>
-            </Card>
+            <div class="flex justify-end">
+                <Button
+                    type="submit"
+                    :disabled="!form.isDirty || form.processing"
+                >
+                    <Spinner v-if="form.processing" />
+                    Save settings
+                </Button>
+            </div>
         </form>
     </div>
 </template>

@@ -14,6 +14,8 @@ The owner chooses first.
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
 - [ ] _Low priority, possibly never:_ Quotes: turn plain-language queries into filters ("Bo's quotes from last summer" → person and date range) with an LLM using structured output. A general model fits this better than Jev. It is the only AI search item with a real per-search cost (a full model call, roughly 300–800 tokens in, and slow), so if built: call it only on submit or from the Discord command, and only when the query reads like a sentence rather than keywords; never send the list of people, let the model return the name as written and resolve it with `ResolvePerson`
 
+- [ ] **Release pipeline** (from media manager): after CI passes on `main`, semantic-release would turn conventional commit subjects into a version, `CHANGELOG.md`, a `vX.Y.Z` tag and a GitHub release, and a second job would push the tagged image to GHCR (built with `VITE_REVERB_*` from repository variables), so the server can `docker compose pull` instead of building. It needs a workflow that commits and tags on `main` with `GITHUB_TOKEN`; an automated session was stopped from writing that without the owner's explicit go-ahead.
+
 ## Brainstorms
 
 A design discussion comes before any plan.

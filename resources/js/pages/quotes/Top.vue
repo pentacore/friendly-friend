@@ -38,7 +38,7 @@ const quoteLists = [
     {
         key: 'elo' as const,
         title: 'This-or-that champions',
-        empty: 'Quotes appear here after three rounds of this or that.',
+        empty: `Quotes appear here after ${props.min_matchups} ${props.min_matchups === 1 ? 'round' : 'rounds'} of this or that.`,
     },
 ];
 </script>

@@ -13,8 +13,17 @@ Steps, in order:
 5. `composer types:check` (Larastan at max level)
 6. `npm run build:ssr` (client and SSR bundles; also generates the Wayfinder routes the type check needs)
 7. `npm run check` (lint and format), `npm run types:check` (vue-tsc)
-8. `php artisan test --parallel` (Pest)
-9. `npx playwright install --with-deps chromium`, start the SSR server (`php artisan inertia:start-ssr`), then `php artisan test --testsuite=Browser`: real-browser checks in light and dark mode, plus a hydration check (server-rendered pages hydrated in a browser with another locale and timezone must not mismatch)
+8. `php artisan test --parallel` (Pest, Unit and Feature)
+
+## `browser` job (3 shards)
+
+The browser suite runs in 3 parallel shards (`php artisan test --testsuite=Browser --shard=i/3`), balanced by the per-class timings in `tests/.pest/shards.json`. Each shard installs the app, builds the client and SSR bundles, installs Chromium (`npx playwright install --with-deps chromium`) and starts the SSR server (`php artisan inertia:start-ssr`). The suite covers:
+
+- the layout gate (`LayoutGateTest`): every page on a phone and a desktop, light and dark, with no JavaScript errors, no sideways overflow, the dark theme applied and every control named
+- page tests in light and dark mode, with screenshots
+- the hydration check: server-rendered pages hydrated in a browser with another locale and timezone must not mismatch
+
+A failed shard uploads its screenshots as the `browser-screenshots-<shard>` artifact. Refresh the timings after adding or renaming a browser test class: `php artisan test --testsuite=Browser --update-shards`.
 
 Run the same checks locally before pushing:
 

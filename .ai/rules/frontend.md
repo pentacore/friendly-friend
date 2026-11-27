@@ -45,6 +45,7 @@ paths:
 ## Checking
 
 - Every page gets a Pest browser test in `tests/Browser`, run in light **and** dark mode: no JavaScript errors, content visible, and a screenshot after `document.fonts.ready`. Run `npm run build` then `composer test:browser`. Look at the screenshots.
+- Every page also goes in the layout gate (`Tests\Support\LayoutGate::PAGES`): it must fit a 375 px phone without sideways scrolling, and every icon-only button or link needs an `aria-label` or `sr-only` text (see `tests.md`).
 
 ## Stats pages
 

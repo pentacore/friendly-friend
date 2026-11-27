@@ -29,6 +29,7 @@ final class TopController extends Controller
         'elo' => QuoteResource::class.'[]',
         'most_quoted' => '{ slug: string; display_name: string; quote_count: number }[]',
         'top_submitters' => '{ name: string; avatar_url: string; quote_count: number }[]',
+        'min_matchups' => 'number',
     ])]
     public function __invoke(Request $request, AppSettings $settings): Response
     {
@@ -44,6 +45,7 @@ final class TopController extends Controller
             'elo' => QuoteResource::collection($visible()->where('matchup_count', '>=', $minMatchups)->orderByDesc('elo')->limit($size)->get()),
             'most_quoted' => $this->mostQuoted($access, $size),
             'top_submitters' => $this->topSubmitters($access, $size),
+            'min_matchups' => $minMatchups,
         ]);
     }
 
