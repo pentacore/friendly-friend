@@ -88,3 +88,43 @@ it('offers the people with visible quotes for the person picker', function (): v
     $this->actingAs($user)->get(route('quotes.index'))
         ->assertInertia(fn ($page) => $page->where('people', [['slug' => 'bo', 'display_name' => 'Bo']]));
 });
+
+it('ignores accents, both ways', function (): void {
+    $hakan = searchable($this->guild, 'Håkan', 'kör hårt');
+    $person = searchable($this->guild, 'H', 'hej', Person::createNamed('Åsa Öberg'));
+
+    expect(found('hakan kor'))->toBe([$hakan->id])
+        ->and(found('HÅKAN'))->toBe([$hakan->id])
+        ->and(found('asa oberg'))->toBe([$person->id]);
+});
+
+it('falls back to close matches only when nothing matches exactly', function (): void {
+    $kanelbulle = searchable($this->guild, 'Bo', 'one more kanelbulle');
+    $coffee = searchable($this->guild, 'Kim', 'just coffee');
+    searchable($this->guild, 'Ann', 'toffee is better');
+    $rolf = searchable($this->guild, 'Rolf', 'back in my day', Person::createNamed('Rolf Andersson'));
+
+    $search = function (string $text): array {
+        $query = Quote::query();
+        $close = Quote::applySearch($query, $text);
+
+        return [$close, $query->orderBy('id')->pluck('id')->all()];
+    };
+
+    expect($search('kanelbule'))->toBe([true, [$kanelbulle->id]])
+        ->and($search('cofee'))->toBe([true, [$coffee->id]])
+        ->and($search('coffee'))->toBe([false, [$coffee->id]])
+        ->and($search('andersen'))->toBe([true, [$rolf->id]])
+        ->and($search('kanelbule -more'))->toBe([true, []])
+        ->and($search('xyzzyx'))->toBe([true, []]);
+});
+
+it('tells the feed when it shows close matches', function (): void {
+    $user = User::factory()->memberOf($this->guild)->create();
+    searchable($this->guild, 'Bo', 'one more kanelbulle');
+
+    $this->actingAs($user)->get(route('quotes.index', ['q' => 'kanelbule']))
+        ->assertInertia(fn ($page) => $page->where('close_matches', true)->has('quotes.data', 1));
+    $this->actingAs($user)->get(route('quotes.index', ['q' => 'kanelbulle']))
+        ->assertInertia(fn ($page) => $page->where('close_matches', false));
+});

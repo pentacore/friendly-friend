@@ -249,4 +249,7 @@ it('searches quotes privately with /quote search, optionally by one person', fun
 
     interact(P::slash('search', [['name' => 'text', 'type' => 3, 'value' => 'zebra']]));
     expect(responseText($this->discord))->toContain('Nothing matches “zebra”');
+
+    interact(P::slash('search', [['name' => 'text', 'type' => 3, 'value' => 'dishwaser']]));
+    expect(responseText($this->discord))->toContain('No exact matches, 1 close one')->toContain('dishwasher');
 });

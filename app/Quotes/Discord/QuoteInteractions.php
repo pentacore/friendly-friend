@@ -269,7 +269,8 @@ final readonly class QuoteInteractions
 
     /**
      * Up to five of this server's quotes matching the text (`Quote::search`),
-     * best match first, each with a link to its page.
+     * best match first, each with a link to its page; close spellings when
+     * nothing matches exactly.
      *
      * @return array<string, mixed>
      */
@@ -278,16 +279,16 @@ final readonly class QuoteInteractions
         $matches = Quote::query()
             ->whereBelongsTo($guild)
             ->where('status', QuoteStatus::Published)
-            ->search($text)
             ->when($personDiscordId, fn (Builder $query, string $discordId) => $query->whereHas(
                 'lines.person.discordUser',
                 fn (Builder $user) => $user->where('discord_id', $discordId),
             ));
+        $closeMatches = Quote::applySearch($matches, $text);
 
         $total = $matches->clone()->count();
         $quotes = $matches->orderByRelevance($text)->orderByDesc('published_at')->with('lines')->limit(QuoteMessages::SEARCH_RESULTS)->get();
 
-        return QuoteMessages::searchResults($text, $quotes, $total);
+        return QuoteMessages::searchResults($text, $quotes, $total, $closeMatches);
     }
 
     /**

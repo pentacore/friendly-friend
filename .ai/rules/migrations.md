@@ -24,3 +24,7 @@ Declare a foreign key as `foreignId('x_id')->constrained()` (name the table when
 ## A real down()
 
 Write `down()` as the true inverse of `up()`, data migrations included: drop indexes and foreign keys before their columns, and put back earlier column definitions instead of leaving a migration one-way.
+
+## SQL functions and extensions survive migrate:fresh
+
+`migrate:fresh` (and `RefreshDatabase` in tests) drops tables, not functions or extensions, so the next run fails on `CREATE FUNCTION`. Create them with `CREATE OR REPLACE FUNCTION` and `CREATE EXTENSION IF NOT EXISTS`, and drop them with `IF EXISTS` in `down()`.

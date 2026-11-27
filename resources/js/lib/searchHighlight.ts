@@ -1,9 +1,15 @@
 /**
  * Highlighting search matches the way `Quote::search()` finds them: each
- * word of the search (not the `-excluded` ones) matches words starting with it.
+ * word of the search (not the `-excluded` ones) matches words starting with
+ * it, ignoring case and accents. Close matches (typos) aren't highlighted.
  */
 
-/** The search's words, lowercased, as the server splits them. */
+/** Lowercase without accents: "Håkan" → "hakan", like the server's `f_unaccent`. */
+function fold(text: string): string {
+    return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase();
+}
+
+/** The search's words, folded, as the server splits them. */
 export function searchWords(query: string): string[] {
     return query
         .trim()
@@ -11,7 +17,7 @@ export function searchWords(query: string): string[] {
         .filter((word) => word !== '' && !word.startsWith('-'))
         .flatMap((word) => word.split(/[^\p{L}\p{N}]+/u))
         .filter((part) => part !== '')
-        .map((part) => part.toLocaleLowerCase());
+        .map(fold);
 }
 
 /** Text split into parts, with the words a search matched flagged. */
@@ -27,7 +33,7 @@ export function highlightParts(
     let last = 0;
 
     for (const found of text.matchAll(/[\p{L}\p{N}]+/gu)) {
-        const word = found[0].toLocaleLowerCase();
+        const word = fold(found[0]);
 
         if (!words.some((prefix) => word.startsWith(prefix))) {
             continue;

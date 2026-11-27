@@ -59,6 +59,9 @@ class Quote extends Model
     /** @use HasFactory<QuoteFactory> */
     use HasFactory;
 
+    /** Shorter words only match exactly: a typo in "bo" or "fix" finds too much. */
+    public const int CLOSE_MATCH_LENGTH = 4;
+
     /**
      * @return BelongsTo<Guild, $this>
      */
@@ -115,44 +118,71 @@ class Quote extends Model
 
     /**
      * The shared quote search (feed, person pages, Discord). Every word must
-     * match, as a prefix so it works while typing; `-word` leaves quotes with
-     * it out. A word matches the quote's text (`search_vector`: speakers as
-     * written, lines, context) or the current name or a nickname of a person
-     * on one of its lines. Blank or symbol-only text matches everything.
+     * match, as a prefix so it works while typing, ignoring case and accents;
+     * `-word` leaves quotes with it out. A word matches the quote's text
+     * (`search_vector`: speakers as written, lines, context) or the current
+     * name or a nickname of a person on one of its lines. With
+     * `$closeMatches`, a word of at least {@see self::CLOSE_MATCH_LENGTH}
+     * letters also matches a close spelling (trigram `word_similarity`), for
+     * typos; {@see self::applySearch()} turns that on only when nothing
+     * matches exactly. Blank or symbol-only text matches everything.
      *
      * @param  Builder<self>  $query
      */
     #[Scope]
-    protected function search(Builder $query, string $text): void
+    protected function search(Builder $query, string $text, bool $closeMatches = false): void
     {
         ['include' => $include, 'exclude' => $exclude] = self::searchTerms($text);
 
         foreach ($include as $term) {
+            $word = substr($term, 0, -2);
+            $close = $closeMatches && mb_strlen($word) >= self::CLOSE_MATCH_LENGTH;
+
             $query->where(fn (Builder $matches) => $matches
-                ->whereRaw("quotes.search_vector @@ to_tsquery('simple', ?)", [$term])
+                ->whereRaw("quotes.search_vector @@ to_tsquery('simple', f_unaccent(?))", [$term])
+                ->when($close, fn (Builder $typos) => $typos->orWhereRaw('f_unaccent(?) <% f_unaccent(lower(quotes.search_text))', [$word]))
                 ->orWhereExists(fn (QueryBuilder $people) => $people
                     ->selectRaw('1')
                     ->from('quote_lines')
                     ->join('people', 'people.id', '=', 'quote_lines.person_id')
                     ->whereColumn('quote_lines.quote_id', 'quotes.id')
                     ->where(fn (QueryBuilder $names) => $names
-                        ->whereRaw("to_tsvector('simple', people.display_name) @@ to_tsquery('simple', ?)", [$term])
+                        ->whereRaw("to_tsvector('simple', f_unaccent(people.display_name)) @@ to_tsquery('simple', f_unaccent(?))", [$term])
+                        ->when($close, fn (QueryBuilder $typos) => $typos->orWhereRaw('f_unaccent(?) <% f_unaccent(lower(people.display_name))', [$word]))
                         ->orWhereExists(fn (QueryBuilder $aliases) => $aliases
                             ->selectRaw('1')
                             ->from('person_aliases')
                             ->whereColumn('person_aliases.person_id', 'people.id')
-                            ->whereRaw("to_tsvector('simple', person_aliases.alias) @@ to_tsquery('simple', ?)", [$term])))));
+                            ->where(fn (QueryBuilder $alias) => $alias
+                                ->whereRaw("to_tsvector('simple', f_unaccent(person_aliases.alias)) @@ to_tsquery('simple', f_unaccent(?))", [$term])
+                                ->when($close, fn (QueryBuilder $typos) => $typos->orWhereRaw('f_unaccent(?) <% f_unaccent(lower(person_aliases.alias))', [$word])))))));
         }
 
         foreach ($exclude as $term) {
-            $query->whereRaw("not (quotes.search_vector @@ to_tsquery('simple', ?))", [$term]);
+            $query->whereRaw("not (quotes.search_vector @@ to_tsquery('simple', f_unaccent(?)))", [$term]);
         }
     }
 
     /**
+     * Searches the query, falling back to close matches (typos) when no quote
+     * in it matches exactly, so close spellings never crowd out exact hits.
+     * Returns whether it fell back.
+     *
+     * @param  Builder<self>  $query
+     */
+    public static function applySearch(Builder $query, string $text): bool
+    {
+        $closeMatches = self::searchTerms($text)['include'] !== [] && ! $query->clone()->search($text)->exists();
+        $query->search($text, $closeMatches);
+
+        return $closeMatches;
+    }
+
+    /**
      * Best match first: quotes whose text has more of the words, more often
-     * (`ts_rank`). Words matched only through a person's name rank zero here
-     * but still pass the `search` scope.
+     * (`ts_rank`), then the closest spelling (for close matches). Words
+     * matched only through a person's name rank zero here but still pass
+     * the `search` scope.
      *
      * @param  Builder<self>  $query
      */
@@ -162,7 +192,8 @@ class Quote extends Model
         $include = self::searchTerms($text)['include'];
 
         if ($include !== []) {
-            $query->orderByRaw("ts_rank(quotes.search_vector, to_tsquery('simple', ?)) desc", [implode(' | ', $include)]);
+            $query->orderByRaw("ts_rank(quotes.search_vector, to_tsquery('simple', f_unaccent(?))) desc", [implode(' | ', $include)])
+                ->orderByRaw('word_similarity(f_unaccent(?), f_unaccent(lower(quotes.search_text))) desc', [implode(' ', array_map(fn (string $term): string => substr($term, 0, -2), $include))]);
         }
     }
 

@@ -47,7 +47,7 @@ function applyFilters(): void {
             replace: true,
             // `reset` alone turns the visit into a partial reload of just
             // `quotes`, which would leave the filters (and highlights) stale.
-            only: ['quotes', 'filters', 'person', 'people'],
+            only: ['quotes', 'filters', 'person', 'people', 'close_matches'],
             reset: ['quotes'],
         },
     );
@@ -136,6 +136,13 @@ const field =
                 <X class="size-3.5" />
                 Show everyone's quotes
             </Link>
+        </p>
+
+        <p
+            v-if="close_matches && quotes.data.length > 0"
+            class="-mt-2 text-sm text-muted-foreground"
+        >
+            Nothing matches “{{ filters.q }}” exactly. These are close.
         </p>
 
         <InfiniteScroll

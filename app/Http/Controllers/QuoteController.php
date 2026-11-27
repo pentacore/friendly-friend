@@ -41,6 +41,7 @@ final class QuoteController extends Controller
         'people' => '{ slug: string; display_name: string }[]',
         'guilds' => '{ id: number; name: string }[]',
         'person' => '{ slug: string; display_name: string } | null',
+        'close_matches' => 'boolean',
     ])]
     public function index(QuoteIndexRequest $request): Response
     {
@@ -50,10 +51,12 @@ final class QuoteController extends Controller
         $guildId = $request->integer('guild') ?: null;
         $person = $request->filled('person') ? Person::query()->where('slug', $request->string('person')->value())->first() : null;
 
-        $quotes = Quote::query()->visibleTo($access)->with(self::cardRelations($access))
+        $matches = Quote::query()->visibleTo($access)->with(self::cardRelations($access))
             ->when($guildId !== null, fn (Builder $query) => $query->where('guild_id', $guildId))
-            ->when($person !== null, fn (Builder $query) => $query->whereHas('lines', fn (Builder $lines) => $lines->where('person_id', $person?->id)))
-            ->search($search)
+            ->when($person !== null, fn (Builder $query) => $query->whereHas('lines', fn (Builder $lines) => $lines->where('person_id', $person?->id)));
+        $closeMatches = Quote::applySearch($matches, $search);
+
+        $quotes = $matches
             ->when($sort === 'best', fn (Builder $query) => $query->orderByRelevance($search))
             ->when($sort === 'top', fn (Builder $query) => $query->orderByDesc('score'))
             ->orderByDesc('published_at')
@@ -64,6 +67,7 @@ final class QuoteController extends Controller
         return Inertia::render('quotes/Index', [
             'quotes' => Inertia::scroll(QuoteResource::collection($quotes)),
             'filters' => ['q' => $search, 'guild' => $guildId, 'person' => $person?->slug, 'sort' => $sort],
+            'close_matches' => $closeMatches,
             'people' => Person::query()
                 ->whereHas('quoteLines.quote', fn (Builder $quotes) => $quotes->visibleTo($access))
                 ->orderBy('display_name')
