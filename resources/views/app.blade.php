@@ -39,6 +39,19 @@
 
         @fonts
 
+        @php
+            $reverbApp = config('reverb.apps.apps.0', []);
+            $reverbOptions = $reverbApp['options'] ?? [];
+            $appUrlHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        @endphp
+        {{-- Where browsers reach Reverb, read by app.ts at runtime (config/reverb.php "browser"). --}}
+        <meta name="reverb-config" content="{{ json_encode([
+            'key' => $reverbApp['key'] ?? null,
+            'host' => config('reverb.browser.host') ?? ($appUrlHost ?: ($reverbOptions['host'] ?? null)),
+            'port' => (int) (config('reverb.browser.port') ?? $reverbOptions['port'] ?? 443),
+            'scheme' => config('reverb.browser.scheme') ?? $reverbOptions['scheme'] ?? 'https',
+        ]) }}">
+
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>

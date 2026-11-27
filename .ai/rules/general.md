@@ -61,7 +61,7 @@ Work that runs alongside other work gets its own git worktree and its own test d
 - Postgres `jsonb` reorders object keys. Never rely on key order, and compare stored JSON with `toEqual`.
 - The Redis cache returns numbers as strings. Store strings (ISO dates) and parse them on read.
 - `env()` is only allowed in `config/*.php`, because config is cached in production. Read `config()` everywhere else.
-- Reverb has two endpoints: `REVERB_*` (where the app publishes: `reverb:8080` inside Docker, never `localhost`) and `VITE_REVERB_*` (where browsers connect, compiled in at build time).
+- Reverb has two endpoints: `REVERB_*` (where the app publishes: `reverb:8080` inside Docker, never `localhost`) and `REVERB_BROWSER_*` (where browsers connect: rendered into `<meta name="reverb-config">` at runtime and read by `app.ts`, so the released image fits every deploy). Never compile a site-specific value into the frontend with `VITE_*`.
 - The bot and Horizon are long-running processes. Restart them after code changes (`vendor/bin/sail restart bot horizon`).
 - Parallel tests ran Postgres out of lock slots (`out of shared memory`) once the schema grew. Sail's `pgsql` runs with `max_locks_per_transaction=256` (`compose.yaml`). Recreate the container after pulling (`vendor/bin/sail up -d pgsql`).
 - Rector's local cache only re-checks changed files, so a return type changed in one class can leave a needed fix in an unchanged caller unseen until CI (which has no cache). After changing a signature, run `vendor/bin/sail bin rector process --dry-run --clear-cache`.

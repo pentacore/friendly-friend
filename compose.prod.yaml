@@ -1,20 +1,12 @@
 # Production stack for the home server. See docs/deployment.md.
-#   docker compose -f compose.prod.yaml up -d --build
+#   docker compose -f compose.prod.yaml pull && docker compose -f compose.prod.yaml up -d
 
 # Shared by every app container (same image, different command).
 x-base: &base
-    # A released image from GHCR (FF_IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3, then `pull`),
-    # or the local build below when FF_IMAGE is unset.
-    image: '${FF_IMAGE:-friendly-friend:latest}'
-    build:
-        context: .
-        # Compiled into the frontend: the public WebSocket endpoint browsers use.
-        args:
-            VITE_APP_NAME: '${APP_NAME:-Friendly Friend}'
-            VITE_REVERB_APP_KEY: '${REVERB_APP_KEY:?set REVERB_APP_KEY in .env}'
-            VITE_REVERB_HOST: '${VITE_REVERB_HOST:?set VITE_REVERB_HOST (public host) in .env}'
-            VITE_REVERB_PORT: '${VITE_REVERB_PORT:-443}'
-            VITE_REVERB_SCHEME: '${VITE_REVERB_SCHEME:-https}'
+    # The image CI releases to GHCR (.github/workflows/release.yml). Pin a version
+    # with IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3, or use a local build
+    # (docker build --target app -t friendly-friend:local . && IMAGE=friendly-friend:local).
+    image: '${IMAGE:-ghcr.io/pentacore/friendly-friend:latest}'
     env_file: .env
     environment:
         # Logs go to `docker compose logs`, not to a file inside the container.

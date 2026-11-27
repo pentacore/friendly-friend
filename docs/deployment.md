@@ -1,6 +1,6 @@
 # Deployment (home server, Docker Compose)
 
-One image (`Dockerfile`, FrankenPHP on PHP 8.5) runs every app service with a different command. Stack: `compose.prod.yaml`.
+One image (`Dockerfile`, FrankenPHP on PHP 8.5) runs every app service with a different command. CI builds it for every release and pushes it to `ghcr.io/pentacore/friendly-friend` ([ci.md](ci.md#releases-releaseyml)); the server pulls it. Nothing site-specific is compiled in, so the same image fits any deploy: everything comes from `.env` at runtime. Stack: `compose.prod.yaml`.
 
 | Service     | Command                       | Notes                                                                                                                                                                                                             |
 | ----------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -52,19 +52,19 @@ REVERB_APP_SECRET=<random>
 REVERB_HOST=reverb
 REVERB_PORT=8080
 REVERB_SCHEME=http
-# 2) where BROWSERS connect (public; compiled into the frontend at build time)
-VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
-VITE_REVERB_HOST=ws.quotes.example.com
-VITE_REVERB_PORT=443
-VITE_REVERB_SCHEME=https
+# 2) where BROWSERS connect (public; rendered into each page at runtime)
+REVERB_BROWSER_HOST=ws.quotes.example.com   # unset: APP_URL's host
+REVERB_BROWSER_PORT=443
+REVERB_BROWSER_SCHEME=https
 
 # Discord + AI keys: see docs/discord-app.md (DISCORD_REDIRECT_URI must use https://quotes.example.com)
 ```
 
-`compose.prod.yaml` passes `APP_NAME`, `REVERB_APP_KEY` and the `VITE_REVERB_*` values to the image build. The build stops with an error if `REVERB_APP_KEY` or `VITE_REVERB_HOST` is missing. **Rebuild after changing them** (`--build`), because they're compiled into the JavaScript.
+Each page carries the browser endpoint in `<meta name="reverb-config">` (from `config/reverb.php` → `browser`, with `REVERB_APP_KEY`), so changing it only needs a restart, not a new image. The old `VITE_REVERB_HOST/PORT/SCHEME` names still work as a fallback.
 
 ```bash
-docker compose -f compose.prod.yaml up -d --build
+docker compose -f compose.prod.yaml pull
+docker compose -f compose.prod.yaml up -d
 docker compose -f compose.prod.yaml ps          # migrate: Exited (0); web: healthy
 curl -fsS http://localhost/up
 ```
@@ -73,23 +73,13 @@ Then log in as an owner (`DISCORD_OWNER_IDS`) and enable your servers on `/admin
 
 ## Updating
 
-Either pull a released image (built by CI for each version, see [ci.md](ci.md#releases-releaseyml)):
-
 ```bash
 git pull                                   # compose file and .env.example changes
-export FF_IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3   # or :latest; set it in your shell profile or a wrapper script
-docker compose -f compose.prod.yaml pull
+docker compose -f compose.prod.yaml pull   # the newest release (:latest)
 docker compose -f compose.prod.yaml up -d
 ```
 
-or build on the server, as on the first deploy:
-
-```bash
-git pull
-docker compose -f compose.prod.yaml up -d --build
-```
-
-A released image has the `VITE_REVERB_*` values from the repository variables compiled in, so they must match this server's `.env`. Build locally when they differ.
+To pin or roll back to a version, set `IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3` (in the shell, or next to `compose.prod.yaml` in a `.env` that compose reads) before `pull`. To run code that isn't released, build it on the server: `docker build --target app -t friendly-friend:local .`, then `IMAGE=friendly-friend:local docker compose -f compose.prod.yaml up -d`.
 
 `migrate` runs again first. The other services are recreated on the new image once it succeeds. If a migration fails, the app services keep running the old containers. Check `docker compose -f compose.prod.yaml logs migrate`.
 
@@ -111,16 +101,16 @@ Restore: `gunzip -c backups/db-YYYY-MM-DD.sql.gz | docker compose -f compose.pro
 
 ## Troubleshooting
 
-| Symptom                                                     | Cause                                                                                                                                                                                                    |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site redirects to `http://` or login loops behind the proxy | `TRUSTED_PROXIES` not set (and `SESSION_SECURE_COOKIE=true` with https)                                                                                                                                  |
-| Live updates (votes, new quotes) don't arrive               | Browser endpoint: `VITE_REVERB_*` wrong, or the image wasn't rebuilt after changing them. Check the browser console. Server endpoint: `REVERB_HOST` must be `reverb` inside Docker, not the public host. |
-| App services stay "Created"                                 | `migrate` failed: `docker compose -f compose.prod.yaml logs migrate`                                                                                                                                     |
-| Bot keeps restarting                                        | `docker compose -f compose.prod.yaml logs bot`: "rejected DISCORD_BOT_TOKEN", or "never finished connecting" (privileged intents off)                                                                    |
+| Symptom                                                     | Cause                                                                                                                                                                                                     |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site redirects to `http://` or login loops behind the proxy | `TRUSTED_PROXIES` not set (and `SESSION_SECURE_COOKIE=true` with https)                                                                                                                                   |
+| Live updates (votes, new quotes) don't arrive               | Browser endpoint: `REVERB_BROWSER_*` wrong (view the page source for `reverb-config`, and check the browser console). Server endpoint: `REVERB_HOST` must be `reverb` inside Docker, not the public host. |
+| App services stay "Created"                                 | `migrate` failed: `docker compose -f compose.prod.yaml logs migrate`                                                                                                                                      |
+| Bot keeps restarting                                        | `docker compose -f compose.prod.yaml logs bot`: "rejected DISCORD_BOT_TOKEN", or "never finished connecting" (privileged intents off)                                                                     |
 
 ## Smoke-testing the stack locally
 
-Run it next to Sail on other ports. Use a throwaway `.env` with `APP_ENV=production`, `DB_HOST=postgres`, `REDIS_HOST=redis`, `VITE_REVERB_HOST=<anything>`, `WEB_PORT=8088` and `REVERB_PUBLIC_PORT=8089`, then run `docker compose -p fftest -f compose.prod.yaml up -d --build`. To check proxy handling, look at the raw `Location` header of `GET /dashboard` sent with `X-Forwarded-Proto: https`.
+Run it next to Sail on other ports. Use a throwaway `.env` with `APP_ENV=production`, `DB_HOST=postgres`, `REDIS_HOST=redis`, `WEB_PORT=8088` and `REVERB_PUBLIC_PORT=8089`, build the image (`docker build --target app -t friendly-friend:local .`), then run `IMAGE=friendly-friend:local docker compose -p fftest -f compose.prod.yaml up -d`. To check proxy handling, look at the raw `Location` header of `GET /dashboard` sent with `X-Forwarded-Proto: https`.
 
 ## Server-side rendering
 

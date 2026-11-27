@@ -47,7 +47,7 @@ After `ci` passes on a push to `main`, the `release` workflow runs semantic-rele
 
 It writes `CHANGELOG.md`, commits it as `chore(release): X.Y.Z` on `main`, tags `vX.Y.Z` and publishes a GitHub release. The `image` job in the same workflow then builds that tag and pushes `ghcr.io/pentacore/friendly-friend` as `X.Y.Z`, `X.Y` and `latest`. (A tag pushed with `GITHUB_TOKEN` never triggers another workflow, so both jobs share one.)
 
-The frontend compiles in where browsers reach Reverb, so the image is built for this one site. Set these **repository variables** (Settings → Secrets and variables → Actions → Variables): `VITE_REVERB_HOST` and `REVERB_APP_KEY` (required), plus `VITE_REVERB_PORT`, `VITE_REVERB_SCHEME` and `APP_NAME` when they differ from 443, https and "Friendly Friend". Without the two required ones, the image job fails with an error naming them, and the release itself still happens.
+The image is the same for every deploy: browsers read where Reverb is from the page at runtime, so nothing site-specific is compiled in and no build settings are needed. A package that Actions creates for a public repository is linked to it; if the server can't pull it, make the package public under the repository's Packages, or `docker login ghcr.io` on the server.
 
 semantic-release 26 needs Node 26.13 or newer, newer than the app's Node, so the job runs it pinned through `npx` rather than from `package.json`.
 
