@@ -6,3 +6,4 @@
 
 export type { GuildResource } from './GuildResource';
 export type { QuoteResource } from './QuoteResource';
+export type { QuoteRevisionResource } from './QuoteRevisionResource';

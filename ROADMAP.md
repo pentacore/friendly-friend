@@ -54,7 +54,9 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ## Follow-ups and known gaps
 
-- [ ] **Dark mode browser tests:** the rule exists (`.ai/guidelines/workflow.md`), but Pest browser tests aren't set up in Sail/CI yet (Playwright). Add them with the first Phase 5 pages.
+- [x] Dark-mode browser tests: Pest + Playwright, `composer test:browser`, in CI.
+- [ ] **Playwright system libraries in Sail:** installed into the running container only (`playwright install-deps`). Bake them into the Sail runtime (`sail:publish`, Dockerfile) so a rebuild keeps them.
+- [ ] Replace the starter kit's Laravel logo in the sidebar with a Friendly Friend mark (the highlighted quote glyph).
 - [ ] **AI keys not set** in the dev `.env`. Quotes are parsed without AI until `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` is set. `TYPESAFE_API_KEY` (Jev) is optional and waitlisted.
 - [ ] **Bot can't see most channels** on "Claesson Notify" (Discord masks them as `___hidden___`). Give the bot View Channel / Read Message History where quotes, imports and stats should work.
 - [ ] `GuildAccess` loads the user's memberships several times per request (middleware, `isAdmin`, `isOwner` in shared props). Memoize per request.
@@ -86,6 +88,8 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/guidelines/
 - [x] PHP turns numeric snowflake array keys into ints, which broke linking mention names: build maps with string IDs (rule in guidelines).
 - [x] The bot REST client retried every failure, including a 403 "DMs closed": retries only 429/5xx/connection errors.
 - [x] Postgres `jsonb` reorders object keys, so a test compared JSON by key order: compare by value.
+- [x] **Vue silently compiled pages with no props:** `defineProps<PageProps['x']>()` reads Typefinder's .d.ts through Vue's type cache, which the dev server never invalidates. Login error messages and new pages lost their props until a restart. Fixed with a Vite plugin that invalidates the cache on Typefinder output, plus browser tests to catch it.
+- [x] Highlighter swipe hidden behind the card background (negative z-index without its own stacking context): `isolate`.
 - [x] Mid-refactor login hit a deleted class; reloading the callback re-sent a used OAuth code (`invalid_grant`). Not a code bug; documented in `docs/auth.md`.
 
 ## Upstream reports (other projects)
@@ -93,5 +97,7 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/guidelines/
 - [ ] **Rector:** removing a redundant `(int)` cast changed `(int) ((int) $id >> 22) % 6` into `(int) $id >> 22 % 6` (different precedence, wrong result). Worked around in `DiscordUser::avatarUrl()` and pinned by a test. Report to rectorphp/rector.
 - [ ] **laravel-typefinder:** the README documents `vendor:publish --tag=typefinder-skill`, but 8.5.0 ships the skill as a Boost skill (`resources/boost/skills`) and has no such tag.
 - [ ] **laravel-typefinder / Vite plugin:** generating needs a database (schema), which Docker image builds don't have. A built-in way to skip build-time generation when types are committed would help (we use `TYPEFINDER_SKIP_BUILD` with `buildCommand: false`).
+- [ ] **laravel-typefinder:** page prop types are emitted verbatim, so a PHPDoc shape like `array{id: int}` produced invalid TypeScript without a warning, even with `--strict`. Validate or convert prop types.
+- [ ] **@pentacore/vite-plugin-laravel-typefinder:** after regenerating `.d.ts` files during `vite dev`, Vue's SFC type cache keeps the old types (`defineProps<PageProps['x']>()` then compiles to no props). The plugin could call `invalidateTypeCache()` from `vue/compiler-sfc` for written files, as our local plugin does.
 - [ ] **pest-plugin-drift:** `pest --drift` rejected its directory argument in this setup ("only accepts the directory to convert as argument"); the tests were converted by hand.
 - [ ] **DiscordPHP:** an invalid token produces an unhandled promise rejection (`InvalidTokenException`) on the gateway lookup, and the client stays alive after critical close codes.

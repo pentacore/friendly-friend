@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $editor_discord_user_id
  * @property array{lines: list<array{speaker: string, person_id: int|null, text: string}>, context: string|null, said_at: string|null} $snapshot
  * @property Carbon|null $created_at
+ * @property-read DiscordUser $editor
  */
 #[Fillable(['quote_id', 'editor_discord_user_id', 'snapshot'])]
 class QuoteRevision extends Model
@@ -29,6 +30,14 @@ class QuoteRevision extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    /**
+     * @return BelongsTo<DiscordUser, $this>
+     */
+    public function editor(): BelongsTo
+    {
+        return $this->belongsTo(DiscordUser::class, 'editor_discord_user_id');
     }
 
     /**

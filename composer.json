@@ -105,6 +105,10 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "test:browser": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Browser"
         ]
     },
     "extra": {

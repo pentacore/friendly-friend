@@ -4,6 +4,7 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+import type { DiscordUser } from './DiscordUser';
 import type { Quote } from './Quote';
 
 export type QuoteRevision = {
@@ -13,6 +14,7 @@ export type QuoteRevision = {
   snapshot: { lines: { speaker: string; person_id: number | null; text: string }[]; context: string | null; said_at: string | null };
   created_at: string;
   quote?: Quote | null;
+  editor?: DiscordUser | null;
 };
 
 export type QuoteRevisionCreate = {

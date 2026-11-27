@@ -38,3 +38,4 @@ yarn-error.log
 /opencode.jsonc
 /storage/framework/phpstan
 /.claude/settings.local.json
+/tests/Browser/Screenshots

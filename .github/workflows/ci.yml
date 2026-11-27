@@ -97,6 +97,12 @@ jobs:
       - name: Tests (Pest)
         run: php artisan test --parallel
 
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (light + dark, Pest + Playwright)
+        run: php artisan test --testsuite=Browser
+
   image:
     runs-on: ubuntu-latest
     steps:

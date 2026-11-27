@@ -6,6 +6,36 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
+import type { Plugin } from 'vite-plus';
+import { invalidateTypeCache } from 'vue/compiler-sfc';
+
+/**
+ * Vue resolves `defineProps<PageProps['x']>()` from Typefinder's .d.ts files
+ * and caches them, but those files aren't part of Vite's module graph, so a
+ * regenerated type never invalidates the cache: new or changed page props
+ * then compile to *no props at all*, silently, until the dev server restarts.
+ * Clear the cache and reload whenever Typefinder writes its output.
+ */
+function refreshVueTypesOnTypefinderChange(): Plugin {
+    return {
+        name: 'refresh-vue-types-on-typefinder-change',
+        apply: 'serve',
+        configureServer(server) {
+            const onChange = (file: string): void => {
+                if (!file.includes('/resources/js/typefinder/')) {
+                    return;
+                }
+
+                invalidateTypeCache(file);
+                server.moduleGraph.invalidateAll();
+                server.ws.send({ type: 'full-reload' });
+            };
+
+            server.watcher.on('change', onChange);
+            server.watcher.on('add', onChange);
+        },
+    };
+}
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
@@ -15,6 +45,9 @@ export default defineConfig({
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                }),
+                bunny('Bricolage Grotesque', {
+                    weights: [500, 700],
                 }),
             ],
         }),
@@ -36,6 +69,7 @@ export default defineConfig({
         typefinder(
             process.env.TYPEFINDER_SKIP_BUILD ? { buildCommand: false } : {},
         ),
+        refreshVueTypesOnTypefinderChange(),
     ]),
     server: {
         watch: {

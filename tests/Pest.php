@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 /*
@@ -19,6 +20,12 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// Browser tests render the built assets (npm run build), never a running
+// dev server, so they behave the same locally and in CI.
+pest()->beforeEach(function (): void {
+    Vite::useHotFile(storage_path('framework/testing/no-vite-hot-file'));
+})->in('Browser');
 
 /*
 |--------------------------------------------------------------------------

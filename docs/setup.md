@@ -59,3 +59,25 @@ Auto-fix: `vendor/bin/sail composer lint` (Rector and Pint), `vendor/bin/sail np
 ## Discord
 
 See [discord-app.md](discord-app.md) for creating the Discord application and bot. It's needed from Phase 2 on.
+
+## Browser tests (light and dark mode)
+
+Pages are rendered in a real browser (Pest browser plugin with Playwright), in light and dark mode. They're not part of `composer test`, so run them separately:
+
+```bash
+vendor/bin/sail npm run build            # browser tests always use the built assets
+vendor/bin/sail composer test:browser
+```
+
+One-time setup inside Sail (the system libraries are lost when the container is rebuilt; see ROADMAP):
+
+```bash
+docker compose exec -u root laravel.test npx playwright install-deps chromium
+vendor/bin/sail npx playwright install chromium
+```
+
+Screenshots are written to `tests/Browser/Screenshots/` (git-ignored) for visual review.
+
+## Dev server and Typefinder
+
+`vite.config.ts` has a small plugin that clears Vue's type cache whenever Typefinder regenerates `resources/js/typefinder/`. Without it, pages whose props changed would silently compile with **no props** until the dev server restarts. After pulling this change, restart `npm run dev` once.

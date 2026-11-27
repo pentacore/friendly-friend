@@ -5,7 +5,8 @@
 // ───────────────────────────────────────────────────────────────────────
 
 import type { AccessDeniedReason } from './enums';
-import type { GuildResource } from './resources';
+import type { GuildResource, QuoteResource, QuoteRevisionResource } from './resources';
+import type { SimplePaginatedResourceCollection } from './helpers';
 
 export type SharedPageProps = {
   errors: Record<string, string>;
@@ -17,6 +18,9 @@ export type SharedPageProps = {
 export type PageProps = {
   'admin/Guilds': { guilds: GuildResource[] };
   'auth/Login': { error: AccessDeniedReason | null };
+  'people/Show': { person: { id: number; slug: string; display_name: string; aliases: string[]; avatar_url: string | null; quote_count: number }; quotes: SimplePaginatedResourceCollection<QuoteResource> };
+  'quotes/Index': { quotes: SimplePaginatedResourceCollection<QuoteResource>; filters: { q: string; guild: number | null; person: string | null }; guilds: { id: number; name: string }[]; person: { slug: string; display_name: string } | null };
+  'quotes/Show': { quote: QuoteResource; revisions: QuoteRevisionResource[] };
 };
 
 export type PageName = keyof PageProps;

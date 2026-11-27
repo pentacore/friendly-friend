@@ -14,6 +14,7 @@ Steps, in order:
 6. `npm run build` (also generates the Wayfinder routes the type check needs)
 7. `npm run check` (lint and format), `npm run types:check` (vue-tsc)
 8. `php artisan test --parallel` (Pest)
+9. `npx playwright install --with-deps chromium`, then `php artisan test --testsuite=Browser`: real-browser checks in light and dark mode
 
 Run the same checks locally before pushing:
 
