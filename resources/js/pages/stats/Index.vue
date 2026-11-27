@@ -6,6 +6,7 @@ import ActivityHeatmap from '@/components/stats/ActivityHeatmap.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import MemberName from '@/components/stats/MemberName.vue';
 import StatsBoard from '@/components/stats/StatsBoard.vue';
+import StatsRecords from '@/components/stats/StatsRecords.vue';
 import { Button } from '@/components/ui/button';
 import { formatDuration, formatNumber, plural } from '@/lib/statsFormat';
 import { stats } from '@/routes';
@@ -122,6 +123,8 @@ const nothingYet = computed(
                 }}</strong>
                 from {{ plural(totals.members, 'person', 'people') }}.
             </p>
+
+            <StatsRecords :records="records" />
 
             <section class="flex flex-col gap-3 rounded-xl border bg-card p-4">
                 <header>

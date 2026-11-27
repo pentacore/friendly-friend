@@ -10,6 +10,7 @@ use App\Models\StatDailyVoice;
 use App\Models\StatDailyVoicePair;
 use App\Models\StatMessage;
 use App\Models\StatReaction;
+use App\Models\StatVoiceSession;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -127,4 +128,35 @@ it('shows this week on the dashboard, and nothing when nothing was counted', fun
         ->assertInertia(fn (Assert $page): Assert => $page
             ->where('week.messages', 5)
             ->where('week.top.name', $this->bo->display_name));
+});
+
+it('shows records: longest voice session, busiest day and longest streak', function (): void {
+    StatVoiceSession::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $this->bo->id, 'started_at' => '2026-11-18T18:00:00Z', 'ended_at' => '2026-11-18T21:30:00Z']);
+    StatVoiceSession::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $this->kim->id, 'started_at' => '2026-11-21T09:00:00Z', 'ended_at' => null]);
+    StatVoiceSession::factory()->create(['guild_id' => $this->other->id, 'discord_user_id' => $this->kim->id, 'started_at' => '2026-11-10T00:00:00Z', 'ended_at' => '2026-11-11T00:00:00Z']);
+
+    // Kim: 30 messages on one local day (23:30 UTC on the 19th is the 20th in Stockholm).
+    messages($this->guild, $this->kim, 10, '2026-11-19T23:30:00Z');
+    messages($this->guild, $this->kim, 20, '2026-11-20T08:00:00Z');
+    // Bo: a four-day streak (16th–19th), then a gap, then one more day.
+    foreach (['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19'] as $day) {
+        messages($this->guild, $this->bo, 2, "{$day}T12:00:00Z");
+    }
+    messages($this->guild, $this->bo, 2, '2026-11-21T10:00:00Z');
+
+    $this->actingAs($this->user)->get(route('stats'))
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('records.longest_voice.member.id', $this->bo->id)
+            ->where('records.longest_voice.seconds', 12600)
+            ->where('records.busiest_day.member.id', $this->kim->id)
+            ->where('records.busiest_day.total', 30)
+            ->where('records.busiest_day.day', '2026-11-20')
+            ->where('records.longest_streak.member.id', $this->bo->id)
+            ->where('records.longest_streak.days', 4)
+            ->where('records.longest_streak.ended_on', '2026-11-19'));
+});
+
+it('has no records without activity', function (): void {
+    $this->actingAs($this->user)->get(route('stats'))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('records', ['longest_voice' => null, 'busiest_day' => null, 'longest_streak' => null]));
 });

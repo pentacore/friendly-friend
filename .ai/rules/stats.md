@@ -31,4 +31,5 @@ paths:
 
 - Pages read stats only through `Stats\StatsQuery`, built with the viewer's `AccessSnapshot::guildIds` (or one of them) and a period in local days. Never query `stat_*` tables from controllers.
 - Leaderboards return `{ member, total }` and pairs `{ first, second, total }`, where `member` is `{ id, name, avatar_url, person_slug }`. The unit of `total` depends on the board (count or seconds), and the page formats it.
+- Records (`records()`) read raw sessions and hourly message buckets, not rollups: a session's length and a member's local day only exist there. Local days use `stats.timezone`, as everywhere.
 - Person pages show stats only for a linked Discord user who hasn't opted out (`stats: null` otherwise).

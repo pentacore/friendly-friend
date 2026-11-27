@@ -10,6 +10,7 @@ use App\Models\StatDailyVoice;
 use App\Models\StatDailyVoicePair;
 use App\Models\StatMessage;
 use App\Models\StatReaction;
+use App\Models\StatVoiceSession;
 use App\Models\User;
 
 /**
@@ -40,6 +41,7 @@ beforeEach(function (): void {
         StatReaction::factory()->create(['guild_id' => $this->guild->id, 'reactor_discord_user_id' => $member->id, 'target_discord_user_id' => $members[($index + 1) % 4]->id, 'emoji' => ['😂', '💀', '🔥', '👀'][$index], 'day' => $day, 'count' => 10 - $index]);
     }
 
+    StatVoiceSession::factory()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $members[1]->id, 'started_at' => now()->subDays(2)->setTime(19, 0), 'ended_at' => now()->subDays(2)->setTime(23, 40)]);
     StatDailyVoicePair::query()->create(['guild_id' => $this->guild->id, 'first_discord_user_id' => $members[0]->id, 'second_discord_user_id' => $members[1]->id, 'day' => $day, 'seconds' => 9000]);
     StatDailyVoicePair::query()->create(['guild_id' => $this->guild->id, 'first_discord_user_id' => $members[0]->id, 'second_discord_user_id' => $members[2]->id, 'day' => $day, 'seconds' => 4000]);
     StatDailyActivity::query()->create(['guild_id' => $this->guild->id, 'discord_user_id' => $members[0]->id, 'activity_name' => 'Deep Rock Galactic', 'day' => $day, 'seconds' => 14400]);
@@ -54,6 +56,8 @@ it('renders the stats page', function (bool $dark): void {
     $page = $dark ? $page->inDarkMode() : $page;
 
     $page->assertSee('When it\'s busy')
+        ->assertSee('Longest voice session')
+        ->assertSee('Longest streak')
         ->assertSee('Time together')
         ->assertSee('Deep Rock Galactic')
         ->assertNoJavaScriptErrors();

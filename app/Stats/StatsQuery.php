@@ -12,10 +12,12 @@ use App\Models\StatDailyVoice;
 use App\Models\StatDailyVoicePair;
 use App\Models\StatMessage;
 use App\Models\StatReaction;
+use App\Models\StatVoiceSession;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -237,6 +239,76 @@ final readonly class StatsQuery
                 'total' => $this->int($row, 'total'),
             ];
         })->all());
+    }
+
+    /**
+     * The period's records: the longest single voice session (open ones count
+     * until now), the most messages one member sent in a local day, and the
+     * longest run of consecutive local days with messages (two days or more).
+     *
+     * @return array{
+     *     longest_voice: array{member: Member, seconds: int, started_at: string}|null,
+     *     busiest_day: array{member: Member, total: int, day: string}|null,
+     *     longest_streak: array{member: Member, days: int, ended_on: string}|null,
+     * }
+     */
+    public function records(): array
+    {
+        $now = Date::now()->toImmutable();
+
+        $voice = StatVoiceSession::query()
+            ->whereIn('guild_id', $this->guildIds)
+            ->where('started_at', '>=', $this->since->utc())
+            ->selectRaw('discord_user_id as member_id, started_at, extract(epoch from (coalesce(ended_at, ?::timestamptz) - started_at))::int as total', [$now->toIso8601String()])
+            ->orderByDesc('total')
+            ->limit(1)
+            ->toBase()
+            ->first();
+
+        $busiest = $this->messages()
+            ->selectRaw('discord_user_id as member_id, (hour at time zone ?)::date::text as local_day, sum(count)::int as total', [$this->timezone])
+            ->groupByRaw('1, 2')
+            ->orderByDesc('total')
+            ->orderByDesc('local_day')
+            ->limit(1)
+            ->toBase()
+            ->first();
+
+        // Gaps and islands: consecutive days share the same day minus row number.
+        $activeDays = $this->messages()->selectRaw('distinct discord_user_id, (hour at time zone ?)::date as local_day', [$this->timezone]);
+        $islands = DB::query()->fromSub($activeDays, 'active_days')
+            ->selectRaw('discord_user_id, local_day, local_day - (row_number() over (partition by discord_user_id order by local_day))::int as island');
+        $streak = DB::query()->fromSub($islands, 'islands')
+            ->selectRaw('discord_user_id as member_id, count(*)::int as total, max(local_day)::text as ended_on')
+            ->groupBy('discord_user_id', 'island')
+            ->havingRaw('count(*) >= 2')
+            ->orderByDesc('total')
+            ->orderByDesc('ended_on')
+            ->limit(1)
+            ->first();
+
+        $members = $this->members(array_map(
+            fn (object $row): int => $this->int($row, 'member_id'),
+            array_filter([$voice, $busiest, $streak], is_object(...)),
+        ));
+
+        return [
+            'longest_voice' => is_object($voice) ? [
+                'member' => $members[$this->int($voice, 'member_id')],
+                'seconds' => $this->int($voice, 'total'),
+                'started_at' => CarbonImmutable::parse($this->string($voice, 'started_at'))->toIso8601String(),
+            ] : null,
+            'busiest_day' => is_object($busiest) ? [
+                'member' => $members[$this->int($busiest, 'member_id')],
+                'total' => $this->int($busiest, 'total'),
+                'day' => $this->string($busiest, 'local_day'),
+            ] : null,
+            'longest_streak' => is_object($streak) ? [
+                'member' => $members[$this->int($streak, 'member_id')],
+                'days' => $this->int($streak, 'total'),
+                'ended_on' => $this->string($streak, 'ended_on'),
+            ] : null,
+        ];
     }
 
     /**

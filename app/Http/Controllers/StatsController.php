@@ -34,6 +34,7 @@ final class StatsController extends Controller
         'emoji' => '{ emoji: string; name: string; image_url: string | null; total: number }[]',
         'games' => '{ name: string; total: number; players: number }[]',
         'channels' => '{ channel_id: string; name: string; guild: string; total: number }[]',
+        'records' => '{ longest_voice: { member: '.self::MEMBER.'; seconds: number; started_at: string } | null; busiest_day: { member: '.self::MEMBER.'; total: number; day: string } | null; longest_streak: { member: '.self::MEMBER.'; days: number; ended_on: string } | null }',
     ])]
     public function __invoke(StatsRequest $request): Response
     {
@@ -57,6 +58,7 @@ final class StatsController extends Controller
             'emoji' => $stats->topEmoji(),
             'games' => $stats->games(),
             'channels' => $stats->topChannels(),
+            'records' => $stats->records(),
         ]);
     }
 }

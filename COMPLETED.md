@@ -72,6 +72,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] The Discord edit form keeps line breaks inside a conversation line (as indented continuation lines, which the parser reads back).
 - [x] Watched channels: a per-server option to publish picked-up quotes straight away, skipping review.
 - [x] `/quote random` can answer privately, per server (Servers page).
+- [x] Stats records on /stats: longest voice session, most messages in a day, longest streak of active days.
 
 ## Bugs found and fixed along the way
 

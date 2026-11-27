@@ -15,7 +15,6 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Events: reorder questions, make a question required, ask questions from the Discord RSVP reply
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
-- [ ] Stats: streaks and records (longest voice session, most messages in a day)
 - [ ] Quotes: "Who said it?" game, in Discord and on the web (show a quote, everyone guesses the person, running scores)
 - [ ] Yearly recap ("Wrapped") per server and per person: top quotes, most quoted, voice nights, events attended, money spent
 - [ ] Birthdays: date on the profile, a bot greeting in Discord (maybe with a random quote from that person)

@@ -41,6 +41,7 @@ vendor/bin/sail artisan stats:rollup --days=30
 
 - **`/stats`** (sidebar → Stats): one server or all you can see, over a week, a month or a year.
     - a one-line summary
+    - records for the period (`StatsQuery::records()`): the longest single voice session (an open one counts until now), the most messages one person sent in a local day, and the longest run of consecutive local days with messages (two days or more; all chosen servers together)
     - a weekday × hour heatmap of messages (in `STATS_TIMEZONE`)
     - boards: most messages, most time in voice, time together, busiest channels (named from the server's cached channel list; channels the bot can't see show as "a hidden channel"), most played, favourite reactions, who reacts to whom, most reactions given
 - **Person pages** (`/people/{slug}`): the last 30 days for that person, if they're linked to a Discord user and haven't opted out. Shows a summary, their own heatmap, who they spend the most voice time with, what they play, and the emoji they react with.
