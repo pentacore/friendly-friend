@@ -15,6 +15,7 @@ export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';
 export type { MealRequest } from './MealRequest';
 export type { MergePeopleRequest } from './MergePeopleRequest';
+export type { MoveQuestionRequest } from './MoveQuestionRequest';
 export type { OfferRideRequest } from './OfferRideRequest';
 export type { PaymentRequest } from './PaymentRequest';
 export type { QuestionRequest } from './QuestionRequest';

@@ -92,3 +92,23 @@ it('removes a question with its answers', function (): void {
 
     expect(EventQuestion::query()->count() + EventQuestionAnswer::query()->count())->toBe(0);
 });
+
+it('lets organisers move a question up or down', function (): void {
+    $first = ask($this->host, $this->event, ['prompt' => 'First?', 'kind' => 'yes_no']);
+    $second = ask($this->host, $this->event, ['prompt' => 'Second?', 'kind' => 'yes_no']);
+    $third = ask($this->host, $this->event, ['prompt' => 'Third?', 'kind' => 'yes_no']);
+    $order = fn (): array => $this->event->questions()->pluck('prompt')->all();
+
+    $this->actingAs($this->guest)->patch(route('events.questions.move', [$this->event, $third]), ['direction' => 'up'])->assertForbidden();
+
+    $this->actingAs($this->host)->patch(route('events.questions.move', [$this->event, $third]), ['direction' => 'up'])->assertRedirect();
+    expect($order())->toBe(['First?', 'Third?', 'Second?']);
+
+    $this->actingAs($this->host)->patch(route('events.questions.move', [$this->event, $first]), ['direction' => 'down']);
+    expect($order())->toBe(['Third?', 'First?', 'Second?']);
+
+    // Already at the edge: nothing changes.
+    $this->actingAs($this->host)->patch(route('events.questions.move', [$this->event, $third]), ['direction' => 'up']);
+    $this->actingAs($this->host)->patch(route('events.questions.move', [$this->event, $second]), ['direction' => 'sideways'])->assertSessionHasErrors('direction');
+    expect($order())->toBe(['Third?', 'First?', 'Second?']);
+});

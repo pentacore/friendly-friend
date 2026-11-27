@@ -198,15 +198,21 @@ it('asks questions and shows the answers', function (bool $dark): void {
         ->fill('#question-prompt', 'Will you eat crayfish?')
         ->click('Add question')
         ->assertSee('0 answered')
+        ->click('Add a question')
+        ->fill('#question-prompt', 'Bringing a towel?')
+        ->click('Add question')
+        ->click('[aria-label="Move question Bringing a towel? up"]')
+        ->assertSeeIn('[data-test="questions"] article:first-of-type', 'Bringing a towel?')
         ->click('[data-test="rsvp"] button[aria-pressed]:first-child')
-        ->click('[data-test^="question-"] button:first-child')
+        ->click('[data-test^="question-"] button:first-child >> nth=0')
         ->assertSee('1 answered')
         ->assertNoJavaScriptErrors();
 
     $page->script('document.fonts.ready');
     $page->screenshot(fullPage: true, filename: 'events-questions-'.($dark ? 'dark' : 'light'));
 
-    expect(EventQuestionAnswer::query()->value('value'))->toBe('yes');
+    expect(EventQuestionAnswer::query()->value('value'))->toBe('yes')
+        ->and($this->event->questions()->pluck('prompt')->all())->toBe(['Bringing a towel?', 'Will you eat crayfish?']);
 })->with(['light' => false, 'dark' => true]);
 
 it('votes on dates and chooses one', function (bool $dark): void {

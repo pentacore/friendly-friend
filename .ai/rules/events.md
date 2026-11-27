@@ -45,6 +45,7 @@ paths:
 
 - The event page has one tab per section (Overview, Food, …). A section's data is one lazy prop (`food` from `FoodPlan::for()`), and its writes reload only that prop (`useEventAction(['food'])`). Child routes use `scopeBindings()`, so an item of another event is a 404.
 - Organiser-only data (dietary needs, who answered which question) is `null` for everyone else, never just hidden in the UI.
+- Questions are ordered by `position`, then `id`. Moving one renumbers the whole event's questions 1..n in a locked transaction (`MoveQuestion`), so never compute positions from `count()` alone.
 - Question answers are saved with the RSVP (`answers` in `RsvpRequest`, `SaveAnswers`), only while going or maybe. A value a question doesn't accept clears the answer instead of failing. Counts only include people going or maybe.
 - Anything that can run out (ride seats) is checked inside a transaction with `lockForUpdate()`, and the action throws a domain exception (`RideFullException`) that the controller turns into an error toast.
 - Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. `SplitMode::Attendees` expenses store no shares: `CostsPlan::shares()` splits them by weight (1 + guests) among people going, at read time. Payments change only the balance, never "paid" or "share".

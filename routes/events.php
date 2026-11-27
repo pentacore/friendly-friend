@@ -22,6 +22,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::post('events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::put('events/{event}/rsvp', [EventRsvpController::class, 'update'])->name('events.rsvp');
     Route::post('events/{event}/questions', [EventQuestionController::class, 'store'])->name('events.questions.store');
+    Route::patch('events/{event}/questions/{question}/move', [EventQuestionController::class, 'move'])->scopeBindings()->name('events.questions.move');
     Route::delete('events/{event}/questions/{question}', [EventQuestionController::class, 'destroy'])->scopeBindings()->name('events.questions.destroy');
 
     Route::scopeBindings()->prefix('events/{event}')->name('events.food.')->controller(EventFoodController::class)->group(function (): void {

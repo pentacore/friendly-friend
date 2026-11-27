@@ -12,7 +12,7 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
 - [ ] Events: link a shopping item to the expense that paid for it (spec §14 `expense_id`)
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
-- [ ] Events: reorder questions, make a question required, ask questions from the Discord RSVP reply
+- [ ] Events: make a question required, ask questions from the Discord RSVP reply
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Quotes: "Who said it?" game, in Discord and on the web (show a quote, everyone guesses the person, running scores)

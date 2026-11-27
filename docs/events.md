@@ -46,7 +46,7 @@ Organisers can ask everyone coming something, on the Overview tab:
 - **Yes or no** ("Will you eat crayfish?"), **Pick one** (two to twelve options: "Which sauna slot?") or **Free text** ("Anything we should know?").
 - People answer in the "Are you coming?" box once they're going or maybe; answers save straight away and can be cleared by pressing the chosen one again.
 - **Everyone** sees the counts (only people going or maybe count). **Organisers** also see who answered what, and all free-text answers.
-- Removing a question deletes its answers. The Discord RSVP reply mentions when there are questions to answer on the website.
+- Organisers reorder questions with the ↑/↓ buttons (`MoveQuestion`, which renumbers `position` 1..n). - Removing a question deletes its answers. The Discord RSVP reply mentions when there are questions to answer on the website.
 
 ## Food tab
 

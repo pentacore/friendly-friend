@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Plus, Trash2, X } from '@lucide/vue';
+import { ChevronDown, ChevronUp, Plus, Trash2, X } from '@lucide/vue';
 import { ref } from 'vue';
 import {
     destroy,
+    move,
     store,
 } from '@/actions/App/Http/Controllers/EventQuestionController';
 import InputError from '@/components/InputError.vue';
@@ -88,7 +89,7 @@ const field =
         </header>
 
         <article
-            v-for="question in questions"
+            v-for="(question, index) in questions"
             :key="question.id"
             class="flex flex-col gap-2"
         >
@@ -99,6 +100,36 @@ const field =
                 <span class="shrink-0 text-xs text-muted-foreground"
                     >{{ question.answered }} answered</span
                 >
+                <template v-if="event.can.edit && questions.length > 1">
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        class="size-7"
+                        :aria-label="`Move question ${question.prompt} up`"
+                        :disabled="busy || index === 0"
+                        @click="
+                            send(move([event.id, question.id]), {
+                                direction: 'up',
+                            })
+                        "
+                    >
+                        <ChevronUp class="size-3.5" />
+                    </Button>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        class="size-7"
+                        :aria-label="`Move question ${question.prompt} down`"
+                        :disabled="busy || index === questions.length - 1"
+                        @click="
+                            send(move([event.id, question.id]), {
+                                direction: 'down',
+                            })
+                        "
+                    >
+                        <ChevronDown class="size-3.5" />
+                    </Button>
+                </template>
                 <Button
                     v-if="event.can.edit"
                     size="icon"
