@@ -29,6 +29,6 @@ vendor/bin/sail npm run types:check
 
 Builds the production `Dockerfile` (target `app`) and runs `php -v` in it, so a broken image fails CI before a deploy.
 
-## `docs-updated` job (pull requests only)
+## `docs-updated` job
 
-`scripts/check-docs-updated.sh` posts a **warning** (it never fails the build) when `app/`, `database/`, `routes/` or `config/` changed but nothing under `docs/` or `.ai/` did. Rules and docs ship in the same change as the code.
+`scripts/check-docs-updated.sh` posts a **warning** (it never fails the build) when `app/`, `database/`, `routes/` or `config/` changed but nothing under `docs/` or `.ai/` did. Pull requests compare with their base branch; pushes compare with the commit before the push (a branch's first push is skipped). Rules and docs ship in the same change as the code.

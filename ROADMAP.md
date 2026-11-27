@@ -88,7 +88,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Expired drafts: the preview message stays with its buttons, which then answer "expired". Could edit the preview to say "expired" when pruning (needs the interaction token or DM message ID).
 - [ ] Draft lifetime (15 min) equals the interaction token lifetime. A preview edited at minute 14 still works, but there's no margin.
 - [ ] Telescope's migration also runs in production (creates unused tables). Harmless; could be excluded.
-- [ ] `docs-updated` CI check only warns on pull requests; direct pushes to `main` aren't checked.
+- [x] `docs-updated` CI check also runs on pushes (compares with the commit before the push).
 - [x] **Stats after bot downtime:** sessions that ended while the bot was down now end at its last heartbeat before the restart (only in the first 10 minutes after a start; events missed during the outage are still lost).
 - [ ] **Stats need the Presence intent** turned on in the developer portal (game sessions), and the bot must see a channel to count messages there (see "Bot can't see most channels").
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
