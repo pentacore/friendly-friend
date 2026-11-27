@@ -26,7 +26,7 @@ Discord gateway ──raw dispatch──► RunBot ──► GatewayEventRouter:
 | `GUILD_MEMBER_REMOVE`                       | `Access\Jobs\MarkMemberLeft`           | That membership `in_guild = false`. `guild.access` logs the person out if it was their last way in.                                                                        |
 
 | `INTERACTION_CREATE` | acknowledged in the bot, then `Quotes\Jobs\HandleQuoteInteraction` | `/quote`, "Save quote", preview buttons, edit form (see [quotes.md](quotes.md)) |
-| `MESSAGE_CREATE` mentioning the bot (in a server, not from a bot) | `Quotes\Jobs\CaptureFromMention` | Quote capture by mention; preview by DM |
+| `MESSAGE_CREATE` mentioning the bot (in a server, not from a bot) | `Quotes\Jobs\CaptureFromMention` | Quote capture by mention (preview by DM); with Jev also a random quote or help |
 
 **Interaction acknowledgements** are the one exception to "no side effects in the bot". Discord needs an answer within 3 seconds, so `GatewayEventRouter` asks `InteractionAck` for the answer (pure, payload plus cache only) and sends it through `InteractionAcknowledger`. In the bot that's `DiscordPhpAcknowledger`, non-blocking. The job then edits the response over REST.
 

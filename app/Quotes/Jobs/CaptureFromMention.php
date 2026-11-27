@@ -7,11 +7,13 @@ namespace App\Quotes\Jobs;
 use App\Access\Actions\RecordGuildMember;
 use App\Access\GuildAccess;
 use App\Ai\CaptureInput;
+use App\Ai\MentionIntentClassifier;
 use App\Ai\QuoteNormalizer;
 use App\Discord\Data\GuildMemberData;
 use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
 use App\Discord\Interactions\DraftEditForm;
+use App\Enums\MentionIntent;
 use App\Enums\QuoteSource;
 use App\Models\DiscordUser;
 use App\Models\Guild;
@@ -27,8 +29,10 @@ use Illuminate\Queue\Attributes\Tries;
 
 /**
  * Someone mentioned the bot. Replying to a message: quote that message.
- * Otherwise: quote what they wrote ("@bot Martin said …"). A message can't be
- * private, so the preview goes to their DMs.
+ * Otherwise Jev (`MentionIntentClassifier`) decides what they want: a random
+ * quote (posted in the channel, or DMed if the server keeps random quotes
+ * private), help (DMed), or, by default, to quote what they wrote ("@bot
+ * Martin said …"). A message can't be private, so the preview goes to their DMs.
  */
 #[Tries(1)]
 final class CaptureFromMention implements ShouldQueue
@@ -49,6 +53,7 @@ final class CaptureFromMention implements ShouldQueue
         DraftQuote $draftQuote,
         CancelDraft $cancelDraft,
         DraftEditForm $editForm,
+        MentionIntentClassifier $intents,
     ): void {
         $message = $this->message;
         $guild = Guild::query()->enabled()->where('discord_id', $message['guild_id'] ?? '')->first();
@@ -71,17 +76,34 @@ final class CaptureFromMention implements ShouldQueue
         }
 
         $referenced = is_array($message['referenced_message'] ?? null) ? $message['referenced_message'] : null;
+        $text = $this->textWithoutBotMention();
+
+        if ($referenced === null) {
+            if ($text === '') {
+                return;
+            }
+
+            $intent = $intents->intent($text);
+
+            if ($intent === MentionIntent::RandomQuote) {
+                $this->postRandomQuote($discord, $interactions, $guild, $member->discordId);
+
+                return;
+            }
+
+            if ($intent === MentionIntent::Help) {
+                $discord->sendDirectMessage($member->discordId, QuoteMessages::help());
+
+                return;
+            }
+        }
 
         try {
             $draft = $referenced !== null
                 ? $interactions->draftFromMessage($guild, $submitter, $referenced, QuoteSource::ReplyMention)
-                : $this->draftFromText($guild, $submitter, $normalizer, $draftQuote);
+                : $this->draftFromText($guild, $submitter, $normalizer, $draftQuote, $text);
         } catch (AlreadyQuotedException) {
             $draft = 'That message is already saved as a quote.';
-        }
-
-        if ($draft === null) {
-            return;
         }
 
         if (is_string($draft)) {
@@ -106,20 +128,52 @@ final class CaptureFromMention implements ShouldQueue
         $draft->forceFill(['preview_channel_id' => $sent->channelId, 'preview_message_id' => $sent->messageId])->saveQuietly();
     }
 
-    private function draftFromText(Guild $guild, DiscordUser $submitter, QuoteNormalizer $normalizer, DraftQuote $draftQuote): ?Quote
+    private function textWithoutBotMention(): string
     {
         $applicationId = config()->string('services.discord.client_id');
-        $text = trim((string) preg_replace('/<@!?'.preg_quote($applicationId, '/').'>/', '', is_string($this->message['content'] ?? null) ? $this->message['content'] : ''));
 
-        if ($text === '') {
-            return null;
-        }
+        return trim((string) preg_replace('/<@!?'.preg_quote($applicationId, '/').'>/', '', is_string($this->message['content'] ?? null) ? $this->message['content'] : ''));
+    }
 
-        $mentionNames = array_filter(
+    /**
+     * Names of the people mentioned besides the bot, keyed by Discord ID.
+     *
+     * @return array<string, string>
+     */
+    private function otherMentionNames(): array
+    {
+        $applicationId = config()->string('services.discord.client_id');
+
+        return array_filter(
             QuoteInteractions::mentionNames($this->message['mentions'] ?? null),
             fn (string $name, int|string $id): bool => (string) $id !== $applicationId,
             ARRAY_FILTER_USE_BOTH,
         );
+    }
+
+    /**
+     * Replies in the channel with a random quote, from the first person
+     * mentioned besides the bot if there is one.
+     */
+    private function postRandomQuote(DiscordClient $discord, QuoteInteractions $interactions, Guild $guild, string $askerId): void
+    {
+        $personId = array_key_first($this->otherMentionNames());
+        $quote = $interactions->randomQuote($guild, $personId !== null ? (string) $personId : null);
+        $channelId = $this->message['channel_id'] ?? null;
+        $messageId = $this->message['id'] ?? null;
+
+        if ($guild->private_random_quotes || ! is_string($channelId) || ! is_string($messageId)) {
+            $discord->sendDirectMessage($askerId, $quote);
+
+            return;
+        }
+
+        $discord->sendMessage($channelId, [...$quote, 'message_reference' => ['message_id' => $messageId]]);
+    }
+
+    private function draftFromText(Guild $guild, DiscordUser $submitter, QuoteNormalizer $normalizer, DraftQuote $draftQuote, string $text): Quote
+    {
+        $mentionNames = $this->otherMentionNames();
 
         $normalized = $normalizer->normalize(new CaptureInput(text: $text, mentionNames: $mentionNames));
 

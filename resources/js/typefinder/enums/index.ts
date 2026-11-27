@@ -9,6 +9,7 @@ export * from './Currency';
 export * from './DateVote';
 export * from './EventStatus';
 export * from './MealSlot';
+export * from './MentionIntent';
 export * from './QuestionKind';
 export * from './QuoteSource';
 export * from './QuoteStatus';

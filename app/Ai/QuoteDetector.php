@@ -6,9 +6,7 @@ namespace App\Ai;
 
 use App\Ai\Agents\QuoteDetectorAgent;
 use Illuminate\Support\Facades\Log;
-use Laravel\Ai\Classification;
 use Laravel\Ai\Classification\Boolean;
-use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Responses\Data\BooleanAnswer;
 use Throwable;
 
@@ -16,14 +14,14 @@ use Throwable;
  * Is a channel message a quote? Used by channel imports to skip normal chat
  * before the more expensive extraction. In order:
  *
- * 1. Jev (TypeSafe "System One" model via laravel/ai Classification) when
- *    TYPESAFE_API_KEY is set: fast, cheap, calibrated probability.
+ * 1. Jev (through OpenRouter) when OPENROUTER_API_KEY is set: fast, cheap,
+ *    calibrated probability.
  * 2. A cheap LLM (QuoteDetectorAgent) when a quote AI provider has a key.
  * 3. Heuristics: "Name: text" lines, quotation marks, "said".
  */
 final readonly class QuoteDetector
 {
-    public function __construct(private AiQuoteNormalizer $normalizer) {}
+    public function __construct(private AiQuoteNormalizer $normalizer, private Jev $jev) {}
 
     public function isQuote(string $text): bool
     {
@@ -34,14 +32,11 @@ final readonly class QuoteDetector
         }
 
         try {
-            if ($this->jevConfigured()) {
-                $answer = Classification::of($text)
-                    ->question('quote', new Boolean(
-                        'Does this Discord message record something a person said, as a saved quote?',
-                        ['true' => 'A quote: "Name: words", "\"words\" - Name", or retelling what someone said.', 'false' => 'Normal chat, reactions, links, questions to the channel.'],
-                    ))
-                    ->classify(Lab::TypeSafe)
-                    ->answer('quote');
+            if ($this->jev->isAvailable()) {
+                $answer = $this->jev->ask($text, 'quote', new Boolean(
+                    'Does this Discord message record something a person said, as a saved quote?',
+                    ['true' => 'A quote: "Name: words", "\"words\" - Name", or retelling what someone said.', 'false' => 'Normal chat, reactions, links, questions to the channel.'],
+                ));
 
                 return $answer instanceof BooleanAnswer && $answer->isTrue(0.5);
             }
@@ -56,13 +51,6 @@ final readonly class QuoteDetector
         }
 
         return $this->looksLikeQuote($text);
-    }
-
-    private function jevConfigured(): bool
-    {
-        $key = config('ai.providers.typesafe.key');
-
-        return is_string($key) && $key !== '';
     }
 
     private function looksLikeQuote(string $text): bool
