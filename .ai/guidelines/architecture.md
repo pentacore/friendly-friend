@@ -25,9 +25,12 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 
 Dev (Sail, `compose.yaml`): `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis`, `mailpit`.
 Dev also has `bot` behind the compose profile `bot` (`COMPOSE_PROFILES=bot`).
-Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): `web`, `horizon`, `scheduler`, `reverb`, `bot`, `postgres`, `redis`.
-The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
-Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
+Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): one-shot `migrate` (all app services wait for it), then `web`, `horizon`, `scheduler`, `reverb`, `bot`, plus `postgres` and `redis`. App containers log to stderr (`LOG_CHANNEL=stderr`).
+
+- Reverb has **two** endpoints: `REVERB_*` is where the app publishes (inside Docker: `reverb:8080`, never `localhost`), and `VITE_REVERB_*` is where browsers connect (public host, compiled in at build time via compose build args). Never derive one from the other.
+- `env()` only in `config/*.php`. Runtime code reads `config()` (e.g. `app.trusted_proxies`, applied in `AppServiceProvider`), because config is cached in production.
+  The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
+  Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
 
 ## Dashboards
 

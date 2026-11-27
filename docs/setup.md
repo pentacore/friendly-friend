@@ -23,14 +23,14 @@ Tip: `alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'`.
 
 ## URLs
 
-| What                | URL                        |
-| ------------------- | -------------------------- |
-| App                 | http://localhost           |
-| Vite dev server     | http://localhost:5173      |
-| Reverb (WebSockets) | ws://localhost:8080        |
-| Horizon             | http://localhost/horizon   |
-| Telescope           | http://localhost/telescope |
-| Mailpit             | http://localhost:8025      |
+| What                | URL                                                                       |
+| ------------------- | ------------------------------------------------------------------------- |
+| App                 | http://localhost                                                          |
+| Vite dev server     | http://localhost:5173                                                     |
+| Reverb (WebSockets) | ws://localhost:8080 (browsers; the app itself publishes to `reverb:8080`) |
+| Horizon             | http://localhost/horizon                                                  |
+| Telescope           | http://localhost/telescope                                                |
+| Mailpit             | http://localhost:8025                                                     |
 
 The Sail stack runs `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis` and `mailpit` (see `compose.yaml`). The Discord `bot` service starts only with `COMPOSE_PROFILES=bot` (see [bot.md](bot.md)). After changing queued job code, restart Horizon with `vendor/bin/sail restart horizon`.
 

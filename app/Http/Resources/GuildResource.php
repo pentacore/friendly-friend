@@ -50,7 +50,7 @@ final class GuildResource extends JsonResource
             'allowed_role_ids' => $guild->allowed_role_ids,
             'admin_role_ids' => $guild->admin_role_ids,
             'roles' => $guild->assignableRoles(),
-            'member_count' => $guild->members()->where('in_guild', true)->count(),
+            'member_count' => $guild->member_count ?? $guild->members()->where('in_guild', true)->count(),
         ];
     }
 }

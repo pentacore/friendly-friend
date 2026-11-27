@@ -7,6 +7,7 @@ use App\Discord\Gateway\GatewayIntents;
 use Discord\WebSockets\Intents;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Http;
 
 it('is online right after a heartbeat', function (): void {
     $heartbeat = app(BotHeartbeat::class);
@@ -64,4 +65,13 @@ it('reports the bot status', function (): void {
     app(BotHeartbeat::class)->beat();
 
     $this->artisan('bot:status')->expectsOutputToContain('online')->assertSuccessful();
+});
+
+it('refuses to start when discord rejects the bot token', function (): void {
+    config()->set('discord.bot_token', 'bad-token');
+    Http::fake(['discord.com/api/v10/users/@me' => Http::response(['message' => '401: Unauthorized', 'code' => 0], 401)]);
+
+    $this->artisan('bot:run')
+        ->expectsOutputToContain('rejected')
+        ->assertFailed();
 });

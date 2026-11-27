@@ -9,6 +9,7 @@ use App\Discord\DiscordClient;
 use App\Discord\HttpDiscordClient;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -38,7 +39,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureProxies();
         $this->configureAuth();
+    }
+
+    /**
+     * Trust the reverse proxy configured in app.trusted_proxies.
+     */
+    protected function configureProxies(): void
+    {
+        $proxies = config()->string('app.trusted_proxies');
+
+        if ($proxies !== '') {
+            TrustProxies::at($proxies === '*' ? '*' : array_map(trim(...), explode(',', $proxies)));
+        }
     }
 
     /**

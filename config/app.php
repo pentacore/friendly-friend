@@ -58,6 +58,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Behind a TLS reverse proxy, trust its X-Forwarded-* headers so URLs,
+    | redirects and secure cookies use https. '*' or a comma-separated list
+    | of proxy IPs/CIDRs; empty = trust nobody. Applied in AppServiceProvider
+    | (env() belongs in config files only, which are cached in production).
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

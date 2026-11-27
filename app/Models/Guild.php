@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property list<array{id: string, name: string, color: int, position: int, managed: bool}> $roles
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read int|null $member_count  withCount() alias of members still in the guild
  */
 #[Fillable(['discord_id', 'name', 'icon', 'bot_present', 'enabled', 'allow_all_members', 'allowed_role_ids', 'admin_role_ids', 'roles'])]
 class Guild extends Model

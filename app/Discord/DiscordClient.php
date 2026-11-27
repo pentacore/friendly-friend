@@ -19,6 +19,11 @@ interface DiscordClient
     public function configured(): bool;
 
     /**
+     * Whether Discord accepts the bot token (false on 401).
+     */
+    public function tokenIsValid(): bool;
+
+    /**
      * Every member of the guild.
      *
      * @return iterable<int, GuildMemberData>

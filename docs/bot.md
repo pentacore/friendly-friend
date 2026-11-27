@@ -34,8 +34,11 @@ Quote capture (Phase 4) and stats (Phase 6) add more routes.
 
 ## Liveness and restarts
 
+- **Token check first:** `bot:run` calls `GET /users/@me` with the bot token before connecting. A rejected token (401) exits straight away with `Discord rejected DISCORD_BOT_TOKEN`, instead of DiscordPHP's unhandled-promise noise and a 3-minute wait.
+- **No voice client:** DiscordPHP's voice manager is disabled (`disableVoiceClient`). The bot only reads voice _states_ (for stats) and never joins voice, which would need libdave.
+
 - Each heartbeat ACK from Discord (about every 41 s) or incoming event refreshes the cache key `discord:bot:heartbeat`, at most every 30 s. `php artisan bot:status` reports online if a beat came within 90 s.
-- **Watchdog:** if Discord has sent nothing for 180 s, the process exits with code 1 and Docker (`restart: unless-stopped`) starts it again. This covers fatal closes such as `4004 Authentication failed`, after which DiscordPHP stops reconnecting. With a bad token the bot therefore restarts every few minutes, and the log says why.
+- **Watchdog:** if Discord has sent nothing for 180 s, the process exits with code 1 and Docker (`restart: unless-stopped`) starts it again. This covers fatal closes after which DiscordPHP stops reconnecting, e.g. `4014 Disallowed intents`. If the bot never finished connecting, the log tells you to check the privileged intents.
 - SIGTERM/SIGINT close the connection cleanly.
 
 ## Running

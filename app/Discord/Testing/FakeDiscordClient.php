@@ -50,6 +50,11 @@ final class FakeDiscordClient implements DiscordClient
         return true;
     }
 
+    public function tokenIsValid(): bool
+    {
+        return true;
+    }
+
     public function guildMembers(string $guildId): iterable
     {
         return $this->members;

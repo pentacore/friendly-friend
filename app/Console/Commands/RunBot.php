@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Discord\DiscordClient;
 use App\Discord\Gateway\BotHeartbeat;
 use App\Discord\Gateway\GatewayEventRouter;
 use App\Discord\Gateway\GatewayIntents;
@@ -40,12 +41,23 @@ final class RunBot extends Command
 
     private float $lastBeatWrittenAt = 0.0;
 
-    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat): int
+    private bool $connected = false;
+
+    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat, DiscordClient $client): int
     {
         $token = config()->string('discord.bot_token');
 
         if ($token === '') {
             $this->error('Set DISCORD_BOT_TOKEN in .env before starting the bot (see docs/discord-app.md).');
+
+            return self::FAILURE;
+        }
+
+        // Checked over REST first: DiscordPHP would only log a fatal 4004
+        // close (plus an unhandled promise rejection) and keep running.
+        if (! $client->tokenIsValid()) {
+            $this->error('Discord rejected DISCORD_BOT_TOKEN (401). Reset the token in the developer portal and update .env.');
+            Log::error('Discord rejected DISCORD_BOT_TOKEN; not starting the bot.');
 
             return self::FAILURE;
         }
@@ -56,12 +68,15 @@ final class RunBot extends Command
             'loadAllMembers' => false,
             'storeMessages' => false,
             'retrieveBans' => false,
+            // We only read voice states; joining voice would need libdave.
+            'disableVoiceClient' => true,
             'logger' => Log::channel(),
         ]);
 
         $this->lastTrafficAt = microtime(true);
 
         $discord->on('init', function () use ($heartbeat): void {
+            $this->connected = true;
             Log::info('Discord bot connected.');
             $this->lastBeatWrittenAt = microtime(true);
             $heartbeat->beat();
@@ -76,7 +91,9 @@ final class RunBot extends Command
             $silentFor = microtime(true) - $this->lastTrafficAt;
 
             if ($silentFor > self::WATCHDOG_TIMEOUT_SECONDS) {
-                Log::error('Discord gateway silent for too long; exiting so the process is restarted.', ['seconds' => (int) $silentFor]);
+                Log::error($this->connected
+                    ? 'Discord gateway silent for too long; exiting so the process is restarted.'
+                    : 'Discord bot never finished connecting. Check that the privileged intents (Server Members, Presence, Message Content) are on in the developer portal. Exiting so the process is restarted.', ['seconds' => (int) $silentFor]);
                 $this->exitCode = self::FAILURE;
                 $discord->close();
             }

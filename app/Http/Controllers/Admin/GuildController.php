@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateGuildRequest;
 use App\Http\Resources\GuildResource;
 use App\Models\Guild;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,6 +25,7 @@ final class GuildController extends Controller
     public function index(Request $request): Response
     {
         $guilds = Guild::query()
+            ->withCount(['members as member_count' => fn (Builder $query) => $query->where('in_guild', true)])
             ->orderByDesc('enabled')
             ->orderByDesc('bot_present')
             ->orderBy('name')

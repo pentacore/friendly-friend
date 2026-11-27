@@ -22,6 +22,22 @@ final readonly class HttpDiscordClient implements DiscordClient
         return config()->string('discord.bot_token') !== '';
     }
 
+    public function tokenIsValid(): bool
+    {
+        $response = Http::baseUrl(config()->string('discord.api_base'))
+            ->withToken(config()->string('discord.bot_token'), 'Bot')
+            ->acceptJson()
+            ->get('users/@me');
+
+        if ($response->unauthorized()) {
+            return false;
+        }
+
+        $response->throw();
+
+        return true;
+    }
+
     /**
      * Every member of the guild, paging with Discord's "after" cursor.
      *

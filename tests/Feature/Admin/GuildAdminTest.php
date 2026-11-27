@@ -7,6 +7,7 @@ use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Models\GuildMember;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 
 function owner(): User
@@ -108,4 +109,15 @@ test('members cannot update servers', function (): void {
     $this->actingAs(User::factory()->member()->create())
         ->put(route('admin.guilds.update', $guild), ['enabled' => false, 'allow_all_members' => false])
         ->assertForbidden();
+});
+
+test('the server list does not query member counts per server', function (): void {
+    Guild::factory()->count(3)->create();
+    $owner = owner();
+    DB::enableQueryLog();
+
+    $this->actingAs($owner)->get(route('admin.guilds.index'))->assertOk();
+
+    $countQueries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'count(*)'));
+    expect($countQueries)->toHaveCount(1);
 });

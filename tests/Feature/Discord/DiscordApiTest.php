@@ -119,3 +119,14 @@ it('provides a fake client for tests', function (): void {
         ->and($fake->configured())->toBeTrue()
         ->and($fake->sentMessages())->toBe([['channel_id' => '777', 'content' => 'hi']]);
 });
+
+it('checks whether the bot token is accepted', function (): void {
+    Http::fake(['discord.com/api/v10/users/@me' => Http::sequence()
+        ->push(['id' => '1', 'username' => 'friendly-bot'])
+        ->push(['message' => '401: Unauthorized'], 401)]);
+
+    $client = app(HttpDiscordClient::class);
+
+    expect($client->tokenIsValid())->toBeTrue()
+        ->and($client->tokenIsValid())->toBeFalse();
+});
