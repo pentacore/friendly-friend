@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Settings\FoodSettingsController;
 use App\Http\Controllers\Settings\PrivacyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,4 +15,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
 
     Route::get('settings/privacy', [PrivacyController::class, 'edit'])->name('privacy.edit');
     Route::put('settings/privacy', [PrivacyController::class, 'update'])->name('privacy.update');
+
+    Route::get('settings/food', [FoodSettingsController::class, 'edit'])->name('food-settings.edit');
+    Route::put('settings/food', [FoodSettingsController::class, 'update'])->name('food-settings.update');
 });

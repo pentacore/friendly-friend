@@ -151,3 +151,8 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Native date and time pickers follow the theme (their icons are invisible otherwise). */
+.dark {
+    color-scheme: dark;
+}

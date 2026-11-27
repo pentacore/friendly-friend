@@ -14,7 +14,9 @@ use App\Models\Guild;
 use App\Models\GuildMember;
 use App\Models\User;
 use App\Planning\Actions\CancelEvent;
-use App\Planning\Actions\SaveEvent;
+use App\Planning\Actions\CreateEvent;
+use App\Planning\Actions\UpdateEvent;
+use App\Planning\FoodPlan;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -75,10 +77,10 @@ final class EventController extends Controller
         ]);
     }
 
-    public function store(SaveEventRequest $request, SaveEvent $save): RedirectResponse
+    public function store(SaveEventRequest $request, CreateEvent $create): RedirectResponse
     {
         $guild = Guild::query()->findOrFail($request->integer('guild_id'));
-        $event = $save->create($guild, $this->user($request)->discordUser, $request->details());
+        $event = $create->handle($guild, $this->user($request)->discordUser, $request->details());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Event created.')]);
 
@@ -88,10 +90,13 @@ final class EventController extends Controller
     #[TypefinderPage(component: 'events/Show', props: [
         'event' => EventResource::class,
         'attendees' => '{ member: '.self::MEMBER.'; status: '.RsvpStatus::class.'; guests: number; note: string | null; needs_ride: boolean }[]',
+        'food' => FoodPlan::TYPE,
+        'me' => 'number',
     ])]
-    public function show(Event $event): Response
+    public function show(Request $request, Event $event): Response
     {
         Gate::authorize('view', $event);
+        $access = $this->access($request);
         $event->load(['guild', 'createdBy', 'hosts', 'rsvps.discordUser']);
 
         return Inertia::render('events/Show', [
@@ -105,6 +110,8 @@ final class EventController extends Controller
                     'note' => $rsvp->note,
                     'needs_ride' => $rsvp->needs_ride,
                 ])->all()),
+            'food' => fn (): array => FoodPlan::for($event, $access),
+            'me' => $access->discordUserId,
         ]);
     }
 
@@ -135,9 +142,9 @@ final class EventController extends Controller
         ]);
     }
 
-    public function update(SaveEventRequest $request, Event $event, SaveEvent $save): RedirectResponse
+    public function update(SaveEventRequest $request, Event $event, UpdateEvent $update): RedirectResponse
     {
-        $save->update($event, $request->details());
+        $update->handle($event, $request->details());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Event updated.')]);
 

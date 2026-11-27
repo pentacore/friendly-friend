@@ -87,3 +87,47 @@ it('renders an event on a phone', function (): void {
         ->assertNoJavaScriptErrors()
         ->screenshot(fullPage: true, filename: 'events-show-phone');
 });
+
+it('plans the food', function (bool $dark): void {
+    $this->user->discordUser->forceFill(['dietary_notes' => 'No nuts'])->save();
+    EventRsvp::query()->create(['event_id' => $this->event->id, 'discord_user_id' => $this->user->discord_user_id, 'status' => 'going']);
+    $this->actingAs($this->user);
+
+    $page = visit("/events/{$this->event->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->click('[role="tab"]:nth-child(2)')
+        ->assertSee('Bring list')
+        ->assertSee('Dietary needs')
+        ->fill('[data-test="bring-list"] input[aria-label="Item"]', 'Folding chairs')
+        ->click('[data-test="bring-list"] button[type="submit"]')
+        ->assertSee('Folding chairs')
+        ->click("I'll bring it")
+        ->assertSee('1 / 1')
+        ->fill('[data-test="shopping-list"] input[aria-label="Item"]', 'Crisps')
+        ->fill('[data-test="shopping-list"] input[aria-label="How much"]', '3 bags')
+        ->click('[data-test="shopping-list"] button[type="submit"]')
+        ->assertSee('Crisps')
+        ->fill('[data-test="meal-plan"] input[aria-label="What"]', 'Tacos')
+        ->click('Add meal')
+        ->assertSee('Tacos')
+        ->click('I’ll cook')
+        ->assertSee('Not cooking')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-food-'.($dark ? 'dark' : 'light'));
+})->with(['light' => false, 'dark' => true]);
+
+it('renders the food settings', function (): void {
+    $this->actingAs($this->user);
+
+    visit('/settings/food')
+        ->fill('dietary_notes', 'Vegetarian')
+        ->press('Save')
+        ->assertSee('Saved.')
+        ->assertNoJavaScriptErrors()
+        ->screenshot(filename: 'settings-food-light');
+
+    expect($this->user->discordUser->fresh()?->dietary_notes)->toBe('Vegetarian');
+});

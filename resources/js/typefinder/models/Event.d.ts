@@ -5,8 +5,11 @@
 // ───────────────────────────────────────────────────────────────────────
 
 import type { DiscordUser } from './DiscordUser';
+import type { EventBringItem } from './EventBringItem';
 import type { EventHostsPivot } from './EventHostsPivot';
+import type { EventMeal } from './EventMeal';
 import type { EventRsvp } from './EventRsvp';
+import type { EventShoppingItem } from './EventShoppingItem';
 import type { EventStatus } from '../enums';
 import type { Guild } from './Guild';
 
@@ -29,6 +32,9 @@ export type Event = {
   created_by?: DiscordUser | null;
   hosts?: (DiscordUser & { pivot: EventHostsPivot })[];
   rsvps?: EventRsvp[];
+  bring_items?: EventBringItem[];
+  shopping_items?: EventShoppingItem[];
+  meals?: EventMeal[];
 };
 
 export type EventCreate = {

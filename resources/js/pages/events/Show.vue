@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 import {
     CalendarX,
     ExternalLink,
@@ -11,6 +12,7 @@ import { cancel } from '@/actions/App/Http/Controllers/EventController';
 import AttendeeList from '@/components/events/AttendeeList.vue';
 import EventDateBadge from '@/components/events/EventDateBadge.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
+import FoodTab from '@/components/events/FoodTab.vue';
 import RsvpPanel from '@/components/events/RsvpPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,10 +42,36 @@ setLayoutProps({
 
 useLiveEvent(props.event.id, {
     overview: ['event', 'attendees'],
-    food: [],
+    food: ['food'],
     transport: [],
     costs: [],
 });
+
+const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'food', label: 'Food' },
+] as const;
+
+type Tab = (typeof tabs)[number]['id'];
+
+const tab = ref<Tab>(
+    tabs.find((t) => `#${t.id}` === window.location.hash)?.id ?? 'overview',
+);
+
+watch(tab, (value) => {
+    history.replaceState(
+        history.state,
+        '',
+        value === 'overview' ? window.location.pathname : `#${value}`,
+    );
+});
+
+/** The event's first day (YYYY-MM-DD) in its own timezone, the meal form's default. */
+const firstDay = computed(() =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: props.event.timezone }).format(
+        new Date(props.event.starts_at),
+    ),
+);
 
 function setCancelled(cancelled: boolean): void {
     router.visit(cancel(props.event.id), {
@@ -162,7 +190,38 @@ function setCancelled(cancelled: boolean): void {
             </div>
         </header>
 
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <nav
+            class="-mb-2 flex gap-1 border-b"
+            role="tablist"
+            aria-label="Event sections"
+        >
+            <button
+                v-for="t in tabs"
+                :key="t.id"
+                type="button"
+                role="tab"
+                :aria-selected="tab === t.id"
+                :class="[
+                    '-mb-px border-b-2 px-3 py-2 text-sm transition-colors',
+                    tab === t.id
+                        ? 'border-foreground font-medium text-foreground'
+                        : 'border-transparent text-muted-foreground hover:text-foreground',
+                ]"
+                @click="tab = t.id"
+            >
+                {{ t.label }}
+            </button>
+        </nav>
+
+        <FoodTab
+            v-if="tab === 'food'"
+            :event="event"
+            :food="food"
+            :me="me"
+            :first-day="firstDay"
+        />
+
+        <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div class="flex flex-col gap-6">
                 <p
                     v-if="event.description"

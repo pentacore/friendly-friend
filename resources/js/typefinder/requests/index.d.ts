@@ -4,14 +4,21 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+export type { BringItemRequest } from './BringItemRequest';
+export type { ClaimRequest } from './ClaimRequest';
+export type { CookRequest } from './CookRequest';
 export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';
+export type { MealRequest } from './MealRequest';
 export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
 export type { RsvpRequest } from './RsvpRequest';
 export type { SaveEventRequest } from './SaveEventRequest';
+export type { ShoppingItemRequest } from './ShoppingItemRequest';
 export type { StatsRequest, StatsRequestQuery } from './StatsRequest';
 export type { StoreAliasRequest } from './StoreAliasRequest';
+export type { TickRequest } from './TickRequest';
+export type { UpdateDietaryNotesRequest } from './UpdateDietaryNotesRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';
 export type { UpdatePrivacyRequest } from './UpdatePrivacyRequest';
 export type { UpdateQuoteRequest } from './UpdateQuoteRequest';

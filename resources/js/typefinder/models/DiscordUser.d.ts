@@ -16,6 +16,7 @@ export type DiscordUser = {
   tracking_opted_out_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  dietary_notes: string | null;
   memberships?: GuildMember[];
   user?: User | null;
 };

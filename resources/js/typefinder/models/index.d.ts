@@ -6,8 +6,13 @@
 
 export type { DiscordUser, DiscordUserCreate, DiscordUserUpdate } from './DiscordUser';
 export type { Event, EventCreate, EventUpdate } from './Event';
+export type { EventBringClaim, EventBringClaimCreate, EventBringClaimUpdate } from './EventBringClaim';
+export type { EventBringItem, EventBringItemCreate, EventBringItemUpdate } from './EventBringItem';
 export type { EventHostsPivot } from './EventHostsPivot';
+export type { EventMeal, EventMealCreate, EventMealUpdate } from './EventMeal';
+export type { EventMealCooksPivot } from './EventMealCooksPivot';
 export type { EventRsvp, EventRsvpCreate, EventRsvpUpdate } from './EventRsvp';
+export type { EventShoppingItem, EventShoppingItemCreate, EventShoppingItemUpdate } from './EventShoppingItem';
 export type { Guild, GuildCreate, GuildUpdate } from './Guild';
 export type { GuildMember, GuildMemberCreate, GuildMemberUpdate } from './GuildMember';
 export type { Person, PersonCreate, PersonUpdate } from './Person';

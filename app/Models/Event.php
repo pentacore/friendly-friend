@@ -75,6 +75,30 @@ class Event extends Model
         return $this->hasMany(EventRsvp::class);
     }
 
+    /**
+     * @return HasMany<EventBringItem, $this>
+     */
+    public function bringItems(): HasMany
+    {
+        return $this->hasMany(EventBringItem::class);
+    }
+
+    /**
+     * @return HasMany<EventShoppingItem, $this>
+     */
+    public function shoppingItems(): HasMany
+    {
+        return $this->hasMany(EventShoppingItem::class);
+    }
+
+    /**
+     * @return HasMany<EventMeal, $this>
+     */
+    public function meals(): HasMany
+    {
+        return $this->hasMany(EventMeal::class);
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === EventStatus::Cancelled;

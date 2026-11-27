@@ -33,3 +33,8 @@ paths:
 - Every write goes through an action, which ends with `broadcast(new EventChanged($event->id, <section>))`. The section is `overview`, `food`, `transport` or `costs`. The event page (`useLiveEvent`) reloads only that section's props.
 - Writes from the page are small FormRequest + action + redirect back. No JSON endpoints.
 - Creating an event RSVPs the creator as going.
+
+## Tabs
+
+- The event page has one tab per section (Overview, Food, …). A section's data is one lazy prop (`food` from `FoodPlan::for()`), and its writes reload only that prop (`useEventAction(['food'])`). Child routes use `scopeBindings()`, so an item of another event is a 404.
+- Organiser-only data (dietary needs) is `null` for everyone else, never just hidden in the UI.

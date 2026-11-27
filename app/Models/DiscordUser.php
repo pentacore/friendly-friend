@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $global_name
  * @property string|null $avatar
  * @property Carbon|null $tracking_opted_out_at
+ * @property string|null $dietary_notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read string $display_name
