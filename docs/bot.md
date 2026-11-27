@@ -30,7 +30,15 @@ Discord gateway ──raw dispatch──► RunBot ──► GatewayEventRouter:
 
 **Interaction acknowledgements** are the one exception to "no side effects in the bot". Discord needs an answer within 3 seconds, so `GatewayEventRouter` asks `InteractionAck` for the answer (pure, payload plus cache only) and sends it through `InteractionAcknowledger`. In the bot that's `DiscordPhpAcknowledger`, non-blocking. The job then edits the response over REST.
 
-Stats (Phase 6) add more routes.
+**Stats routes** ([stats.md](stats.md)). Events from bots and from members who opted out (the cached `OptedOutMembers` set) are dropped before queuing.
+
+| Event                                                       | Job                            | Effect                                                                                       |
+| ----------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| `MESSAGE_CREATE` (server, by a person, type 0 or 19)        | `Stats\Jobs\IngestMessage`     | +1 in that member's channel and hour. Content is never stored. Webhooks and notices skipped. |
+| `MESSAGE_REACTION_ADD`                                      | `Stats\Jobs\IngestReaction`    | +1 for reactor, emoji, day, and the message's author (`message_author_id`)                   |
+| `VOICE_STATE_UPDATE`                                        | `Stats\Jobs\IngestVoiceState`  | Voice session closed, opened or moved                                                        |
+| `PRESENCE_UPDATE`                                           | `Stats\Jobs\IngestPresence`    | "Playing" sessions opened or closed                                                          |
+| `GUILD_CREATE` (also above)                                 | `Stats\Jobs\SeedGuildSessions` | Sessions brought in line with the current voice states and games after a fresh connection    |
 
 ## Intents
 

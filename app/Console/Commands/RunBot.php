@@ -10,6 +10,7 @@ use App\Discord\Gateway\DiscordPhpAcknowledger;
 use App\Discord\Gateway\GatewayEventRouter;
 use App\Discord\Gateway\GatewayIntents;
 use App\Discord\Interactions\InteractionAcknowledger;
+use App\Stats\OptedOutMembers;
 use Discord\Discord;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -45,7 +46,7 @@ final class RunBot extends Command
 
     private bool $connected = false;
 
-    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat, DiscordClient $client): int
+    public function handle(GatewayEventRouter $router, BotHeartbeat $heartbeat, DiscordClient $client, OptedOutMembers $optedOut): int
     {
         $token = config()->string('discord.bot_token');
 
@@ -63,6 +64,9 @@ final class RunBot extends Command
 
             return self::FAILURE;
         }
+
+        // The router drops opted-out members' events using this cached set.
+        $optedOut->refresh();
 
         $discord = new Discord([
             'token' => $token,

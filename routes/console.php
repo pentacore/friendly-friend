@@ -9,6 +9,7 @@ use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Quotes\Imports\StartChannelImport;
 use App\Quotes\Jobs\PruneExpiredDrafts;
+use App\Stats\Jobs\RollUpStats;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -28,6 +29,20 @@ Artisan::command('discord:sync-members', function (): void {
 Schedule::job(new SyncAllGuilds)->cron('0 */3 * * *')->withoutOverlapping();
 
 Schedule::job(new PruneExpiredDrafts)->everyMinute()->withoutOverlapping();
+
+// Today's rollups stay fresh during the day; yesterday's are finished after midnight.
+Schedule::job(new RollUpStats)->hourlyAt(5);
+Schedule::job(new RollUpStats(daysAgo: 1))->dailyAt('00:15')->timezone(config()->string('stats.timezone'));
+
+Artisan::command('stats:rollup {--days=1 : How many days back, today included}', function (): void {
+    $days = max(1, (int) $this->option('days'));
+
+    foreach (range(0, $days - 1) as $daysAgo) {
+        dispatch_sync(new RollUpStats(daysAgo: $daysAgo));
+    }
+
+    $this->info("Rebuilt the stats rollups for {$days} day(s).");
+})->purpose('Rebuild the daily stats rollups (voice, games, time together)');
 
 Artisan::command('discord:register-commands', function (): void {
     $guilds = Guild::query()->get();

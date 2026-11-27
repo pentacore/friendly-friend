@@ -12,7 +12,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 | 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                                               | ✅ done                             |
 | 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done                             |
 | 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done                             |
-| 6     | Server stats with opt-out                                                                                                         | ⏭ next                              |
+| 6     | Server stats with opt-out                                                                                                         | 🚧 in progress                      |
 | 7     | Event planning                                                                                                                    | planned (approved design, spec §14) |
 
 ## Planned features
@@ -32,7 +32,8 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ### Phase 6: Stats
 
-- [ ] Message, voice, reaction/emoji and game/presence tracking per server; hourly/daily rollups; dashboards (heatmap, leaderboards, "who hangs out with whom")
+- [x] Message, voice, reaction/emoji and game/presence tracking per server; hourly/daily rollups
+- [ ] Dashboards (heatmap, leaderboards, "who hangs out with whom")
 - [ ] Opt-out on the website and with `/privacy optout|optin|status`; purge on opt-out; cached opted-out set checked in the bot router and again in the jobs
 
 ### Phase 7: Event planning (spec §14)

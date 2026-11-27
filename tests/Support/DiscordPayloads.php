@@ -125,4 +125,70 @@ final class DiscordPayloads
             ],
         ];
     }
+
+    /**
+     * MESSAGE_REACTION_ADD.
+     *
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    public static function reaction(string $userId = '42', ?string $messageAuthorId = '50', array $emoji = ['id' => null, 'name' => '😂'], array $extra = []): array
+    {
+        return [
+            'guild_id' => '555',
+            'channel_id' => '777',
+            'message_id' => '999',
+            'user_id' => $userId,
+            'message_author_id' => $messageAuthorId,
+            'emoji' => $emoji,
+            'member' => ['user' => ['id' => $userId, 'username' => 'martin'], 'roles' => []],
+            ...$extra,
+        ];
+    }
+
+    /**
+     * VOICE_STATE_UPDATE (channel null = left voice).
+     *
+     * @return array<string, mixed>
+     */
+    public static function voiceState(string $userId = '42', ?string $channelId = '700', bool $bot = false): array
+    {
+        return [
+            'guild_id' => '555',
+            'channel_id' => $channelId,
+            'user_id' => $userId,
+            'session_id' => 'abc',
+            'self_mute' => false,
+            'member' => ['user' => ['id' => $userId, 'username' => 'martin', 'bot' => $bot], 'roles' => []],
+        ];
+    }
+
+    /**
+     * PRESENCE_UPDATE.
+     *
+     * @param  list<array{name: string, type: int}>  $activities
+     * @return array<string, mixed>
+     */
+    public static function presence(string $userId = '42', array $activities = [['name' => 'Deep Rock Galactic', 'type' => 0]], string $status = 'online'): array
+    {
+        return [
+            'guild_id' => '555',
+            'user' => ['id' => $userId],
+            'status' => $status,
+            'activities' => $activities,
+        ];
+    }
+
+    /**
+     * A recorded gateway event from tests/Fixtures/gateway, with overrides.
+     *
+     * @param  array<string, mixed>  $overrides
+     * @return array<mixed>
+     */
+    public static function fixture(string $type, array $overrides = []): array
+    {
+        $payload = json_decode((string) file_get_contents(base_path("tests/Fixtures/gateway/{$type}.json")), true);
+
+        return array_replace(is_array($payload) ? $payload : [], $overrides);
+    }
 }

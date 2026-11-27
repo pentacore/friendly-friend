@@ -77,10 +77,10 @@ it('queues a capture when a guild message mentions the bot', function (): void {
     Queue::assertPushed(CaptureFromMention::class);
 });
 
-it('ignores messages without a bot mention, from bots, or in DMs', function (array $extra): void {
+it('does not start a capture without a bot mention, from bots, or in DMs', function (array $extra): void {
     app(GatewayEventRouter::class)->route('MESSAGE_CREATE', P::message(extra: $extra));
 
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(CaptureFromMention::class);
 })->with([
     'no mention' => [['guild_id' => '555', 'mentions' => [['id' => '7']]]],
     'from a bot' => [['guild_id' => '555', 'mentions' => [['id' => '1000']], 'author' => ['id' => '9', 'username' => 'b', 'bot' => true]]],
