@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Planning\Jobs;
 
+use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
 use App\Enums\EventStatus;
 use App\Enums\RsvpStatus;
@@ -129,7 +130,7 @@ final class SendEventReminders implements ShouldQueue
 
         foreach ($going as $member) {
             try {
-                if (! $discord->sendDirectMessage($member->discord_id, ['content' => "Reminder: {$text}"])) {
+                if (! $discord->sendDirectMessage($member->discord_id, ['content' => "Reminder: {$text}"]) instanceof SentMessage) {
                     $unreachable[] = $member->discord_id;
                 }
             } catch (Throwable $e) {

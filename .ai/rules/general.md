@@ -57,6 +57,7 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 - Reverb has two endpoints: `REVERB_*` (where the app publishes: `reverb:8080` inside Docker, never `localhost`) and `VITE_REVERB_*` (where browsers connect, compiled in at build time).
 - The bot and Horizon are long-running processes. Restart them after code changes (`vendor/bin/sail restart bot horizon`).
 - Parallel tests ran Postgres out of lock slots (`out of shared memory`) once the schema grew. Sail's `pgsql` runs with `max_locks_per_transaction=256` (`compose.yaml`). Recreate the container after pulling (`vendor/bin/sail up -d pgsql`).
+- Rector's local cache only re-checks changed files, so a return type changed in one class can leave a needed fix in an unchanged caller unseen until CI (which has no cache). After changing a signature, run `vendor/bin/sail bin rector process --dry-run --clear-cache`.
 - Don't trust Rector blindly with arithmetic on casts: it once changed `(int) ((int) $x >> 22) % 6` into different precedence. Keep a test on anything bit-twiddly.
 
 ## Product rules
