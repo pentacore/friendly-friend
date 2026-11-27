@@ -2,7 +2,11 @@
 import { displayLocale, displayTimeZone } from '@/lib/locale';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import { update } from '@/actions/App/Http/Controllers/Settings/PrivacyController';
+import { Download } from '@lucide/vue';
+import {
+    download as downloadData,
+    update,
+} from '@/actions/App/Http/Controllers/Settings/PrivacyController';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -175,5 +179,19 @@ const neverCounted = [
             <code class="rounded bg-muted px-1 py-0.5">optin</code>. Quotes are
             not affected either way.
         </p>
+
+        <section class="space-y-3 border-t pt-8">
+            <Heading
+                variant="small"
+                title="Your data"
+                description="Download everything stored about you as a JSON file: your account, servers, the quotes you said or saved, votes, event answers and costs, and the stats counted for you."
+            />
+            <Button variant="outline" as-child>
+                <a :href="downloadData().url" download>
+                    <Download class="size-4" />
+                    Download my data
+                </a>
+            </Button>
+        </section>
     </div>
 </template>

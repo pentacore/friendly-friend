@@ -2,12 +2,13 @@
 import { InfiniteScroll, Link, router } from '@inertiajs/vue3';
 import { Shuffle, X } from '@lucide/vue';
 import { useDebounceFn } from '@vueuse/core';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import QuoteCard from '@/components/quotes/QuoteCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { provideLiveQuoteScores } from '@/composables/useLiveQuoteScores';
+import { searchWords } from '@/lib/searchHighlight';
 import { index, random } from '@/routes/quotes';
 import type { PageProps } from '@/typefinder';
 
@@ -23,6 +24,9 @@ provideLiveQuoteScores(props.guilds.map((g) => g.id));
 
 const search = ref(props.filters.q);
 const guild = ref<number | null>(props.filters.guild);
+const personSlug = ref<string | null>(props.filters.person);
+const sort = ref(props.filters.sort);
+const highlight = computed(() => searchWords(props.filters.q));
 
 function applyFilters(): void {
     router.visit(
@@ -30,14 +34,36 @@ function applyFilters(): void {
             query: {
                 q: search.value || undefined,
                 guild: guild.value ?? undefined,
-                person: props.filters.person ?? undefined,
+                person: personSlug.value ?? undefined,
+                // The default order isn't put in the URL.
+                sort:
+                    sort.value === (search.value ? 'best' : 'newest')
+                        ? undefined
+                        : sort.value,
             },
         }),
-        { preserveState: true, replace: true, reset: ['quotes'] },
+        {
+            preserveState: true,
+            replace: true,
+            // `reset` alone turns the visit into a partial reload of just
+            // `quotes`, which would leave the filters (and highlights) stale.
+            only: ['quotes', 'filters', 'person', 'people'],
+            reset: ['quotes'],
+        },
     );
 }
 
-const searchSoon = useDebounceFn(applyFilters, 300);
+const searchSoon = useDebounceFn(() => {
+    // A new search starts at best match; clearing it goes back to newest.
+    if (sort.value !== 'top') {
+        sort.value = search.value ? 'best' : 'newest';
+    }
+
+    applyFilters();
+}, 300);
+
+const field =
+    'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none';
 </script>
 
 <template>
@@ -70,13 +96,35 @@ const searchSoon = useDebounceFn(applyFilters, 300);
                 v-if="guilds.length > 1"
                 v-model="guild"
                 aria-label="Server"
-                class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                :class="field"
                 @change="applyFilters"
             >
                 <option :value="null">All servers</option>
                 <option v-for="g in guilds" :key="g.id" :value="g.id">
                     {{ g.name }}
                 </option>
+            </select>
+            <select
+                v-if="people.length > 1"
+                v-model="personSlug"
+                aria-label="Person"
+                :class="[field, 'sm:max-w-48']"
+                @change="applyFilters"
+            >
+                <option :value="null">Everyone</option>
+                <option v-for="p in people" :key="p.slug" :value="p.slug">
+                    {{ p.display_name }}
+                </option>
+            </select>
+            <select
+                v-model="sort"
+                aria-label="Sort"
+                :class="field"
+                @change="applyFilters"
+            >
+                <option v-if="filters.q" value="best">Best match</option>
+                <option value="newest">Newest</option>
+                <option value="top">Top score</option>
             </select>
         </div>
 
@@ -99,6 +147,7 @@ const searchSoon = useDebounceFn(applyFilters, 300);
                 :key="quote.id"
                 :quote="quote"
                 :show-server="guilds.length > 1"
+                :highlight="highlight"
             />
 
             <template #loading>

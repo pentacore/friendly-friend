@@ -39,9 +39,15 @@ final class PeopleController extends Controller
         $people = Person::query()
             ->with(['aliases', 'discordUser'])
             ->withCount(['quoteLines as quote_count' => fn (Builder $lines) => $lines->select(DB::raw('count(distinct quote_id)'))])
-            ->when($search !== '', fn (Builder $query) => $query
-                ->whereRaw('display_name ilike ?', ["%{$search}%"])
-                ->orWhereHas('aliases', fn (Builder $aliases) => $aliases->whereRaw('alias ilike ?', ["%{$search}%"])))
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                // % and _ typed into the box are literal, not wildcards.
+                $pattern = '%'.addcslashes($search, '\\%_').'%';
+
+                $query->where(fn (Builder $matches) => $matches
+                    ->whereRaw('display_name ilike ?', [$pattern])
+                    ->orWhereHas('aliases', fn (Builder $aliases) => $aliases->whereRaw('alias ilike ?', [$pattern])))
+                    ->orderByRaw('similarity(lower(display_name), lower(?)) desc', [$search]);
+            })
             ->orderBy('display_name')
             ->simplePaginate(30)
             ->withQueryString();

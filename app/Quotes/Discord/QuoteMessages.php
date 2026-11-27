@@ -9,6 +9,8 @@ use App\Discord\Interactions\CustomId;
 use App\Enums\AppSetting;
 use App\Models\Quote;
 use App\Models\QuoteLine;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Discord message payloads for quotes: the private preview with
@@ -16,6 +18,9 @@ use App\Models\QuoteLine;
  */
 final class QuoteMessages
 {
+    /** How many quotes `/quote search` lists. */
+    public const int SEARCH_RESULTS = 5;
+
     private const int EPHEMERAL = 64;
 
     private const int SUCCESS = 3;
@@ -69,6 +74,26 @@ final class QuoteMessages
     }
 
     /**
+     * `/quote search` results: a count, then each quote (shortened) with a
+     * link to its page, kept under Discord's 2000 characters.
+     *
+     * @param  Collection<int, Quote>  $quotes
+     * @return array<string, mixed>
+     */
+    public static function searchResults(string $text, Collection $quotes, int $total): array
+    {
+        if ($quotes->isEmpty()) {
+            return self::notice("Nothing matches “{$text}”. Try a name or a single word.");
+        }
+
+        $heading = $total === 1 ? '**1 quote matches**' : "**{$total} quotes match**";
+        $more = $total > $quotes->count() ? "\nShowing the best {$quotes->count()}; see them all on the website: <".route('quotes.index', ['q' => $text]).'>' : '';
+        $items = $quotes->map(fn (Quote $quote): string => Str::limit(self::quoteBody($quote, markNewPeople: false), 300)."\n<".route('quotes.show', $quote).'>');
+
+        return self::notice(Str::limit("{$heading} “{$text}”\n\n".$items->implode("\n\n").$more, 1990));
+    }
+
+    /**
      * What the bot can do, for a mention that asks for help.
      *
      * @return array<string, mixed>
@@ -80,6 +105,7 @@ final class QuoteMessages
             '• Reply to a message and @mention me, or right-click it → Apps → **Save quote**, to save it as a quote.',
             '• **/quote add**, or @mention me with what was said ("@me Bo said …"), to save a quote you write yourself.',
             '• **/quote random** [person], or ask me for a random quote, to see one.',
+            '• **/quote search** text [person] to find quotes (only you see the results).',
             '• **/privacy** to opt out of server stats.',
             'Every saved quote is also on the website.',
         ]));

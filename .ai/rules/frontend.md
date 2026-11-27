@@ -20,6 +20,7 @@ paths:
 - Resources are unwrapped app-wide (`JsonResource::withoutWrapping()`), so pass resource objects as props, not `->resolve()`. Paginated feeds use `Inertia::scroll(Resource::collection($paginator))`, typed `SimplePaginatedResourceCollection<…>`, with `<InfiniteScroll data="…">`. Reset them on filter changes (`reset: ['quotes']`).
 - Routes and actions come from Wayfinder (`@/routes/...`, `@/actions/...`). Never hard-code URLs.
 - Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`. The function form of `defineOptions({ layout })` gets no page props.
+- **`reset` trap (Inertia 3):** a visit with `reset: ['x']` becomes a partial reload of only `x`, so other props (filters, search) stay stale. List every prop the visit changes in `only` next to `reset`.
 - **Dev server trap:** `defineProps<PageProps['x']>()` is resolved through Vue's type cache. Typefinder's Vite plugin (8.6+) invalidates it when it regenerates; don't add a local plugin for it. If props are ever undefined in dev anyway, restart `npm run dev`.
 
 ## Live updates

@@ -46,10 +46,10 @@ it('registers commands in enabled servers and removes them from disabled ones', 
         ->and($discord->commandsFor('2'))->toBe([]);
 });
 
-it('defines /quote add, random, import and the Save quote menu', function (): void {
+it('defines /quote add, random, search, import and the Save quote menu', function (): void {
     $definitions = QuoteCommands::definitions();
 
-    expect(array_column($definitions[0]['options'], 'name'))->toBe(['add', 'random', 'import'])
+    expect(array_column($definitions[0]['options'], 'name'))->toBe(['add', 'random', 'search', 'import'])
         ->and($definitions[1])->toMatchArray(['type' => 3, 'name' => 'Save quote']);
 });
 

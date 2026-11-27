@@ -81,11 +81,25 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Jev picks between several fuzzy person matches in `ResolvePerson` (or says it's someone new).
 - [x] Typefinder 8.6: the upstream fixes for #245–#249 are in. The local Vue type-cache plugin and the `buildCommand: false` switch are gone, and broadcast payloads come from `broadcastWith()`'s PHPDoc shape instead of `#[TypefinderBroadcast]`.
 - [x] Conventions adopted from media manager: `ai-rules.md` (narrowest glob, owner's rules, skills for procedures) with a test that every rule glob matches a file, the `formatting-project` and `running-browser-tests` skills, owner approval for new production packages (`dependencies.md`), a rule that a behaviour change updates every description of it, and Dependabot for Composer and npm.
+- [x] Admin people search: `%` and `_` are literal, the nickname match is grouped, and the closest name comes first.
+- [x] Mentions asking for "a quote from Bo" (a name, not an @mention) pick from that person, resolved like a speaker.
+- [x] Quote search: one shared scope (`Quote::search()`).
+- [x] Quote search matches prefixes while typing; `-word` excludes.
+- [x] Quote search finds quotes by a person's current name and nicknames.
+- [x] Quote feed: best-match order while searching, with a newest / top score / best match switch.
+- [x] Quote cards mark the words a search matched.
+- [x] Quote feed: a person picker next to the server select.
+- [x] Discord: `/quote search text [person]`, private results with links (person as a Discord user option, not autocomplete).
+- [x] Events list: search by name or place, and every past event through infinite scroll.
+- [x] Events: a personal calendar feed link (Settings → Calendar) to subscribe to.
+- [x] Privacy: "Download my data" as JSON on /settings/privacy.
 - [x] More from media manager: `GLOSSARY.md` (domain words with their code names, and words to avoid), architecture tests for the "never do X" rules (strict types, final classes, `Model::query()`, `dispatch()`, no Mockery, no `env()` outside config, no services/listeners layer), rules for foreign key delete rules, `down()`, `$with`, seeders, command names and new job fields, a worktree rule, and `ROADMAP.md` grouped by what each item needs next.
 - [x] Owner settings (`/admin/settings`): reminder times, the Maybe nudge, draft expiry and top-list sizes are `AppSetting`s with defaults and bounds instead of constants and config.
 - [x] Browser layout gate: every page on a phone and a desktop, light and dark (no JavaScript errors, no sideways overflow, dark theme applied, every control named), with a test that every page route is in it, and the browser suite in 3 duration-balanced CI shards.
 
 ## Bugs found and fixed along the way
+
+- [x] Searching the quote feed (and admin people) never updated the page's `filters`: `reset: [...]` made the visit a partial reload of only the list, so the empty state said "No quotes yet" instead of "Nothing matches".
 
 Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (traps are in `general.md`).
 

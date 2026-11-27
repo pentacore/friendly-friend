@@ -43,6 +43,7 @@ final class LayoutGate
         'appearance.edit' => null,
         'food-settings.edit' => null,
         'privacy.edit' => null,
+        'calendar-settings.edit' => null,
         'admin.guilds.index' => null,
         'admin.settings.index' => null,
         'admin.people.index' => null,
@@ -60,6 +61,8 @@ final class LayoutGate
         'home' => 'redirects to the dashboard',
         'quotes.random' => 'redirects to a random quote page',
         'events.calendar' => 'an .ics download',
+        'calendar.feed' => 'the iCal feed calendar apps subscribe to',
+        'privacy.download' => 'the JSON download of your data',
         'auth.discord.redirect' => 'redirects to Discord',
         'auth.discord.callback' => 'the OAuth callback',
     ];

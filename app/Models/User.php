@@ -19,13 +19,14 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $discord_user_id
  * @property string|null $remember_token
+ * @property string|null $calendar_token secret part of the personal calendar feed URL
  * @property Carbon|null $last_access_check_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read DiscordUser $discordUser
  */
 #[Fillable(['discord_user_id', 'last_access_check_at'])]
-#[Hidden(['remember_token'])]
+#[Hidden(['remember_token', 'calendar_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */

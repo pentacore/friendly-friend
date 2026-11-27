@@ -10,4 +10,5 @@ export type QuoteIndexRequestQuery = {
   q?: string | null;
   guild?: number | null;
   person?: string | null;
+  sort?: 'best' | 'newest' | 'top' | null;
 };

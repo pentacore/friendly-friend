@@ -9,6 +9,7 @@ export type { ClaimRequest } from './ClaimRequest';
 export type { CookRequest } from './CookRequest';
 export type { DateOptionRequest } from './DateOptionRequest';
 export type { DateVoteRequest } from './DateVoteRequest';
+export type { EventIndexRequest, EventIndexRequestQuery } from './EventIndexRequest';
 export type { ExpenseRequest } from './ExpenseRequest';
 export type { JoinRideRequest } from './JoinRideRequest';
 export type { LinkPersonRequest } from './LinkPersonRequest';

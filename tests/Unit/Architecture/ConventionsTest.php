@@ -35,7 +35,25 @@ arch('events exist only to broadcast')
     ->toImplement(ShouldBroadcast::class);
 
 /**
- * @return array<string, string> project-relative path => contents
+ * The source without comments, so a docblock that mentions `Quote::search()` isn't a call.
+ */
+function conventionsWithoutComments(string $source): string
+{
+    $code = '';
+
+    foreach (token_get_all($source) as $token) {
+        if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+
+        $code .= is_array($token) ? $token[1] : $token;
+    }
+
+    return $code;
+}
+
+/**
+ * @return array<string, string> project-relative path => contents without comments
  */
 function conventionsPhpFiles(string ...$directories): array
 {
@@ -43,7 +61,7 @@ function conventionsPhpFiles(string ...$directories): array
     $files = [];
 
     foreach (Finder::create()->files()->in(array_map(static fn (string $directory): string => $root.'/'.$directory, $directories))->name('*.php') as $file) {
-        $files[str_replace($root.'/', '', $file->getPathname())] = $file->getContents();
+        $files[str_replace($root.'/', '', $file->getPathname())] = conventionsWithoutComments($file->getContents());
     }
 
     return $files;

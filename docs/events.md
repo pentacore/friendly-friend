@@ -13,12 +13,13 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 
 ## Pages
 
-- **`/events`** (sidebar → Together → Events): coming up (soonest first) and "been and gone" (latest 30), filterable by server.
+- **`/events`** (sidebar → Together → Events): coming up (soonest first) and "been and gone" (newest first, 20 at a time with infinite scroll), filterable by server and searchable by name or place (`EventIndexRequest`, `ilike` with `%`/`_` taken literally).
 - **`/events/create`**: server, title, start and optional end (in the event's timezone, default `STATS_TIMEZONE`), place and map link, details, co-hosts (current members of that server, with a filter when there are more than six). The creator is automatically going. Times can't be in the past; a past event can still be edited as long as its date isn't changed.
     - **Plan ahead (optional):** questions, a bring list, shopping, meals, your own ride, and costs you paid. Each section opens with a button and can be removed again (×, or by removing its last row); rows left blank are skipped. Costs added here are split among **everyone going**.
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.
 - **`/events/{id}/edit`**: the same form, for editors.
 - **Add to calendar** (`/events/{id}/calendar.ics`): the event as an iCalendar file (UTC times, 6 hours when there's no end, cancelled events marked as such). Not while the date is being voted on.
+- **Personal calendar feed** (**Settings → Calendar**): a secret link (`/calendar/{token}.ics`, `users.calendar_token`, 40 random characters) to subscribe to in a calendar app. It needs no login and has the events you're going to or might go to, host or created, in servers you can still see, from 60 days back, without date polls (`Planning\CalendarFeed`). Cancelled events stay in, marked cancelled. **Make a new link** replaces the token (the old link gives 404), **Turn off** removes it. Throttled to 60 requests a minute.
 
 ## Voting on the date
 
