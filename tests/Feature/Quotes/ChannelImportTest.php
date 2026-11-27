@@ -71,8 +71,8 @@ it('pages through long histories and resumes from the cursor', function (): void
         ->and($import->quotes_found)->toBe(650);
 });
 
-it('uses Jev to decide what is a quote when TypeSafe is configured', function (): void {
-    config()->set('ai.providers.typesafe.key', 'jev-key');
+it('uses Jev through OpenRouter to decide what is a quote', function (): void {
+    config()->set('ai.providers.openrouter.key', 'or-key');
     Classification::fake(fn ($prompt): array => ['quote' => new BooleanAnswer(str_contains((string) json_encode($prompt->state), 'Martin') ? 0.93 : 0.08)]);
     $this->discord->withChannelMessages('321', [
         P::message('2', 'Martin said nothing memorable today', '50'),
@@ -82,7 +82,7 @@ it('uses Jev to decide what is a quote when TypeSafe is configured', function ()
     app(StartChannelImport::class)->handle($this->guild, $this->admin, '321');
 
     expect(Quote::query()->pluck('source_message_id')->all())->toBe(['2']);
-    Classification::assertClassified(fn ($prompt): bool => true);
+    Classification::assertClassified(fn ($prompt): bool => $prompt->provider->name() === 'openrouter' && $prompt->model === '~typesafe/jev-latest');
 });
 
 it('records a failed import', function (): void {

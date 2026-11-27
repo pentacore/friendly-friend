@@ -181,7 +181,7 @@ final readonly class QuoteInteractions
 
         return match ($subcommand['name'] ?? null) {
             QuoteCommands::ADD => $this->addCommand($guild, $actor, $options, $resolvedUsers),
-            QuoteCommands::RANDOM => $this->randomCommand($guild, $options),
+            QuoteCommands::RANDOM => $this->randomQuote($guild, $options['person'] ?? null),
             QuoteCommands::IMPORT => $this->importCommand($guild, $actor, $options),
             default => QuoteMessages::notice('Unknown command.'),
         };
@@ -235,15 +235,17 @@ final readonly class QuoteInteractions
     }
 
     /**
-     * @param  array<string, string>  $options
+     * A random published quote from this server, optionally by one person (a
+     * Discord user ID). Used by `/quote random` and by mentions asking for one.
+     *
      * @return array<string, mixed>
      */
-    private function randomCommand(Guild $guild, array $options): array
+    public function randomQuote(Guild $guild, ?string $personDiscordId = null): array
     {
         $quote = Quote::query()
             ->whereBelongsTo($guild)
             ->where('status', QuoteStatus::Published)
-            ->when($options['person'] ?? null, fn (Builder $query, string $discordId) => $query->whereHas(
+            ->when($personDiscordId, fn (Builder $query, string $discordId) => $query->whereHas(
                 'lines.person.discordUser',
                 fn (Builder $user) => $user->where('discord_id', $discordId),
             ))

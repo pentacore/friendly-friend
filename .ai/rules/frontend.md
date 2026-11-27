@@ -14,17 +14,17 @@ paths:
 ## Types and routes
 
 - **Never hand-write TypeScript types for backend data.** Typefinder generates them into `resources/js/typefinder/` (models, enums, requests, resources, page props, broadcast events). Import from `@/typefinder`. The output is committed, and CI fails on drift.
-- Every Inertia action has `#[TypefinderPage(component: …, props: [...])]`. Prop types are **TypeScript** strings (`'{ id: number; name: string }[]'`), never PHPDoc shapes. Resource class strings become the resource type.
+- Every Inertia action has `#[TypefinderPage(component: …, props: [...])]`. Prop types are **TypeScript** strings (`'{ id: number; name: string }[]'`) by convention. Typefinder 8.6+ also converts PHPDoc types (`array{id: int}`, `list<User>`), and a type mixing both or one it can't express fails `--strict`. Resource class strings become the resource type.
 - Inside a prop type string, reference enums and resources by class (`'{ status: '.RsvpStatus::class.' }'`). A bare TS name like `RsvpStatus` isn't imported into `pages.d.ts` and breaks the type check.
 - Form requests' `rules()` must work without a route or user: Typefinder evaluates them statically (`--strict` fails on the warning). Read route models with `$this->route('event') instanceof Event ? … : []`, never a helper that aborts. Don't branch on input either (`$this->input('kind') === …`): express conditional rules with `exclude_unless`, `required_if` and similar, so Typefinder sees one shape.
 - Resources are unwrapped app-wide (`JsonResource::withoutWrapping()`), so pass resource objects as props, not `->resolve()`. Paginated feeds use `Inertia::scroll(Resource::collection($paginator))`, typed `SimplePaginatedResourceCollection<…>`, with `<InfiniteScroll data="…">`. Reset them on filter changes (`reset: ['quotes']`).
 - Routes and actions come from Wayfinder (`@/routes/...`, `@/actions/...`). Never hard-code URLs.
 - Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`. The function form of `defineOptions({ layout })` gets no page props.
-- **Dev server trap:** `defineProps<PageProps['x']>()` is resolved through Vue's type cache. The `refreshVueTypesOnTypefinderChange` plugin in `vite.config.ts` invalidates it when Typefinder writes. Without it, pages silently compile with **no props**. If props are ever undefined in dev, restart `npm run dev`.
+- **Dev server trap:** `defineProps<PageProps['x']>()` is resolved through Vue's type cache. Typefinder's Vite plugin (8.6+) invalidates it when it regenerates; don't add a local plugin for it. If props are ever undefined in dev anyway, restart `npm run dev`.
 
 ## Live updates
 
-- Broadcast events are typed by Typefinder (`BroadcastEvents['…']`). Declare payloads with `#[TypefinderBroadcast(payload: [...])]` (TS types), because `broadcastWith()` can't be evaluated statically.
+- Broadcast events are typed by Typefinder (`BroadcastEvents['…']`). Declare payloads as a PHPDoc `@return array{…}` shape on `broadcastWith()` (literal unions like `'food'|'costs'` carry over); Typefinder 8.6+ reads it, so no `#[TypefinderBroadcast]` attribute is needed. Narrow the promoted constructor property with `@param` so Larastan accepts the shape.
 - A page subscribes **once** per channel (e.g. `provideLiveQuoteScores()` with `useEcho`) and shares the values through `provide`/`inject`. Components never open their own subscriptions per item.
 - Admin-only progress that changes rarely (imports) polls with `usePoll(…, { only: [...] })` while something is running, instead of adding a broadcast channel.
 - Interactions that shouldn't reload the page (votes) use `useHttp` with an optimistic local update and a rollback on failure. The endpoint answers with a resource.

@@ -7,14 +7,12 @@ namespace App\Events;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
-use Pentacore\Typefinder\Attributes\TypefinderBroadcast;
 
 /**
  * Pushes a quote's new score to everyone viewing that server's quotes
  * (Reverb, `guilds.{id}.quotes`). Broadcast-only: nothing listens to it on
  * the server.
  */
-#[TypefinderBroadcast(payload: ['quote_id' => 'number', 'score' => 'number'])]
 final readonly class QuoteScoreChanged implements ShouldBroadcast
 {
     use Dispatchable;
