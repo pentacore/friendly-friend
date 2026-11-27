@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Discord\Interactions;
 
+use App\Access\AppSettings;
 use App\Ai\CaptureInput;
 use App\Ai\PlainQuoteNormalizer;
+use App\Enums\AppSetting;
 use App\Models\Quote;
 use App\Models\QuoteLine;
 use App\Quotes\Data\NormalizedQuote;
@@ -19,11 +21,11 @@ use Illuminate\Support\Facades\Cache;
  */
 final readonly class DraftEditForm
 {
-    public function __construct(private PlainQuoteNormalizer $plain) {}
+    public function __construct(private PlainQuoteNormalizer $plain, private AppSettings $settings) {}
 
     public function remember(Quote $quote): void
     {
-        Cache::put(self::key($quote->id), $this->modal($quote), now()->addMinutes(config()->integer('quotes.draft_ttl_minutes') + 5));
+        Cache::put(self::key($quote->id), $this->modal($quote), now()->addMinutes($this->settings->get(AppSetting::DraftTtlMinutes) + 5));
     }
 
     /**

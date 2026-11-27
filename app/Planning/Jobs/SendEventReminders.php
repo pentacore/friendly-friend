@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Planning\Jobs;
 
+use App\Access\AppSettings;
 use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
+use App\Enums\AppSetting;
 use App\Enums\EventStatus;
 use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
@@ -20,12 +22,13 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Runs every 5 minutes: DMs everyone going to an event 24 hours and 2
- * hours before it starts. People whose DMs are closed are mentioned in the
- * events channel instead (the one deliberate ping the bot makes). Each
- * reminder is sent once (`reminded_day_at`, `reminded_hours_at`); an event
- * created less than 2 hours ahead only gets the second one. Also nudges
- * people on Maybe a day before the "answer by" time, and refreshes the
+ * Runs every 5 minutes: DMs everyone going to an event twice before it
+ * starts (24 and 2 hours by default, `AppSetting::Reminder*Hours`). People
+ * whose DMs are closed are mentioned in the events channel instead (the one
+ * deliberate ping the bot makes). Each reminder is sent once
+ * (`reminded_day_at`, `reminded_hours_at`); an event created inside the
+ * second reminder's window only gets that one. Also nudges people on Maybe
+ * before the "answer by" time (`AppSetting::MaybeNudgeHours`), and refreshes the
  * announcement once answers close.
  */
 #[UniqueFor(240)]
@@ -33,37 +36,37 @@ final class SendEventReminders implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
-    public function handle(DiscordClient $discord): void
+    public function handle(DiscordClient $discord, AppSettings $settings): void
     {
         if (! $discord->configured()) {
             return;
         }
 
-        foreach ($this->due('reminded_hours_at', 2) as $event) {
+        foreach ($this->due('reminded_hours_at', $settings->get(AppSetting::ReminderSecondHours)) as $event) {
             $event->forceFill(['reminded_hours_at' => now(), 'reminded_day_at' => $event->reminded_day_at ?? now()])->saveQuietly();
             $this->remind($discord, $event);
         }
 
-        foreach ($this->due('reminded_day_at', 24) as $event) {
+        foreach ($this->due('reminded_day_at', $settings->get(AppSetting::ReminderFirstHours)) as $event) {
             $event->forceFill(['reminded_day_at' => now()])->saveQuietly();
             $this->remind($discord, $event);
         }
 
-        $this->nudgeMaybes($discord);
+        $this->nudgeMaybes($discord, $settings->get(AppSetting::MaybeNudgeHours));
         $this->closeAnswers();
     }
 
     /**
-     * A day before the "answer by" time, ask everyone still on Maybe to decide.
+     * $hours before the "answer by" time, ask everyone still on Maybe to decide.
      */
-    private function nudgeMaybes(DiscordClient $discord): void
+    private function nudgeMaybes(DiscordClient $discord, int $hours): void
     {
         $events = Event::query()
             ->with(['guild', 'rsvps.discordUser'])
             ->where('status', EventStatus::Planned)
             ->where('date_polling', false)
             ->whereNull('reminded_rsvp_at')
-            ->whereBetween('rsvp_by', [now(), now()->addDay()])
+            ->whereBetween('rsvp_by', [now(), now()->addHours($hours)])
             ->whereHas('guild', fn (Builder $guild) => $guild->where('enabled', true))
             ->get();
 

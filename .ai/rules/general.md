@@ -67,6 +67,10 @@ Work that runs alongside other work gets its own git worktree and its own test d
 - Rector's local cache only re-checks changed files, so a return type changed in one class can leave a needed fix in an unchanged caller unseen until CI (which has no cache). After changing a signature, run `vendor/bin/sail bin rector process --dry-run --clear-cache`.
 - Don't trust Rector blindly with arithmetic on casts: it once changed `(int) ((int) $x >> 22) % 6` into different precedence. Keep a test on anything bit-twiddly.
 
+## Limits are owner settings
+
+A limit, window, threshold or count an owner could reasonably want to tune (reminder times, draft expiry, top-list sizes) is an `App\Enums\AppSetting` case with a default, bounds, a label and help text, read through `App\Access\AppSettings` (which falls back to the default and clamps), and shown on the owners' Settings page automatically. It is not a hard-coded constant or a `config/` value. Discord API codes and limits, page sizes and algorithm constants (the Elo K, the fuzzy-match threshold) stay constants. (owner's rule, 2026-11-27)
+
 ## Product rules
 
 - **Dark mode is required**: every page must be correct in light and dark (see `frontend.md`).

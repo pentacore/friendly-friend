@@ -4,16 +4,17 @@ The words this project uses for its domain, and the words to avoid. Use them in 
 
 ## People and access
 
-| Term         | Meaning                                                                                      | Code name                                 |
-| ------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| Server       | A Discord server the bot is in. It starts disabled; an owner enables it on the Servers page. | `Guild`, `guilds`                         |
-| Discord user | One Discord account, the same row across every server.                                       | `DiscordUser`                             |
-| Member       | A Discord user's membership of one server: nickname, roles, whether they're still in it.     | `GuildMember`                             |
-| User         | Someone who has logged in to the site (always through Discord).                              | `User`                                    |
-| Owner        | A Discord user listed in `DISCORD_OWNER_IDS`. Manages servers and everything else.           | `manage-guilds` gate, `discord.owner_ids` |
-| Admin        | A member with one of a server's admin roles. Gets the admin tools, but can't manage servers. | `admin` gate, `GuildAccess::isAdmin()`    |
-| Person       | Anyone who can be quoted, a Discord user or not.                                             | `Person`                                  |
-| Alias        | Another name a person is known by, used to match who said a quote.                           | `PersonAlias`, `ResolvePerson`            |
+| Term         | Meaning                                                                                                        | Code name                                 |
+| ------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Server       | A Discord server the bot is in. It starts disabled; an owner enables it on the Servers page.                   | `Guild`, `guilds`                         |
+| Discord user | One Discord account, the same row across every server.                                                         | `DiscordUser`                             |
+| Member       | A Discord user's membership of one server: nickname, roles, whether they're still in it.                       | `GuildMember`                             |
+| User         | Someone who has logged in to the site (always through Discord).                                                | `User`                                    |
+| Owner        | A Discord user listed in `DISCORD_OWNER_IDS`. Manages servers and everything else.                             | `manage-guilds` gate, `discord.owner_ids` |
+| Admin        | A member with one of a server's admin roles. Gets the admin tools, but can't manage servers.                   | `admin` gate, `GuildAccess::isAdmin()`    |
+| Person       | Anyone who can be quoted, a Discord user or not.                                                               | `Person`                                  |
+| Alias        | Another name a person is known by, used to match who said a quote.                                             | `PersonAlias`, `ResolvePerson`            |
+| Setting      | A limit owners tune on the Settings page (reminder times, draft expiry, top lists), with a default and bounds. | `AppSetting`, `AppSettings`, `Setting`    |
 
 ## Quotes
 

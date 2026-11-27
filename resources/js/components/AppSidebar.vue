@@ -9,6 +9,7 @@ import {
     Scale,
     Server,
     Shuffle,
+    SlidersHorizontal,
     Trophy,
     Users,
     Inbox,
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, stats, top } from '@/routes';
 import { index as guildsIndex } from '@/routes/admin/guilds';
+import { index as settingsIndex } from '@/routes/admin/settings';
 import { index as eventsIndex } from '@/routes/events';
 import { index as importsIndex } from '@/routes/admin/imports';
 import { index as removedQuotesIndex } from '@/routes/admin/removed-quotes';
@@ -56,7 +58,14 @@ const sections = computed<NavSection[]>(() => {
               ]
             : []),
         ...(user?.is_owner
-            ? [{ title: 'Servers', href: guildsIndex(), icon: Server }]
+            ? [
+                  { title: 'Servers', href: guildsIndex(), icon: Server },
+                  {
+                      title: 'Settings',
+                      href: settingsIndex(),
+                      icon: SlidersHorizontal,
+                  },
+              ]
             : []),
     ];
 

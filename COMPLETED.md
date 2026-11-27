@@ -82,6 +82,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Typefinder 8.6: the upstream fixes for #245–#249 are in. The local Vue type-cache plugin and the `buildCommand: false` switch are gone, and broadcast payloads come from `broadcastWith()`'s PHPDoc shape instead of `#[TypefinderBroadcast]`.
 - [x] Conventions adopted from media manager: `ai-rules.md` (narrowest glob, owner's rules, skills for procedures) with a test that every rule glob matches a file, the `formatting-project` and `running-browser-tests` skills, owner approval for new production packages (`dependencies.md`), a rule that a behaviour change updates every description of it, and Dependabot for Composer and npm.
 - [x] More from media manager: `GLOSSARY.md` (domain words with their code names, and words to avoid), architecture tests for the "never do X" rules (strict types, final classes, `Model::query()`, `dispatch()`, no Mockery, no `env()` outside config, no services/listeners layer), rules for foreign key delete rules, `down()`, `$with`, seeders, command names and new job fields, a worktree rule, and `ROADMAP.md` grouped by what each item needs next.
+- [x] Owner settings (`/admin/settings`): reminder times, the Maybe nudge, draft expiry and top-list sizes are `AppSetting`s with defaults and bounds instead of constants and config.
 
 ## Bugs found and fixed along the way
 

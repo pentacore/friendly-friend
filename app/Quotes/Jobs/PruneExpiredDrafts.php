@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Quotes\Jobs;
 
+use App\Access\AppSettings;
 use App\Discord\DiscordClient;
+use App\Enums\AppSetting;
 use App\Enums\QuoteStatus;
 use App\Models\Quote;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Deletes drafts nobody saved within config('quotes.draft_ttl_minutes'),
+ * Deletes drafts nobody saved within the draft lifetime (`AppSetting::DraftTtlMinutes`),
  * after turning their private preview into "expired" (no buttons): the
  * interaction reply while its token still works, or the DM.
  */
@@ -26,11 +28,11 @@ final class PruneExpiredDrafts implements ShouldBeUnique, ShouldQueue
 
     public const string EXPIRED = 'This draft expired before it was saved. Start again to save the quote.';
 
-    public function handle(DiscordClient $discord): void
+    public function handle(DiscordClient $discord, AppSettings $settings): void
     {
         $expired = Quote::query()
             ->where('status', QuoteStatus::Draft)
-            ->where('updated_at', '<', now()->subMinutes(config()->integer('quotes.draft_ttl_minutes')))
+            ->where('updated_at', '<', now()->subMinutes($settings->get(AppSetting::DraftTtlMinutes)))
             ->get();
 
         foreach ($expired as $draft) {

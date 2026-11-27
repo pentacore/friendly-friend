@@ -26,6 +26,7 @@ export type { ShoppingItemRequest } from './ShoppingItemRequest';
 export type { StatsRequest, StatsRequestQuery } from './StatsRequest';
 export type { StoreAliasRequest } from './StoreAliasRequest';
 export type { TickRequest } from './TickRequest';
+export type { UpdateAppSettingsRequest } from './UpdateAppSettingsRequest';
 export type { UpdateDietaryNotesRequest } from './UpdateDietaryNotesRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';
 export type { UpdatePrivacyRequest } from './UpdatePrivacyRequest';

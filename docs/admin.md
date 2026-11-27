@@ -1,4 +1,4 @@
-# Admin: servers
+# Admin: servers and settings
 
 `/admin/guilds` (sidebar → **Servers**) is **owners only** (`manage-guilds` gate, `DISCORD_OWNER_IDS`).
 
@@ -28,3 +28,20 @@ Code: `App\Http\Controllers\Admin\GuildController`, `App\Http\Requests\Admin\Upd
 - **Merge:** `MergePeople` moves a duplicate's quote lines, nicknames and Discord link to another person, keeps the duplicate's name as a nickname, and deletes the duplicate. It can't be undone.
 
 The Servers page also sets **Post saved quotes in**, **Announce events in** and **Watch for posted quotes in** (quotes posted without the bot are picked up for review on Imports, as a standing "Watching" import per channel, or published straight away if **Publish them straight away** is ticked; see [quotes.md](quotes.md)).
+
+## Settings
+
+`/admin/settings` (sidebar → **Settings**) is **owners only** too. It holds the limits that apply to every server:
+
+| Setting                                          | Default    | Bounds |
+| ------------------------------------------------ | ---------- | ------ |
+| **First reminder** (DM to everyone going)        | 24 hours   | 1–168  |
+| **Second reminder** (must come after the first)  | 2 hours    | 1–48   |
+| **Nudge people on Maybe** before "answer by"     | 24 hours   | 1–168  |
+| **Drafts expire after**                          | 14 minutes | 1–14   |
+| **Quotes per top list**                          | 10         | 3–50   |
+| **This-or-that rounds before a quote is ranked** | 3          | 1–50   |
+
+A setting nobody has saved is its default, and a stored value is clamped to its bounds when read. Changes apply from the next run of whatever reads them. Drafts can't live past 14 minutes because Discord only lets the bot edit an interaction reply for 15.
+
+Code: `App\Enums\AppSetting` (default, bounds, label and help per setting), `App\Access\AppSettings` (reads, with the fallback and clamp), `App\Access\Actions\UpdateAppSettings`, `App\Http\Controllers\Admin\SettingsController`, table `app_settings`, page `resources/js/pages/admin/Settings.vue`.

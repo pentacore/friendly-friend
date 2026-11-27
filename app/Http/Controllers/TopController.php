@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Access\AccessSnapshot;
+use App\Access\AppSettings;
+use App\Enums\AppSetting;
 use App\Http\Resources\QuoteResource;
 use App\Models\DiscordUser;
 use App\Models\Person;
@@ -21,11 +23,6 @@ use Pentacore\Typefinder\Attributes\TypefinderPage;
  */
 final class TopController extends Controller
 {
-    private const int SIZE = 10;
-
-    /** Ratings only mean something after a few this-or-that rounds. */
-    private const int MIN_MATCHUPS = 3;
-
     #[TypefinderPage(component: 'quotes/Top', props: [
         'all_time' => QuoteResource::class.'[]',
         'this_month' => QuoteResource::class.'[]',
@@ -33,24 +30,27 @@ final class TopController extends Controller
         'most_quoted' => '{ slug: string; display_name: string; quote_count: number }[]',
         'top_submitters' => '{ name: string; avatar_url: string; quote_count: number }[]',
     ])]
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, AppSettings $settings): Response
     {
+        $size = $settings->get(AppSetting::TopListSize);
+        // Ratings only mean something after a few this-or-that rounds.
+        $minMatchups = $settings->get(AppSetting::TopListMinMatchups);
         $access = AccessSnapshot::forRequest($request) ?? throw new LogicException('Top lists require a logged-in user.');
         $visible = fn () => Quote::query()->visibleTo($access)->with(QuoteController::cardRelations($access));
 
         return Inertia::render('quotes/Top', [
-            'all_time' => QuoteResource::collection($visible()->orderByDesc('score')->orderByDesc('published_at')->limit(self::SIZE)->get()),
-            'this_month' => QuoteResource::collection($visible()->where('published_at', '>=', now()->startOfMonth())->orderByDesc('score')->orderByDesc('published_at')->limit(self::SIZE)->get()),
-            'elo' => QuoteResource::collection($visible()->where('matchup_count', '>=', self::MIN_MATCHUPS)->orderByDesc('elo')->limit(self::SIZE)->get()),
-            'most_quoted' => $this->mostQuoted($access),
-            'top_submitters' => $this->topSubmitters($access),
+            'all_time' => QuoteResource::collection($visible()->orderByDesc('score')->orderByDesc('published_at')->limit($size)->get()),
+            'this_month' => QuoteResource::collection($visible()->where('published_at', '>=', now()->startOfMonth())->orderByDesc('score')->orderByDesc('published_at')->limit($size)->get()),
+            'elo' => QuoteResource::collection($visible()->where('matchup_count', '>=', $minMatchups)->orderByDesc('elo')->limit($size)->get()),
+            'most_quoted' => $this->mostQuoted($access, $size),
+            'top_submitters' => $this->topSubmitters($access, $size),
         ]);
     }
 
     /**
      * @return list<array{slug: string, display_name: string, quote_count: int}>
      */
-    private function mostQuoted(AccessSnapshot $access): array
+    private function mostQuoted(AccessSnapshot $access, int $size): array
     {
         $rows = DB::table('quote_lines')
             ->joinSub(Quote::query()->visibleTo($access)->select('id'), 'visible', 'visible.id', '=', 'quote_lines.quote_id')
@@ -58,7 +58,7 @@ final class TopController extends Controller
             ->groupBy('person_id')
             ->selectRaw('person_id, count(distinct quote_lines.quote_id) as quote_count')
             ->orderByDesc('quote_count')
-            ->limit(self::SIZE)
+            ->limit($size)
             ->get();
 
         $people = Person::query()->whereKey($rows->pluck('person_id')->all())->get()->keyBy('id');
@@ -78,13 +78,13 @@ final class TopController extends Controller
     /**
      * @return list<array{name: string, avatar_url: string, quote_count: int}>
      */
-    private function topSubmitters(AccessSnapshot $access): array
+    private function topSubmitters(AccessSnapshot $access, int $size): array
     {
         $rows = Quote::query()->visibleTo($access)->toBase()
             ->groupBy('submitted_by_discord_user_id')
             ->selectRaw('submitted_by_discord_user_id, count(*) as quote_count')
             ->orderByDesc('quote_count')
-            ->limit(self::SIZE)
+            ->limit($size)
             ->get();
 
         $users = DiscordUser::query()->whereKey($rows->pluck('submitted_by_discord_user_id')->all())->get()->keyBy('id');

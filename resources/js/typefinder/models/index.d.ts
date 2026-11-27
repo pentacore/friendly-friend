@@ -32,6 +32,7 @@ export type { QuoteLine, QuoteLineCreate, QuoteLineUpdate } from './QuoteLine';
 export type { QuoteMatchup, QuoteMatchupCreate, QuoteMatchupUpdate } from './QuoteMatchup';
 export type { QuoteRevision, QuoteRevisionCreate, QuoteRevisionUpdate } from './QuoteRevision';
 export type { QuoteVote, QuoteVoteCreate, QuoteVoteUpdate } from './QuoteVote';
+export type { Setting, SettingCreate, SettingUpdate } from './Setting';
 export type { StatActivitySession, StatActivitySessionCreate, StatActivitySessionUpdate } from './StatActivitySession';
 export type { StatDailyActivity, StatDailyActivityCreate, StatDailyActivityUpdate } from './StatDailyActivity';
 export type { StatDailyVoice, StatDailyVoiceCreate, StatDailyVoiceUpdate } from './StatDailyVoice';

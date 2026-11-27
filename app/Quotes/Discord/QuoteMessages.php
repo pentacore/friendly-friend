@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Quotes\Discord;
 
+use App\Access\AppSettings;
 use App\Discord\Interactions\CustomId;
+use App\Enums\AppSetting;
 use App\Models\Quote;
 use App\Models\QuoteLine;
 
@@ -28,7 +30,7 @@ final class QuoteMessages
     public static function preview(Quote $quote, ?string $notice = null): array
     {
         $body = self::quoteBody($quote, markNewPeople: true);
-        $ttl = config()->integer('quotes.draft_ttl_minutes');
+        $ttl = resolve(AppSettings::class)->get(AppSetting::DraftTtlMinutes);
 
         return [
             'content' => trim(($notice !== null ? "{$notice}\n\n" : '')."**Preview** (only you can see this; expires in {$ttl} min)\n{$body}"),
