@@ -13,7 +13,7 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 
 ## Pages
 
-- **`/events`** (sidebar → Together → Events): coming up (soonest first) and "been and gone" (latest 30), filterable by server.
+- **`/events`** (sidebar → Together → Events): coming up (soonest first) and "been and gone" (newest first, 20 at a time with infinite scroll), filterable by server and searchable by name or place (`EventIndexRequest`, `ilike` with `%`/`_` taken literally).
 - **`/events/create`**: server, title, start and optional end (in the event's timezone, default `STATS_TIMEZONE`), place and map link, details, co-hosts (current members of that server, with a filter when there are more than six). The creator is automatically going. Times can't be in the past; a past event can still be edited as long as its date isn't changed.
     - **Plan ahead (optional):** questions, a bring list, shopping, meals, your own ride, and costs you paid. Each section opens with a button and can be removed again (×, or by removing its last row); rows left blank are skipped. Costs added here are split among **everyone going**.
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.

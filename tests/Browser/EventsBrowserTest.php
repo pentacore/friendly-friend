@@ -51,6 +51,13 @@ it('renders the events list', function (bool $dark): void {
     $page->assertSee('Crayfish party')->assertSee('Midsummer')->assertSee('Together')->assertNoJavaScriptErrors();
     $page->script('document.fonts.ready');
     $page->screenshot(filename: 'events-index-'.($dark ? 'dark' : 'light'));
+
+    $page->type('[aria-label="Search events"]', 'midsum')
+        ->wait(1)
+        ->assertDontSee('Crayfish party')
+        ->assertSee('Midsummer')
+        ->assertSee('Nothing coming up matches “midsum”')
+        ->assertNoJavaScriptErrors();
 })->with(['light' => false, 'dark' => true]);
 
 it('renders an event and takes an RSVP', function (bool $dark): void {
