@@ -95,6 +95,7 @@ For when people post a quote as a normal message and forget the bot. On the Serv
 
 - Each new message there (not from a bot, not mentioning the bot, which already starts a capture) goes through `QuoteDetector`, like a channel import. Messages that look like quotes become `pending_review` quotes with source `watched_channel`, and the bot reacts 📝 to the message so people can see it was noticed.
 - Each watched channel has a standing import (status `watching`) that collects them, so they're reviewed on **Imports** like any import: approve, edit, not a quote, approve all. Unwatching a channel finishes its import.
+- **Publish them straight away** (off by default, per server, on the Servers page): picked-up quotes skip review and are published at once, credited to the person who posted them (`guilds.publish_watched_quotes`, checked in `PickUpPostedQuote`). They aren't posted to the quotes channel, like approved imports.
 - The bot decides from a cached list of watched channels (`Quotes\WatchedChannels`, refreshed on save and when the bot starts); `PickUpPostedQuote` checks the database again.
 - Every message in a watched channel is classified. With an AI key that's one cheap AI call per message, so watch quote channels, not busy chat.
 

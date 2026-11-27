@@ -70,6 +70,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Telescope's tables are created only in local development (`shouldRun()`), not in production or tests.
 - [x] Expired drafts: the preview turns into "expired" (no buttons) when the draft is pruned; drafts now live 14 minutes, inside Discord's 15-minute token for editing the reply.
 - [x] The Discord edit form keeps line breaks inside a conversation line (as indented continuation lines, which the parser reads back).
+- [x] Watched channels: a per-server option to publish picked-up quotes straight away, skipping review.
 
 ## Bugs found and fixed along the way
 

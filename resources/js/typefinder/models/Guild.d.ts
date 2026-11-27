@@ -23,6 +23,7 @@ export type Guild = {
   quotes_channel_id: string | null;
   events_channel_id: string | null;
   watched_channel_ids: string[];
+  publish_watched_quotes: boolean;
   members?: GuildMember[];
 };
 
@@ -40,6 +41,7 @@ export type GuildCreate = {
   quotes_channel_id?: string | null;
   events_channel_id?: string | null;
   watched_channel_ids?: string[];
+  publish_watched_quotes?: boolean;
 };
 
 export type GuildUpdate = {
@@ -56,4 +58,5 @@ export type GuildUpdate = {
   quotes_channel_id?: string | null;
   events_channel_id?: string | null;
   watched_channel_ids?: string[];
+  publish_watched_quotes?: boolean;
 };

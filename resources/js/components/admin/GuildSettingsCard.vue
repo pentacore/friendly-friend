@@ -32,6 +32,7 @@ const form = useForm({
     quotes_channel_id: props.guild.quotes_channel_id,
     events_channel_id: props.guild.events_channel_id,
     watched_channel_ids: [...props.guild.watched_channel_ids],
+    publish_watched_quotes: props.guild.publish_watched_quotes,
 });
 
 function setWatched(
@@ -234,6 +235,25 @@ function save(): void {
                     </label>
                 </div>
                 <InputError :message="form.errors.watched_channel_ids" />
+                <Label
+                    class="mt-1 flex items-start gap-3 font-normal"
+                    :class="{
+                        'opacity-50': form.watched_channel_ids.length === 0,
+                    }"
+                >
+                    <Checkbox
+                        v-model="form.publish_watched_quotes"
+                        :disabled="form.watched_channel_ids.length === 0"
+                        class="mt-0.5"
+                    />
+                    <span class="grid gap-0.5">
+                        Publish them straight away
+                        <span class="text-xs text-muted-foreground">
+                            Skips review on Imports. Mistakes can still be
+                            edited or removed afterwards.
+                        </span>
+                    </span>
+                </Label>
             </fieldset>
 
             <InputError

@@ -104,3 +104,29 @@ it('ignores channels that are no longer watched and disabled servers', function 
 
     expect(Quote::query()->count())->toBe(0);
 });
+
+it('publishes picked-up quotes straight away when the server opted in', function (): void {
+    app(WatchChannels::class)->handle($this->guild, ['777'], $this->owner, publishStraightAway: true);
+
+    dispatch_sync(new PickUpPostedQuote(postedIn('777', '"cheese is a vegetable" - Bo')));
+
+    $quote = Quote::query()->with('lines.person', 'revisions')->sole();
+    expect($this->guild->refresh()->publish_watched_quotes)->toBeTrue()
+        ->and($quote->status)->toBe(QuoteStatus::Published)
+        ->and($quote->published_at)->not->toBeNull()
+        ->and($quote->lines->first()?->person?->display_name)->toBe('Bo')
+        ->and($quote->revisions)->toHaveCount(1)
+        ->and($this->discord->reactions())->toHaveCount(1);
+});
+
+it('lets owners turn on publishing straight away on the Servers page', function (): void {
+    config()->set('discord.owner_ids', [$this->owner->discord_id]);
+    $owner = User::factory()->forDiscordUser($this->owner)->create();
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $this->guild), [
+        'enabled' => true, 'allow_all_members' => true, 'allowed_role_ids' => [], 'admin_role_ids' => [],
+        'watched_channel_ids' => ['777'], 'publish_watched_quotes' => true,
+    ])->assertSessionHasNoErrors();
+
+    expect($this->guild->refresh()->publish_watched_quotes)->toBeTrue();
+});

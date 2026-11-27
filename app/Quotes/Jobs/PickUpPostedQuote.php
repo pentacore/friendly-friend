@@ -10,6 +10,7 @@ use App\Models\Guild;
 use App\Models\Quote;
 use App\Models\QuoteImport;
 use App\Quotes\Actions\CaptureChannelMessage;
+use App\Quotes\Actions\ConfirmQuote;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\Client\RequestException;
@@ -18,8 +19,9 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * A message in a watched channel: if it looks like a quote, it waits in
- * that channel's standing import for an admin, and the bot reacts 📝 so
- * people can see it was noticed.
+ * that channel's standing import for an admin (or is published straight
+ * away when the server opted in), and the bot reacts 📝 so people can see
+ * it was noticed.
  */
 #[Tries(3)]
 final class PickUpPostedQuote implements ShouldQueue
@@ -33,7 +35,7 @@ final class PickUpPostedQuote implements ShouldQueue
      */
     public function __construct(public readonly array $message) {}
 
-    public function handle(CaptureChannelMessage $capture, DiscordClient $discord): void
+    public function handle(CaptureChannelMessage $capture, ConfirmQuote $confirm, DiscordClient $discord): void
     {
         $guildId = is_string($this->message['guild_id'] ?? null) ? $this->message['guild_id'] : '';
         $channelId = is_string($this->message['channel_id'] ?? null) ? $this->message['channel_id'] : '';
@@ -55,6 +57,10 @@ final class PickUpPostedQuote implements ShouldQueue
 
         $import->increment('messages_scanned');
         $quote = $capture->handle($import, $guild, $this->message, QuoteSource::WatchedChannel);
+
+        if ($quote instanceof Quote && $guild->publish_watched_quotes) {
+            $confirm->handle($quote, $quote->submittedBy);
+        }
 
         $messageId = is_string($this->message['id'] ?? null) ? $this->message['id'] : null;
 

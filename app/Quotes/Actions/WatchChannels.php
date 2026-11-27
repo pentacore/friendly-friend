@@ -13,7 +13,8 @@ use App\Quotes\WatchedChannels;
  * Sets which channels of a server are watched for quotes posted without
  * the bot. Each watched channel has a standing import (status `watching`)
  * that collects what's picked up, so it's reviewed like any import;
- * unwatching a channel finishes its import.
+ * unwatching a channel finishes its import. With `$publishStraightAway`,
+ * picked-up quotes are published without review.
  */
 final readonly class WatchChannels
 {
@@ -22,10 +23,10 @@ final readonly class WatchChannels
     /**
      * @param  list<string>  $channelIds
      */
-    public function handle(Guild $guild, array $channelIds, DiscordUser $actor): void
+    public function handle(Guild $guild, array $channelIds, DiscordUser $actor, bool $publishStraightAway = false): void
     {
         $channelIds = array_values(array_unique($channelIds));
-        $guild->update(['watched_channel_ids' => $channelIds]);
+        $guild->update(['watched_channel_ids' => $channelIds, 'publish_watched_quotes' => $publishStraightAway]);
 
         QuoteImport::query()
             ->where('guild_id', $guild->id)

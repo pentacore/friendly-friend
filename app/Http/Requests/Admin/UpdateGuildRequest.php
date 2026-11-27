@@ -41,6 +41,7 @@ final class UpdateGuildRequest extends FormRequest
             'events_channel_id' => ['nullable', 'string', Rule::in($channelIds)],
             'watched_channel_ids' => ['array', 'max:10'],
             'watched_channel_ids.*' => ['string', 'distinct', Rule::in($channelIds)],
+            'publish_watched_quotes' => ['boolean'],
         ];
     }
 

@@ -53,7 +53,7 @@ final class GuildController extends Controller
         $user = $request->user();
 
         if ($user instanceof User) {
-            $watchChannels->handle($guild, $this->ids($request->array('watched_channel_ids')), $user->discordUser);
+            $watchChannels->handle($guild, $this->ids($request->array('watched_channel_ids')), $user->discordUser, $request->boolean('publish_watched_quotes'));
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':name saved.', ['name' => $guild->name])]);
