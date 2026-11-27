@@ -66,3 +66,27 @@ it('marks a guild as left by the bot', function (): void {
     expect($guild->refresh()->bot_present)->toBeFalse()
         ->and($guild->enabled)->toBeTrue();
 });
+
+it('caches the guild\'s text channels from the gateway, keeping them when REST sends none', function (): void {
+    Queue::fake();
+
+    new RegisterGuild(GuildData::fromPayload([
+        'id' => '555', 'name' => 'Friends', 'roles' => [],
+        'channels' => [
+            ['id' => '2', 'name' => 'quotes', 'type' => 0, 'position' => 2],
+            ['id' => '1', 'name' => 'general', 'type' => 0, 'position' => 1],
+            ['id' => '3', 'name' => 'Voice', 'type' => 2, 'position' => 0],
+            ['id' => '4', 'name' => 'news', 'type' => 5, 'position' => 3],
+        ],
+    ]))->handle();
+
+    expect(Guild::query()->sole()->channels)->toEqual([
+        ['id' => '1', 'name' => 'general', 'position' => 1],
+        ['id' => '2', 'name' => 'quotes', 'position' => 2],
+        ['id' => '4', 'name' => 'news', 'position' => 3],
+    ]);
+
+    new RegisterGuild(guildData('Renamed'), syncMembers: false)->handle();
+
+    expect(Guild::query()->sole()->channels)->toHaveCount(3);
+});

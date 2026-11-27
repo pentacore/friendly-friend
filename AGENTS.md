@@ -52,7 +52,10 @@ Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `a
 
 ## Quotes
 
-- A quote is made of ordered `quote_lines`, each with a person and text, so a back-and-forth exchange is supported.
+- A quote is made of ordered `quote_lines`, each with a speaker and text, so a back-and-forth exchange is supported. In drafts a line may have no `person_id` yet (`speaker_discord_user_id` or just `speaker_name`). People are only created by `ConfirmQuote`, so cancelled drafts never leave stray people.
+- Speakers are always resolved with `App\Quotes\Actions\ResolvePerson` (Discord user, alias, name, server member, fuzzy match, new). Don't match names anywhere else.
+- A Discord message can only be quoted once (`quotes.source_message_id` is unique). `DraftQuote` replaces an unsaved draft of it and refuses a saved one (`AlreadyQuotedException`).
+- Quote state changes go through `App\Quotes\Actions` (`DraftQuote`, `UpdateDraft`, `ConfirmQuote`, `CancelDraft`, `RecordRevision`). Details: `docs/quotes.md`.
 - Every capture path ends in draft → private preview → confirm. Drafts expire after 15 minutes. Channel imports become `pending_review`, and an admin approves them.
 - AI failure must never block capture: if the primary provider fails, try the fallback provider, then use the raw text.
 - Every edit writes a `quote_revisions` snapshot. Only the submitter and admins can edit (`QuotePolicy`).

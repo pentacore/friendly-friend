@@ -19,6 +19,8 @@ export type Guild = {
   roles: { id: string; name: string; color: number; position: number; managed: boolean }[];
   created_at: string | null;
   updated_at: string | null;
+  channels: { id: string; name: string; position: number }[];
+  quotes_channel_id: string | null;
   members?: GuildMember[];
 };
 
@@ -32,6 +34,8 @@ export type GuildCreate = {
   allowed_role_ids?: string[];
   admin_role_ids?: string[];
   roles?: { id: string; name: string; color: number; position: number; managed: boolean }[];
+  channels?: { id: string; name: string; position: number }[];
+  quotes_channel_id?: string | null;
 };
 
 export type GuildUpdate = {
@@ -44,4 +48,6 @@ export type GuildUpdate = {
   allowed_role_ids?: string[];
   admin_role_ids?: string[];
   roles?: { id: string; name: string; color: number; position: number; managed: boolean }[];
+  channels?: { id: string; name: string; position: number }[];
+  quotes_channel_id?: string | null;
 };

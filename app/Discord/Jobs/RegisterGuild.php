@@ -36,6 +36,8 @@ final class RegisterGuild implements ShouldQueue
                 'icon' => $this->guild->icon,
                 'roles' => array_map(fn (GuildRoleData $role): array => $role->toArray(), $this->guild->roles),
                 'bot_present' => true,
+                // REST guild objects carry no channels: keep the last known list.
+                ...($this->guild->channels !== [] ? ['channels' => $this->guild->channels] : []),
             ],
         );
 

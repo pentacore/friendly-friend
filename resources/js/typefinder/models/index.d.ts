@@ -7,4 +7,10 @@
 export type { DiscordUser, DiscordUserCreate, DiscordUserUpdate } from './DiscordUser';
 export type { Guild, GuildCreate, GuildUpdate } from './Guild';
 export type { GuildMember, GuildMemberCreate, GuildMemberUpdate } from './GuildMember';
+export type { Person, PersonCreate, PersonUpdate } from './Person';
+export type { PersonAlias, PersonAliasCreate, PersonAliasUpdate } from './PersonAlias';
+export type { Quote, QuoteCreate, QuoteUpdate } from './Quote';
+export type { QuoteImport, QuoteImportCreate, QuoteImportUpdate } from './QuoteImport';
+export type { QuoteLine, QuoteLineCreate, QuoteLineUpdate } from './QuoteLine';
+export type { QuoteRevision, QuoteRevisionCreate, QuoteRevisionUpdate } from './QuoteRevision';
 export type { User, UserCreate, UserUpdate } from './User';

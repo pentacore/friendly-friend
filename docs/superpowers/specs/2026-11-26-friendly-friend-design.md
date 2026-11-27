@@ -119,7 +119,7 @@ All four input methods produce a **draft quote**, then a **private preview**, th
 
 1. The interaction or listener calls `DraftQuote`, which saves a `draft` quote immediately (so nothing is lost) and queues the normalization job.
 2. The normalization job calls `QuoteNormalizer` (timeout 15 s, primary then fallback provider). On failure or low confidence it uses the raw text as a single line.
-3. `ResolvePerson` for each speaker checks, in order: Discord ID → alias or display name (case-insensitive) → Postgres trigram similarity ≥ 0.6 → otherwise proposes a **new outside person**.
+3. `ResolvePerson` for each speaker checks, in order: Discord ID → alias or display name (case-insensitive) → Postgres trigram similarity ≥ 0.5 (Fredrik/Fredrick ≈ 0.55; the preview shows every match) → otherwise proposes a **new outside person**.
 4. The bot sends a private reply (or a direct message, for the mention-based methods) with the formatted draft, how each speaker was resolved, and the buttons **Save**, **Edit** and **Cancel**.
 5. **Edit** opens a Discord form with fields for the lines (one `Name: text` per line), context and when. Submitting re-parses it without AI (plain `Name:` prefix parsing plus `ResolvePerson`) and shows the preview again.
 6. **Save** calls `ConfirmQuote`, which sets the status to `published`, writes the first `quote_revisions` snapshot, broadcasts `QuotePublished` (Reverb), and posts to that server's `quotes_channel_id`, if one is set.
