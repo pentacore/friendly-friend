@@ -7,6 +7,7 @@
 export * from './AccessDeniedReason';
 export * from './EventStatus';
 export * from './MealSlot';
+export * from './QuestionKind';
 export * from './QuoteSource';
 export * from './QuoteStatus';
 export * from './RideDirection';

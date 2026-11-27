@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
+use App\Models\EventQuestionAnswer;
 use App\Models\EventRide;
 use App\Models\EventRsvp;
 use App\Models\Guild;
@@ -183,4 +184,27 @@ it('splits costs and settles up', function (bool $dark): void {
     $page->screenshot(fullPage: true, filename: 'events-costs-'.($dark ? 'dark' : 'light'));
 
     $page->click('Mark as paid')->assertSee('Paid back')->assertNoJavaScriptErrors();
+})->with(['light' => false, 'dark' => true]);
+
+it('asks questions and shows the answers', function (bool $dark): void {
+    $this->event->update(['rsvp_by' => now()->addDays(3)]);
+    $this->actingAs($this->user);
+
+    $page = visit("/events/{$this->event->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Please answer by')
+        ->click('Add a question')
+        ->fill('#question-prompt', 'Will you eat crayfish?')
+        ->click('Add question')
+        ->assertSee('0 answered')
+        ->click('[data-test="rsvp"] button[aria-pressed]:first-child')
+        ->click('[data-test^="question-"] button:first-child')
+        ->assertSee('1 answered')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-questions-'.($dark ? 'dark' : 'light'));
+
+    expect(EventQuestionAnswer::query()->value('value'))->toBe('yes');
 })->with(['light' => false, 'dark' => true]);

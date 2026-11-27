@@ -89,9 +89,13 @@ final readonly class EventInteractions
 
         $url = route('events.show', $event);
 
+        $questions = $button->status !== RsvpStatus::Declined && $event->questions()->exists()
+            ? ' The organisers have a few questions for you there.'
+            : '';
+
         return match ($button->status) {
-            RsvpStatus::Going => "You're going to **{$event->title}**. Food, rides and costs: {$url}",
-            RsvpStatus::Maybe => "Noted as maybe for **{$event->title}**. Details: {$url}",
+            RsvpStatus::Going => "You're going to **{$event->title}**. Food, rides and costs: {$url}{$questions}",
+            RsvpStatus::Maybe => "Noted as maybe for **{$event->title}**. Details: {$url}{$questions}",
             RsvpStatus::Declined => "Noted: you can't make **{$event->title}**.",
         };
     }

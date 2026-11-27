@@ -154,6 +154,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<EventQuestion, $this>
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(EventQuestion::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * Past the "answer by" time: Going and Maybe are closed, Can't is not.
      */
     public function rsvpClosed(): bool

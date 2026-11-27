@@ -15,6 +15,7 @@ export type { MealRequest } from './MealRequest';
 export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { OfferRideRequest } from './OfferRideRequest';
 export type { PaymentRequest } from './PaymentRequest';
+export type { QuestionRequest } from './QuestionRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
 export type { RsvpRequest } from './RsvpRequest';
 export type { SaveEventRequest } from './SaveEventRequest';

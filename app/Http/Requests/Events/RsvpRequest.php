@@ -35,6 +35,8 @@ final class RsvpRequest extends FormRequest
             'guests' => ['integer', 'min:0', 'max:20'],
             'note' => ['nullable', 'string', 'max:200'],
             'needs_ride' => ['boolean'],
+            'answers' => ['array', 'max:50'],
+            'answers.*' => ['nullable', 'string', 'max:500'],
         ];
     }
 

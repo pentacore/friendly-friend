@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventCostController;
 use App\Http\Controllers\EventFoodController;
+use App\Http\Controllers\EventQuestionController;
 use App\Http\Controllers\EventRideController;
 use App\Http\Controllers\EventRsvpController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,8 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::put('events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::post('events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::put('events/{event}/rsvp', [EventRsvpController::class, 'update'])->name('events.rsvp');
+    Route::post('events/{event}/questions', [EventQuestionController::class, 'store'])->name('events.questions.store');
+    Route::delete('events/{event}/questions/{question}', [EventQuestionController::class, 'destroy'])->scopeBindings()->name('events.questions.destroy');
 
     Route::scopeBindings()->prefix('events/{event}')->name('events.food.')->controller(EventFoodController::class)->group(function (): void {
         Route::post('bring', 'storeBringItem')->name('bring.store');

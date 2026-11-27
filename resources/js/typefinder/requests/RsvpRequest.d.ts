@@ -11,4 +11,5 @@ export type RsvpRequest = {
   guests?: number;
   note?: string | null;
   needs_ride?: boolean;
+  answers?: (string | null)[];
 };

@@ -20,7 +20,7 @@ paths:
 - **view**: access through the event's server.
 - **edit**: the creator, co-hosts (`event_hosts`, only current members of that server) and the server's admins.
 - **participate**: view, and the event isn't cancelled.
-- **answer** (`canAnswer`): participate, and before `rsvp_by`, except that Can't is always allowed and organisers may still answer. Checked in `RsvpRequest::after()` (a validation error, not a 403) and in the Discord button handler. Costs stay open on cancelled events so they can be settled.
+- **answer** (`canAnswer`): participate, and before `rsvp_by`, except that Can't is always allowed and organisers may still answer. Checked in `RsvpRequest::after()` (a validation error, not a 403) and in the Discord button handler.
 - Load `hosts` before calling `canEdit` in a loop.
 
 ## Times and money
@@ -38,7 +38,8 @@ paths:
 ## Tabs
 
 - The event page has one tab per section (Overview, Food, …). A section's data is one lazy prop (`food` from `FoodPlan::for()`), and its writes reload only that prop (`useEventAction(['food'])`). Child routes use `scopeBindings()`, so an item of another event is a 404.
-- Organiser-only data (dietary needs) is `null` for everyone else, never just hidden in the UI.
+- Organiser-only data (dietary needs, who answered which question) is `null` for everyone else, never just hidden in the UI.
+- Question answers are saved with the RSVP (`answers` in `RsvpRequest`, `SaveAnswers`), only while going or maybe. A value a question doesn't accept clears the answer instead of failing. Counts only include people going or maybe.
 - Anything that can run out (ride seats) is checked inside a transaction with `lockForUpdate()`, and the action throws a domain exception (`RideFullException`) that the controller turns into an error toast.
 - Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. Payments change only the balance, never "paid" or "share".
 - Costs are managed with the `manageCosts` ability (view access), not `participate`, so a cancelled event can still be settled.

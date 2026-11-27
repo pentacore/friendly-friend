@@ -27,6 +27,15 @@ An event can have an **Answer by** time (in the event's timezone, no later than 
 - A day before it, everyone on **Maybe** gets a DM asking them to decide (once).
 - When it passes, the announcement is refreshed once, so Going and Maybe grey out; Discord answers say answers are closed.
 
+## Questions
+
+Organisers can ask everyone coming something, on the Overview tab:
+
+- **Yes or no** ("Will you eat crayfish?"), **Pick one** (two to twelve options: "Which sauna slot?") or **Free text** ("Anything we should know?").
+- People answer in the "Are you coming?" box once they're going or maybe; answers save straight away and can be cleared by pressing the chosen one again.
+- **Everyone** sees the counts (only people going or maybe count). **Organisers** also see who answered what, and all free-text answers.
+- Removing a question deletes its answers. The Discord RSVP reply mentions when there are questions to answer on the website.
+
 ## Food tab
 
 - **Dietary needs** (organisers only): the notes of everyone going or maybe going. People write them once in **Settings → Food** (`/settings/food`, `discord_users.dietary_notes`).
@@ -71,6 +80,7 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
 - `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).
+- `event_questions` (position, prompt, kind `yes_no`/`choice`/`text`, options) and `event_question_answers` (one per person and question: value).
 - `events.rsvp_by` (answer by), `reminded_rsvp_at` (Maybe nudge sent), `rsvp_closed_synced_at` (announcement refreshed after the deadline).
 - Discord: `guilds.events_channel_id`, and on `events`: announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
 - `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats, note) and `event_ride_passengers` (one per person and ride: pickup_note).

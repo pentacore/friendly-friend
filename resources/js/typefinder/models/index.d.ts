@@ -14,6 +14,8 @@ export type { EventHostsPivot } from './EventHostsPivot';
 export type { EventMeal, EventMealCreate, EventMealUpdate } from './EventMeal';
 export type { EventMealCooksPivot } from './EventMealCooksPivot';
 export type { EventPayment, EventPaymentCreate, EventPaymentUpdate } from './EventPayment';
+export type { EventQuestion, EventQuestionCreate, EventQuestionUpdate } from './EventQuestion';
+export type { EventQuestionAnswer, EventQuestionAnswerCreate, EventQuestionAnswerUpdate } from './EventQuestionAnswer';
 export type { EventRide, EventRideCreate, EventRideUpdate } from './EventRide';
 export type { EventRidePassenger, EventRidePassengerCreate, EventRidePassengerUpdate } from './EventRidePassenger';
 export type { EventRsvp, EventRsvpCreate, EventRsvpUpdate } from './EventRsvp';

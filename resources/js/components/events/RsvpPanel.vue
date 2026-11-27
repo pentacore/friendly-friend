@@ -8,16 +8,27 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { EventResource, RsvpStatus } from '@/typefinder';
+import type { EventResource, PageProps, RsvpStatus } from '@/typefinder';
 
-const props = defineProps<{ event: EventResource }>();
+type Question = PageProps['events/Show']['questions'][number];
+
+const props = defineProps<{ event: EventResource; questions: Question[] }>();
 
 const form = useForm({
     status: (props.event.my_rsvp?.status ?? null) as RsvpStatus | null,
     guests: props.event.my_rsvp?.guests ?? 0,
     note: props.event.my_rsvp?.note ?? '',
     needs_ride: props.event.my_rsvp?.needs_ride ?? false,
+    answers: Object.fromEntries(
+        props.questions.map((q) => [q.id, q.mine ?? '']),
+    ) as Record<number, string>,
 });
+
+function setAnswer(question: Question, value: string): void {
+    form.answers[question.id] =
+        form.answers[question.id] === value ? '' : value;
+    answer();
+}
 
 /** Past the answer-by time Going and Maybe are closed (organisers may still answer). */
 const closed = computed(() => props.event.rsvp_closed && !props.event.can.edit);
@@ -125,6 +136,52 @@ function answer(status?: RsvpStatus): void {
                 />
                 I need a ride
             </label>
+
+            <div
+                v-for="question in questions"
+                :key="question.id"
+                class="grid gap-1.5 sm:col-span-2"
+                :data-test="`question-${question.id}`"
+            >
+                <Label :for="`question-${question.id}`">{{
+                    question.prompt
+                }}</Label>
+                <div
+                    v-if="question.kind !== 'text'"
+                    class="flex flex-wrap gap-1.5"
+                >
+                    <Button
+                        v-for="option in question.kind === 'yes_no'
+                            ? ['yes', 'no']
+                            : question.options"
+                        :key="option"
+                        size="sm"
+                        :variant="
+                            form.answers[question.id] === option
+                                ? 'default'
+                                : 'outline'
+                        "
+                        :aria-pressed="form.answers[question.id] === option"
+                        :disabled="form.processing"
+                        @click="setAnswer(question, option)"
+                    >
+                        {{
+                            option === 'yes' && question.kind === 'yes_no'
+                                ? 'Yes'
+                                : option === 'no' && question.kind === 'yes_no'
+                                  ? 'No'
+                                  : option
+                        }}
+                    </Button>
+                </div>
+                <Input
+                    v-else
+                    :id="`question-${question.id}`"
+                    v-model="form.answers[question.id]"
+                    maxlength="500"
+                    @change="answer()"
+                />
+            </div>
         </div>
     </section>
 </template>

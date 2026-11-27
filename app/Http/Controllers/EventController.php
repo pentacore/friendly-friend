@@ -18,6 +18,7 @@ use App\Planning\Actions\CreateEvent;
 use App\Planning\Actions\UpdateEvent;
 use App\Planning\CostsPlan;
 use App\Planning\FoodPlan;
+use App\Planning\QuestionsPlan;
 use App\Planning\TransportPlan;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
@@ -92,6 +93,7 @@ final class EventController extends Controller
     #[TypefinderPage(component: 'events/Show', props: [
         'event' => EventResource::class,
         'attendees' => '{ member: '.self::MEMBER.'; status: '.RsvpStatus::class.'; guests: number; note: string | null; needs_ride: boolean }[]',
+        'questions' => QuestionsPlan::TYPE,
         'food' => FoodPlan::TYPE,
         'transport' => TransportPlan::TYPE,
         'costs' => CostsPlan::TYPE,
@@ -114,6 +116,7 @@ final class EventController extends Controller
                     'note' => $rsvp->note,
                     'needs_ride' => $rsvp->needs_ride,
                 ])->all()),
+            'questions' => QuestionsPlan::for($event, $access),
             'food' => fn (): array => FoodPlan::for($event, $access),
             'transport' => fn (): array => TransportPlan::for($event, $access),
             'costs' => fn (): array => CostsPlan::for($event, $access),

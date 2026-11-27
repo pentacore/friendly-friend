@@ -14,6 +14,7 @@ import CostsTab from '@/components/events/CostsTab.vue';
 import EventDateBadge from '@/components/events/EventDateBadge.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import FoodTab from '@/components/events/FoodTab.vue';
+import QuestionsCard from '@/components/events/QuestionsCard.vue';
 import RsvpPanel from '@/components/events/RsvpPanel.vue';
 import TransportTab from '@/components/events/TransportTab.vue';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +46,7 @@ setLayoutProps({
 });
 
 useLiveEvent(props.event.id, {
-    overview: ['event', 'attendees', 'transport'],
+    overview: ['event', 'attendees', 'questions', 'transport'],
     food: ['food'],
     transport: ['transport'],
     costs: ['costs'],
@@ -251,12 +252,18 @@ function setCancelled(cancelled: boolean): void {
                     {{ event.description }}
                 </p>
                 <AttendeeList :attendees="attendees" />
+                <QuestionsCard
+                    :event="event"
+                    :questions="questions"
+                    :errors="errors"
+                />
             </div>
             <aside class="order-first flex flex-col gap-4 lg:order-none">
                 <RsvpPanel
                     v-if="event.can.participate"
-                    :key="event.my_rsvp?.status ?? 'none'"
+                    :key="`${event.my_rsvp?.status ?? 'none'}-${questions.length}`"
                     :event="event"
+                    :questions="questions"
                 />
             </aside>
         </div>

@@ -10,6 +10,7 @@ import type { EventExpense } from './EventExpense';
 import type { EventHostsPivot } from './EventHostsPivot';
 import type { EventMeal } from './EventMeal';
 import type { EventPayment } from './EventPayment';
+import type { EventQuestion } from './EventQuestion';
 import type { EventRide } from './EventRide';
 import type { EventRsvp } from './EventRsvp';
 import type { EventShoppingItem } from './EventShoppingItem';
@@ -49,6 +50,7 @@ export type Event = {
   rides?: EventRide[];
   expenses?: EventExpense[];
   payments?: EventPayment[];
+  questions?: EventQuestion[];
 };
 
 export type EventCreate = {
