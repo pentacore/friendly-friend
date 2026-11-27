@@ -23,6 +23,8 @@ Code: `App\Http\Controllers\Admin\GuildController`, `App\Http\Requests\Admin\Upd
 
 `/admin/people` (sidebar → **People**) is for admins (`admin` gate: owners and admin roles). People are shared across servers.
 
+The search box matches names and nicknames anywhere in the text (`%` and `_` are taken literally), closest name first (`pg_trgm` similarity).
+
 - **Nicknames:** add or remove aliases ("Marre" → Martin). They are unique regardless of case. Quote capture uses them to find the right person.
 - **Discord account:** link a person to a Discord account, or unlink them ("Not on Discord"). An account can belong to only one person; merge the two people instead.
 - **Merge:** `MergePeople` moves a duplicate's quote lines, nicknames and Discord link to another person, keeps the duplicate's name as a nickname, and deletes the duplicate. It can't be undone.
