@@ -1,120 +1,34 @@
 <laravel-boost-guidelines>
-=== .ai/architecture rules ===
-
-# friendly-friend: architecture
-
-A private site and Discord bot for a group of friends across **one or more Discord servers**: quotes (captured from Discord, cleaned up by AI, voted on) and server activity stats with an opt-out. Design: `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`.
-
-## Stack
-
-Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, Redis, Horizon, Reverb, Socialite with socialiteproviders/discord (the only login), Wayfinder (typed routes), pentacore/laravel-typefinder (typed data), DiscordPHP (bot), laravel/ai (OpenAI, Anthropic or Gemini, chosen in `.env`).
-
-## Where code goes (each part has one job)
-
-- `App\Discord\Gateway`: the bot process. `RunBot` (`bot:run`) forwards raw gateway dispatches to `GatewayEventRouter::route($type, $payload)`, which validates the payload, builds a DTO and **queues a job** (the jobs decide whether the server is enabled). Never put DB queries, HTTP calls or business logic in the router or the command. Add new gateway events as router branches with a JSON fixture in `tests/Fixtures/gateway/` and a test. The opt-out check (Phase 6) also lives in the router.
-- `App\Discord\Interactions`: command definitions (`QuoteCommands`), custom IDs, the pure `InteractionAck` (decides the 3-second answer: deferred, deferred update, or the cached edit form), and `InteractionAcknowledger` (in the bot: `Gateway\DiscordPhpAcknowledger`, async). **The acknowledgement is the only Discord call allowed in the bot process.** The real handling runs in a queued job (`App\Quotes\Discord\QuoteInteractions` via `HandleQuoteInteraction`), which edits the response.
-- `App\Quotes`: `Actions` (draft lifecycle, `ResolvePerson`, `PublishQuote`), `Discord` (interaction handling, `QuoteMessages` payloads), `Jobs` (`CaptureFromMention`, `ImportChannelQuotes`, `PruneExpiredDrafts`), `Imports`.
-- `App\Ai`: `QuoteNormalizer` (+ `AiQuoteNormalizer`, `PlainQuoteNormalizer`), `QuoteDetector` (Jev, then LLM, then heuristics), agents in `App\Ai\Agents`.
-- Discord JSON: read nested payloads with `App\Discord\Data\Payload::get()/array()/string()`, not raw `$a['x']['y']` on mixed. Build test payloads with `Tests\Support\DiscordPayloads`.
-- `App\Discord\DiscordClient`: interface for **bot-token** REST calls (`HttpDiscordClient`; tests use `Testing\FakeDiscordClient`). Add methods there instead of calling Discord's HTTP API elsewhere. `DiscordUserApi` is only for the OAuth user token at login.
-- `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
-- `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
-- `App\Access`: who gets in and server settings. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\RecordDiscordUser`, `Actions\RecordGuildMember`, `Actions\UpdateGuildSettings`, `Jobs\SyncGuildMembers` (one server), `Jobs\SyncAllGuilds` (scheduled), `Jobs\UpsertGuildMember`, `Jobs\MarkMemberLeft`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
-- `App\Discord\Jobs`: guild lifecycle from the gateway (`RegisterGuild`, `RefreshGuild`, `MarkGuildLeft`).
-- `App\Http\Controllers\Admin`: owner and admin pages (`/admin/...`), behind the `manage-guilds` or `admin` gates.
-- Discord REST returns `App\Discord\Data\*` DTOs. Test the HTTP clients themselves with `Http::fake()`.
-- `App\Enums`: backed enums. Typefinder emits them as `as const` objects plus union types.
-- Controllers stay thin: validate (FormRequest), call an action, render Inertia.
-
-## Runtime services
-
-Dev (Sail, `compose.yaml`): `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis`, `mailpit`.
-Dev also has `bot` behind the compose profile `bot` (`COMPOSE_PROFILES=bot`).
-Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): one-shot `migrate` (all app services wait for it), then `web`, `horizon`, `scheduler`, `reverb`, `bot`, plus `postgres` and `redis`. App containers log to stderr (`LOG_CHANNEL=stderr`).
-
-- Reverb has **two** endpoints: `REVERB_*` is where the app publishes (inside Docker: `reverb:8080`, never `localhost`), and `VITE_REVERB_*` is where browsers connect (public host, compiled in at build time via compose build args). Never derive one from the other.
-- `env()` only in `config/*.php`. Runtime code reads `config()` (e.g. `app.trusted_proxies`, applied in `AppServiceProvider`), because config is cached in production.
-  The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
-  Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
-
-## Dashboards
-
-Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `admin` gate. Telescope is never registered outside `local`.
-
-=== .ai/domain-rules rules ===
-
-# friendly-friend: domain rules (must always hold)
-
-## Identity (multiple servers)
-
-- The bot can be in **several Discord servers** (`guilds`). Data is one shared pool tagged by server: quotes carry a `guild_id`, stats are keyed by `guild_id` + `discord_user_id`. Never build per-server silos.
-- `discord_users` is the person (one row across all servers). `guild_members` is their membership of one server (nickname, roles, `in_guild`). Every member of every enabled server is stored, whether or not they log in. `users` are people who have logged in.
-- `guilds` are registered by the bot. New servers start **disabled** (`enabled=false`), and the bot's jobs ignore disabled servers. `bot_present=false` means the bot was removed.
-- `people` are anyone who can be quoted. `discord_user_id` is **nullable**, because people outside the servers can be quoted. Nicknames are stored in `person_aliases`.
-
-## Quotes
-
-- A quote is made of ordered `quote_lines`, each with a speaker and text, so a back-and-forth exchange is supported. In drafts a line may have no `person_id` yet (`speaker_discord_user_id` or just `speaker_name`). People are only created by `ConfirmQuote`, so cancelled drafts never leave stray people.
-- Speakers are always resolved with `App\Quotes\Actions\ResolvePerson` (Discord user, alias, name, server member, fuzzy match, new). Don't match names anywhere else.
-- A Discord message can only be quoted once (`quotes.source_message_id` is unique). `DraftQuote` replaces an unsaved draft of it and refuses a saved one (`AlreadyQuotedException`).
-- Quote state changes go through `App\Quotes\Actions` (`DraftQuote`, `UpdateDraft`, `ConfirmQuote`, `CancelDraft`, `RecordRevision`). Details: `docs/quotes.md`.
-- Every capture path ends in draft → private preview → confirm. Drafts expire after 15 minutes. Channel imports become `pending_review`, and an admin approves them.
-- AI failure must never block capture. `App\Ai\AiQuoteNormalizer` tries the configured providers that have keys (laravel/ai failover, `config/quotes.php`) and falls back to `PlainQuoteNormalizer`. Inject the `QuoteNormalizer` interface, never the agent. Certain facts (message author, message time) always win over the AI's answer.
-- Every edit writes a `quote_revisions` snapshot. Only the submitter and admins can edit (`QuotePolicy`).
-- Quotes are allowed to be unfair by design. **Opting out of tracking never hides or blocks quotes.**
-
-## Stats and privacy
-
-- Stats store **counts and sessions only**. Never store message content for stats.
-- Opt-out is checked **twice**: in the bot before an event is queued, and again in the job. Opting out deletes all existing `stat_*` rows for that member (`PurgeMemberStats`). Opting back in only counts new activity.
-- Stats writes are idempotent upserts keyed by their time bucket.
-
-## Access
-
-- Login is Discord OAuth only (Socialite, scopes `identify`, `guilds` and `guilds.members.read`). There are no passwords, no email and no registration. Fortify is not installed, so don't add it back.
-- Every access decision goes through `App\Access\GuildAccess` (`allows()`, `isAdmin()`, `isOwner()`, `accessibleGuildIds()`). Don't compare role IDs anywhere else.
-- **Owners** = `DISCORD_OWNER_IDS` (user IDs). They are always allowed, always admin, and are the only ones who can manage servers.
-- **Allowed** = owner, **or** a still-present member of at least one _enabled_ server whose own settings let them in (`allow_all_members`, a role in its `allowed_role_ids`, or a role in its `admin_role_ids`). Role lists are per server, so a role only counts in its own server.
-- **Admin** = owner, or an admin role in an enabled server.
-- Gates: `admin` (Horizon, moderation) and `manage-guilds` (owners only: `/admin/guilds`).
-- Every app route uses `['auth', 'guild.access']`. The middleware re-checks access on each request and logs out anyone who has lost it.
-- Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS. Watch out: PHP turns numeric-looking array **keys** into ints (`['99' => 'Bo']` has key `99`, and `array_flip()` yields int values). Cast with `(string)` when IDs come back out of array keys.
-- The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin, is_owner}`). Never send `discord_users`, `guild_members` or `users` models straight to the frontend. Use resources and page props.
-- Postgres `jsonb` reorders object keys. Never rely on key order in stored JSON, and compare with `toEqual`, not `toBe`, in tests.
-- Values read back from the Redis cache may change type (numbers come back as strings). Store strings and parse them on read.
-
-=== .ai/typefinder rules ===
-
-# friendly-friend: TypeScript types (Typefinder and Wayfinder)
-
-- **Never hand-write TypeScript types for backend data.** Typefinder generates them into `resources/js/typefinder/`, covering models, enums (`as const` objects plus unions), form requests, API resources, Inertia page props and broadcast events. Import with `import type { … } from '@/typefinder'` (or a category barrel such as `@/typefinder/models`).
-- The output is **committed**, and CI fails on drift. Run `vendor/bin/sail artisan typefinder:generate` after backend changes and commit the result.
-- Inertia actions carry `#[TypefinderPage(component: …, props: [...])]`. Rector's `AddTypefinderPageRector` adds them when the props are a literal array, so prefer literal prop arrays in `Inertia::render()`. Replace any `'unknown'` prop type that Rector writes with the real type.
-- Shared props are documented with `@typefinder-return array{…}` on `HandleInertiaRequests::share()` (kept in sync by `SyncSharedPropsShapeRector`). Write classes fully qualified in that tag.
-- In pages, combine the shared props with the page's own props: `usePage<Omit<SharedPageProps, keyof PageProps[N]> & PageProps[N]>()`.
-- Routes and controller actions on the frontend come from **Wayfinder** (`@/actions/...`, `@/routes/...`). Never hard-code URLs.
-- Use `#[TypefinderIgnore]` only for classes that must never reach the frontend.
-- The Typefinder package is maintained by the project owner. Report generator bugs or rough edges to them instead of quietly working around them.
-
 === .ai/workflow rules ===
 
-# friendly-friend: workflow rules
+# friendly-friend: workflow
 
-- Run **every** PHP, Composer, artisan and npm command through Sail: `vendor/bin/sail artisan …`, `vendor/bin/sail composer …`, `vendor/bin/sail npm …`. Host PHP is 8.3, but the project needs PHP 8.5.
-- **Rules and docs are part of every change.** A commit that changes conventions, commands, schema, config, architecture or a feature must update the affected `.ai/guidelines/*.md` and `docs/**` **in the same commit**, then run `vendor/bin/sail artisan boost:update` so `CLAUDE.md`/`AGENTS.md` are regenerated. Never leave this for a later commit. On PRs, CI warns when code changes without any docs or guideline change.
-- After changing models, enums, form requests, API resources, Inertia controller actions or broadcast events, run `vendor/bin/sail artisan typefinder:generate` and commit `resources/js/typefinder/`. CI fails on drift (`typefinder:generate --check --strict`).
-- Before committing, everything here must pass:
-    - `vendor/bin/sail artisan typefinder:generate --check --strict`
-    - `vendor/bin/sail composer test` (Rector dry run, Pint, Larastan at max level, Pest)
-    - `vendor/bin/sail npm run check` and `vendor/bin/sail npm run types:check`
-- Fix Larastan errors at their cause. No baseline, no `@phpstan-ignore`, no casts or `@var` added only to silence it.
-- Tests use Pest. Write the failing test first (TDD). Feature tests use Postgres via `RefreshDatabase`, configured in `tests/Pest.php`.
+**Conventions and design decisions live in `.ai/rules/`** (start with `.ai/rules/general.md`; `.ai/rules/index.md` maps paths to rule files). Read the matching rules before editing.
+
+## Keep the knowledge current (same commit, always)
+
+- A commit that introduces or changes a convention, a design decision or a trap updates the matching `.ai/rules/*.md` file. New areas get a new rule file with `paths` frontmatter, then run `vendor/bin/sail artisan boost:index-rules`.
+- A commit that changes commands, schema, config, architecture or a feature updates `docs/**`.
+- Bugs, follow-ups, upstream issues and ideas go into `ROADMAP.md`.
+- After changing anything in `.ai/`, run `vendor/bin/sail artisan boost:update` so `AGENTS.md`/`CLAUDE.md` are regenerated. CI warns on PRs that change code without docs or rules.
+
+## Commands
+
+- Run **every** PHP, Composer, artisan and npm command through Sail (`vendor/bin/sail …`). Host PHP is 8.3, but the project needs PHP 8.5.
+- After backend changes that affect types (models, enums, requests, resources, Inertia actions, broadcast events): `vendor/bin/sail artisan typefinder:generate`, and commit `resources/js/typefinder/`.
+
+## Before every commit
+
+- `vendor/bin/sail artisan typefinder:generate --check --strict`
+- `vendor/bin/sail composer test` (Rector dry run, Pint, Larastan at max level, Pest)
+- `vendor/bin/sail npm run check` and `vendor/bin/sail npm run types:check`
+- Pages changed: `vendor/bin/sail npm run build && vendor/bin/sail composer test:browser`, and look at the screenshots
+
+## Habits
+
+- Write the failing test first (Pest). Fix Larastan errors at their cause: no baseline, no `@phpstan-ignore`, no casts or `@var` only to silence it.
 - Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
-- The design spec lives in `docs/superpowers/specs/` and the phase plans in `docs/superpowers/plans/`. When the implementation deliberately departs from the spec, update the spec too.
-- **Dark mode is required.** Every page and component must look right in light and dark (the default appearance is "system"). Use the theme tokens (`bg-background`, `text-muted-foreground`, `border`…) and `dark:` variants instead of fixed colours. New pages get a Pest browser test in `tests/Browser` that renders them in light **and** dark mode, asserts no JavaScript errors, and takes a screenshot (`composer test:browser`; it uses the built assets, so run `npm run build` first). Check the screenshots.
-- **`ROADMAP.md` is the backlog.** Add every bug, follow-up, upstream issue and future feature you find there _in the same commit_ that finds it, and tick items off when they're done. Fixed bugs stay listed under "Bugs found and fixed", with the lesson also written into the guidelines.
-- Page props in `#[TypefinderPage(props: [...])]` are **TypeScript** type strings (`'{ id: number; name: string }[]'`), not PHPDoc shapes. Resources are unwrapped app-wide (`JsonResource::withoutWrapping()`), so pass resource objects as props, not `->resolve()`.
-- Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`; the function form of `defineOptions({ layout })` doesn't receive page props.
+- When the implementation deliberately departs from the spec (`docs/superpowers/specs/`), update the spec too.
 
 === foundation rules ===
 

@@ -1,17 +1,28 @@
-# friendly-friend: workflow rules
+# friendly-friend: workflow
 
-- Run **every** PHP, Composer, artisan and npm command through Sail: `vendor/bin/sail artisan …`, `vendor/bin/sail composer …`, `vendor/bin/sail npm …`. Host PHP is 8.3, but the project needs PHP 8.5.
-- **Rules and docs are part of every change.** A commit that changes conventions, commands, schema, config, architecture or a feature must update the affected `.ai/guidelines/*.md` and `docs/**` **in the same commit**, then run `vendor/bin/sail artisan boost:update` so `CLAUDE.md`/`AGENTS.md` are regenerated. Never leave this for a later commit. On PRs, CI warns when code changes without any docs or guideline change.
-- After changing models, enums, form requests, API resources, Inertia controller actions or broadcast events, run `vendor/bin/sail artisan typefinder:generate` and commit `resources/js/typefinder/`. CI fails on drift (`typefinder:generate --check --strict`).
-- Before committing, everything here must pass:
-    - `vendor/bin/sail artisan typefinder:generate --check --strict`
-    - `vendor/bin/sail composer test` (Rector dry run, Pint, Larastan at max level, Pest)
-    - `vendor/bin/sail npm run check` and `vendor/bin/sail npm run types:check`
-- Fix Larastan errors at their cause. No baseline, no `@phpstan-ignore`, no casts or `@var` added only to silence it.
-- Tests use Pest. Write the failing test first (TDD). Feature tests use Postgres via `RefreshDatabase`, configured in `tests/Pest.php`.
+**Conventions and design decisions live in `.ai/rules/`** (start with `.ai/rules/general.md`; `.ai/rules/index.md` maps paths to rule files). Read the matching rules before editing.
+
+## Keep the knowledge current (same commit, always)
+
+- A commit that introduces or changes a convention, a design decision or a trap updates the matching `.ai/rules/*.md` file. New areas get a new rule file with `paths` frontmatter, then run `vendor/bin/sail artisan boost:index-rules`.
+- A commit that changes commands, schema, config, architecture or a feature updates `docs/**`.
+- Bugs, follow-ups, upstream issues and ideas go into `ROADMAP.md`.
+- After changing anything in `.ai/`, run `vendor/bin/sail artisan boost:update` so `AGENTS.md`/`CLAUDE.md` are regenerated. CI warns on PRs that change code without docs or rules.
+
+## Commands
+
+- Run **every** PHP, Composer, artisan and npm command through Sail (`vendor/bin/sail …`). Host PHP is 8.3, but the project needs PHP 8.5.
+- After backend changes that affect types (models, enums, requests, resources, Inertia actions, broadcast events): `vendor/bin/sail artisan typefinder:generate`, and commit `resources/js/typefinder/`.
+
+## Before every commit
+
+- `vendor/bin/sail artisan typefinder:generate --check --strict`
+- `vendor/bin/sail composer test` (Rector dry run, Pint, Larastan at max level, Pest)
+- `vendor/bin/sail npm run check` and `vendor/bin/sail npm run types:check`
+- Pages changed: `vendor/bin/sail npm run build && vendor/bin/sail composer test:browser`, and look at the screenshots
+
+## Habits
+
+- Write the failing test first (Pest). Fix Larastan errors at their cause: no baseline, no `@phpstan-ignore`, no casts or `@var` only to silence it.
 - Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
-- The design spec lives in `docs/superpowers/specs/` and the phase plans in `docs/superpowers/plans/`. When the implementation deliberately departs from the spec, update the spec too.
-- **Dark mode is required.** Every page and component must look right in light and dark (the default appearance is "system"). Use the theme tokens (`bg-background`, `text-muted-foreground`, `border`…) and `dark:` variants instead of fixed colours. New pages get a Pest browser test in `tests/Browser` that renders them in light **and** dark mode, asserts no JavaScript errors, and takes a screenshot (`composer test:browser`; it uses the built assets, so run `npm run build` first). Check the screenshots.
-- **`ROADMAP.md` is the backlog.** Add every bug, follow-up, upstream issue and future feature you find there _in the same commit_ that finds it, and tick items off when they're done. Fixed bugs stay listed under "Bugs found and fixed", with the lesson also written into the guidelines.
-- Page props in `#[TypefinderPage(props: [...])]` are **TypeScript** type strings (`'{ id: number; name: string }[]'`), not PHPDoc shapes. Resources are unwrapped app-wide (`JsonResource::withoutWrapping()`), so pass resource objects as props, not `->resolve()`.
-- Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`; the function form of `defineOptions({ layout })` doesn't receive page props.
+- When the implementation deliberately departs from the spec (`docs/superpowers/specs/`), update the spec too.

@@ -69,7 +69,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ## Bugs found and fixed along the way
 
-Kept as a record of pitfalls. The lessons are also written into `.ai/guidelines/`.
+Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (traps are in `general.md`).
 
 - [x] Larastan max errors in starter-kit code (nullable `$request->user()`, `Route::inertia` returning mixed): fixed at the source, no baseline.
 - [x] PHPStan cache was committed (`storage/framework/phpstan`): removed from history before the first push, now git-ignored.
