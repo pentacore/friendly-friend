@@ -39,3 +39,4 @@ yarn-error.log
 /storage/framework/phpstan
 /.claude/settings.local.json
 /tests/Browser/Screenshots
+/resources/icons/build

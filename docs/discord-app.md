@@ -34,6 +34,8 @@ A single Discord application provides both the **website login** (OAuth2) and th
 
 ## 5. Invite the bot to your servers
 
+**Bot → Icon:** upload `resources/icons/build/discord-avatar.png` (generate it with `vendor/bin/sail node scripts/render-icons.mjs`). Use the same image as the application icon under **General Information**, so the login screen matches.
+
 **OAuth2 → URL Generator:**
 
 - **Scopes:** `bot` and `applications.commands`
