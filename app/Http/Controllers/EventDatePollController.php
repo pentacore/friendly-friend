@@ -17,6 +17,7 @@ use App\Planning\Actions\DatePoll\RemoveDateOption;
 use App\Planning\Exceptions\LastDateOptionException;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use LogicException;
@@ -59,12 +60,13 @@ final class EventDatePollController extends Controller
         return back();
     }
 
-    public function choose(Event $event, EventDateOption $dateOption, ChooseDate $choose): RedirectResponse
+    public function choose(Request $request, Event $event, EventDateOption $dateOption, ChooseDate $choose): RedirectResponse
     {
         Gate::authorize('update', $event);
         abort_unless($event->date_polling, 409);
 
-        $choose->handle($event, $dateOption);
+        $user = $request->user();
+        $choose->handle($event, $dateOption, $user instanceof User ? $user->discordUser : null);
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Date chosen. Everyone who said yes is going.')]);
 
         return back();

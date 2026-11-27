@@ -189,3 +189,20 @@ it('says the date is decided once it is', function (): void {
 
     expect(FakeDiscordClient::content($this->discord->lastResponse()))->toContain('already decided');
 });
+
+it('DMs everyone who voted where they stand once a date is chosen', function (): void {
+    $event = pollEvent($this->host, $this->guild);
+    [$early, $late] = $event->dateOptions()->get()->all();
+    $this->actingAs($this->anna)->put(route('events.dates.vote', [$event, $early]), ['answer' => 'yes']);
+    $this->actingAs($this->bo)->put(route('events.dates.vote', [$event, $late]), ['answer' => 'yes']);
+    $this->actingAs($this->host)->put(route('events.dates.vote', [$event, $early]), ['answer' => 'yes']);
+
+    $this->actingAs($this->host)->post(route('events.dates.choose', [$event, $early]));
+
+    $dmTo = fn (User $user): string => FakeDiscordClient::content(collect($this->discord->directMessages())->firstWhere('user_id', $user->discordUser->discord_id)['message'] ?? []);
+
+    expect($this->discord->directMessages())->toHaveCount(2)
+        ->and($dmTo($this->anna))->toContain("You're down as going")
+        ->and($dmTo($this->bo))->toContain('Can you make it after all?')
+        ->and($dmTo($this->host))->toBe('');
+});
