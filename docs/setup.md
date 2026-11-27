@@ -81,4 +81,4 @@ Screenshots are written to `tests/Browser/Screenshots/` (git-ignored) for visual
 
 ## Dev server and Typefinder
 
-`vite.config.ts` has a small plugin that clears Vue's type cache whenever Typefinder regenerates `resources/js/typefinder/`. Without it, pages whose props changed would silently compile with **no props** until the dev server restarts. After pulling this change, restart `npm run dev` once.
+Typefinder's Vite plugin (8.6+) clears Vue's type cache and reloads the page whenever it regenerates `resources/js/typefinder/`, so changed page props show up without restarting `npm run dev`. Builds without a database (the Docker image) set `TYPEFINDER_SKIP_BUILD=1`, which the plugin reads itself, and use the committed types.

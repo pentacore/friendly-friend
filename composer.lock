@@ -3810,16 +3810,16 @@
         },
         {
             "name": "pentacore/laravel-typefinder",
-            "version": "8.5.0",
+            "version": "8.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pentacore/Laravel-Typefinder.git",
-                "reference": "d5c00174351910b75477ad0ad749d57764fb708a"
+                "reference": "0832ca66faba61b62094b6fd8adce4f49ce2e348"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pentacore/Laravel-Typefinder/zipball/d5c00174351910b75477ad0ad749d57764fb708a",
-                "reference": "d5c00174351910b75477ad0ad749d57764fb708a",
+                "url": "https://api.github.com/repos/pentacore/Laravel-Typefinder/zipball/0832ca66faba61b62094b6fd8adce4f49ce2e348",
+                "reference": "0832ca66faba61b62094b6fd8adce4f49ce2e348",
                 "shasum": ""
             },
             "require": {
@@ -3881,7 +3881,7 @@
                 "issues": "https://github.com/pentacore/laravel-typefinder/issues",
                 "source": "https://github.com/pentacore/laravel-typefinder"
             },
-            "time": "2026-11-26T07:56:11+00:00"
+            "time": "2026-11-27T14:10:16+00:00"
         },
         {
             "name": "phpoption/phpoption",

@@ -7,13 +7,11 @@ namespace App\Events;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
-use Pentacore\Typefinder\Attributes\TypefinderBroadcast;
 
 /**
  * Tells everyone viewing an event that one part of it changed, so their
  * page reloads that part (Reverb, `events.{id}`). Broadcast-only.
  */
-#[TypefinderBroadcast(payload: ['event_id' => 'number', 'section' => "'overview' | 'food' | 'transport' | 'costs'"])]
 final readonly class EventChanged implements ShouldBroadcast
 {
     use Dispatchable;
@@ -26,6 +24,9 @@ final readonly class EventChanged implements ShouldBroadcast
 
     public const string COSTS = 'costs';
 
+    /**
+     * @param  self::OVERVIEW|self::FOOD|self::TRANSPORT|self::COSTS  $section
+     */
     public function __construct(
         public int $eventId,
         public string $section,
@@ -45,7 +46,7 @@ final readonly class EventChanged implements ShouldBroadcast
     }
 
     /**
-     * @return array{event_id: int, section: string}
+     * @return array{event_id: int, section: 'overview'|'food'|'transport'|'costs'}
      */
     public function broadcastWith(): array
     {

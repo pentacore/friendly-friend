@@ -79,6 +79,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Jev goes through OpenRouter (`OPENROUTER_API_KEY`, no waitlisted TypeSafe key), in one place: `App\Ai\Jev`.
 - [x] Jev classifies what an @mention wants: save a quote, a random quote (posted in the channel) or help (DMed); capture stays the default.
 - [x] Jev picks between several fuzzy person matches in `ResolvePerson` (or says it's someone new).
+- [x] Typefinder 8.6: the upstream fixes for #245–#249 are in. The local Vue type-cache plugin and the `buildCommand: false` switch are gone, and broadcast payloads come from `broadcastWith()`'s PHPDoc shape instead of `#[TypefinderBroadcast]`.
 
 ## Bugs found and fixed along the way
 
