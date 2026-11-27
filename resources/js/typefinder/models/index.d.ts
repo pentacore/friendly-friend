@@ -12,5 +12,7 @@ export type { PersonAlias, PersonAliasCreate, PersonAliasUpdate } from './Person
 export type { Quote, QuoteCreate, QuoteUpdate } from './Quote';
 export type { QuoteImport, QuoteImportCreate, QuoteImportUpdate } from './QuoteImport';
 export type { QuoteLine, QuoteLineCreate, QuoteLineUpdate } from './QuoteLine';
+export type { QuoteMatchup, QuoteMatchupCreate, QuoteMatchupUpdate } from './QuoteMatchup';
 export type { QuoteRevision, QuoteRevisionCreate, QuoteRevisionUpdate } from './QuoteRevision';
+export type { QuoteVote, QuoteVoteCreate, QuoteVoteUpdate } from './QuoteVote';
 export type { User, UserCreate, UserUpdate } from './User';

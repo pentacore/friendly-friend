@@ -38,6 +38,6 @@ final readonly class WriteDraftLines
             ]);
         }
 
-        $quote->unsetRelation('lines');
+        $quote->refreshSearchText();
     }
 }

@@ -9,6 +9,7 @@ import type { Guild } from './Guild';
 import type { QuoteLine } from './QuoteLine';
 import type { QuoteRevision } from './QuoteRevision';
 import type { QuoteSource, QuoteStatus, SaidAtPrecision } from '../enums';
+import type { QuoteVote } from './QuoteVote';
 
 export type Quote = {
   id: number;
@@ -31,9 +32,13 @@ export type Quote = {
   published_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  search_text: string;
+  search_vector: string | null;
   guild?: Guild | null;
   submitted_by?: DiscordUser | null;
   lines?: QuoteLine[];
+  my_vote?: QuoteVote | null;
+  votes?: QuoteVote[];
   revisions?: QuoteRevision[];
 };
 

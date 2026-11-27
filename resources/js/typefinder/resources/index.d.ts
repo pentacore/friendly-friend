@@ -5,3 +5,4 @@
 // ───────────────────────────────────────────────────────────────────────
 
 export type { GuildResource } from './GuildResource';
+export type { QuoteResource } from './QuoteResource';

@@ -86,3 +86,13 @@ Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
 ```bash
 vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discord user id>
 ```
+
+## On the website: visibility, permissions, search
+
+- **Visible:** published quotes of the servers the user gets in through (`Quote::visibleTo(AccessSnapshot)`). Owners see every enabled server.
+- **Permissions:** `App\Quotes\QuoteRules` is shared by `QuotePolicy` and `QuoteResource`.
+    - view: published, and in a visible server
+    - update: the submitter, or that server's admins
+    - delete and review imports: that server's admins
+- **`AccessSnapshot`:** computes the user's visible and moderated servers once per request (cached on the Request), so lists don't re-check access per quote.
+- **Search:** `quotes.search_text` (speakers, lines and context) is rebuilt on every content change (`Quote::refreshSearchText`). `search_vector` is a generated `tsvector` (`simple` config, which suits mixed Swedish and English) with a GIN index.

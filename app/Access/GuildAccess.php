@@ -66,6 +66,39 @@ final readonly class GuildAccess
             ->all());
     }
 
+    /**
+     * Guilds whose content the user may see: those that let them in, or every
+     * enabled guild for owners.
+     *
+     * @return list<int>
+     */
+    public function visibleGuildIds(DiscordUser $user): array
+    {
+        if ($this->isOwner($user)) {
+            return array_values(Guild::query()->enabled()->get()->map(fn (Guild $guild): int => $guild->id)->all());
+        }
+
+        return $this->accessibleGuildIds($user);
+    }
+
+    /**
+     * Guilds the user moderates: those where they have an admin role, or
+     * every enabled guild for owners.
+     *
+     * @return list<int>
+     */
+    public function adminGuildIds(DiscordUser $user): array
+    {
+        if ($this->isOwner($user)) {
+            return $this->visibleGuildIds($user);
+        }
+
+        return array_values($this->activeMemberships($user)
+            ->filter($this->membershipIsAdmin(...))
+            ->map(fn (GuildMember $membership): int => $membership->guild_id)
+            ->all());
+    }
+
     private function membershipAllows(GuildMember $membership): bool
     {
         $guild = $membership->guild;
