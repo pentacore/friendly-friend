@@ -4,8 +4,8 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
-import type { AccessDeniedReason } from './enums';
-import type { GuildResource, PersonAdminResource, QuoteImportResource, QuoteResource, QuoteRevisionResource } from './resources';
+import type { AccessDeniedReason, RsvpStatus } from './enums';
+import type { EventResource, GuildResource, PersonAdminResource, QuoteImportResource, QuoteResource, QuoteRevisionResource } from './resources';
 import type { SimplePaginatedResourceCollection } from './helpers';
 
 export type SharedPageProps = {
@@ -22,6 +22,10 @@ export type PageProps = {
   'admin/Imports': { imports: QuoteImportResource[] };
   'admin/People': { people: SimplePaginatedResourceCollection<PersonAdminResource>; search: string; discord_users: { id: number; name: string }[]; all_people: { id: number; display_name: string }[] };
   'auth/Login': { error: AccessDeniedReason | null };
+  'events/Create': { guilds: { id: number; name: string }[]; members: Record<number, { id: number; name: string; avatar_url: string }[]>; default_timezone: string };
+  'events/Edit': { event: EventResource; form: { title: string; description: string; location: string; location_url: string; starts_at: string; ends_at: string; timezone: string; host_ids: number[] }; members: { id: number; name: string; avatar_url: string }[] };
+  'events/Index': { upcoming: EventResource[]; past: EventResource[]; filters: { guild: number | null }; guilds: { id: number; name: string }[] };
+  'events/Show': { event: EventResource; attendees: { member: { id: number; name: string; avatar_url: string }; status: RsvpStatus; guests: number; note: string | null; needs_ride: boolean }[] };
   'people/Show': { person: { id: number; slug: string; display_name: string; aliases: string[]; avatar_url: string | null; quote_count: number }; quotes: SimplePaginatedResourceCollection<QuoteResource>; stats: { days: number; totals: { messages: number; voice_seconds: number; reactions: number }; heatmap: { weekday: number; hour: number; count: number }[]; emoji: { emoji: string; name: string; image_url: string | null; total: number }[]; games: { name: string; total: number; players: number }[]; voice_pairs: { first: { id: number; name: string; avatar_url: string; person_slug: string | null }; second: { id: number; name: string; avatar_url: string; person_slug: string | null }; total: number }[] } | null };
   'quotes/Index': { quotes: SimplePaginatedResourceCollection<QuoteResource>; filters: { q: string; guild: number | null; person: string | null }; guilds: { id: number; name: string }[]; person: { slug: string; display_name: string } | null };
   'quotes/Show': { quote: QuoteResource; revisions: QuoteRevisionResource[] };

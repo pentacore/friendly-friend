@@ -5,6 +5,9 @@
 // ───────────────────────────────────────────────────────────────────────
 
 export type { DiscordUser, DiscordUserCreate, DiscordUserUpdate } from './DiscordUser';
+export type { Event, EventCreate, EventUpdate } from './Event';
+export type { EventHostsPivot } from './EventHostsPivot';
+export type { EventRsvp, EventRsvpCreate, EventRsvpUpdate } from './EventRsvp';
 export type { Guild, GuildCreate, GuildUpdate } from './Guild';
 export type { GuildMember, GuildMemberCreate, GuildMemberUpdate } from './GuildMember';
 export type { Person, PersonCreate, PersonUpdate } from './Person';

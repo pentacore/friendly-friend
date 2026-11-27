@@ -8,6 +8,8 @@ export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';
 export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
+export type { RsvpRequest } from './RsvpRequest';
+export type { SaveEventRequest } from './SaveEventRequest';
 export type { StatsRequest, StatsRequestQuery } from './StatsRequest';
 export type { StoreAliasRequest } from './StoreAliasRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    CalendarDays,
     ChartColumn,
     LayoutGrid,
     Quote,
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, stats, top } from '@/routes';
 import { index as guildsIndex } from '@/routes/admin/guilds';
+import { index as eventsIndex } from '@/routes/events';
 import { index as importsIndex } from '@/routes/admin/imports';
 import { index as peopleIndex } from '@/routes/admin/people';
 import { index as quotesIndex, random as randomQuote } from '@/routes/quotes';
@@ -34,27 +36,48 @@ import type { NavItem } from '@/types';
 
 const page = usePage();
 
-const mainNavItems = computed<NavItem[]>(() => [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    { title: 'Quotes', href: quotesIndex(), icon: Quote },
-    { title: 'Random quote', href: randomQuote(), icon: Shuffle },
-    { title: 'This or that', href: thisOrThat(), icon: Scale },
-    { title: 'Top lists', href: top(), icon: Trophy },
-    { title: 'Stats', href: stats(), icon: ChartColumn },
-    ...(page.props.auth.user?.is_admin
-        ? [
-              { title: 'People', href: peopleIndex(), icon: Users },
-              { title: 'Imports', href: importsIndex(), icon: Inbox },
-          ]
-        : []),
-    ...(page.props.auth.user?.is_owner
-        ? [{ title: 'Servers', href: guildsIndex(), icon: Server }]
-        : []),
-]);
+type NavSection = { label?: string; items: NavItem[] };
+
+/** The sidebar, grouped by what you came to do. Admin tools only show up for admins. */
+const sections = computed<NavSection[]>(() => {
+    const user = page.props.auth.user;
+    const admin: NavItem[] = [
+        ...(user?.is_admin
+            ? [
+                  { title: 'People', href: peopleIndex(), icon: Users },
+                  { title: 'Imports', href: importsIndex(), icon: Inbox },
+              ]
+            : []),
+        ...(user?.is_owner
+            ? [{ title: 'Servers', href: guildsIndex(), icon: Server }]
+            : []),
+    ];
+
+    return [
+        {
+            items: [
+                { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+            ],
+        },
+        {
+            label: 'Quotes',
+            items: [
+                { title: 'All quotes', href: quotesIndex(), icon: Quote },
+                { title: 'Random quote', href: randomQuote(), icon: Shuffle },
+                { title: 'This or that', href: thisOrThat(), icon: Scale },
+                { title: 'Top lists', href: top(), icon: Trophy },
+            ],
+        },
+        {
+            label: 'Together',
+            items: [
+                { title: 'Events', href: eventsIndex(), icon: CalendarDays },
+                { title: 'Stats', href: stats(), icon: ChartColumn },
+            ],
+        },
+        ...(admin.length ? [{ label: 'Admin', items: admin }] : []),
+    ];
+});
 </script>
 
 <template>
@@ -72,7 +95,12 @@ const mainNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain
+                v-for="(section, i) in sections"
+                :key="section.label ?? i"
+                :items="section.items"
+                :label="section.label"
+            />
         </SidebarContent>
 
         <SidebarFooter>

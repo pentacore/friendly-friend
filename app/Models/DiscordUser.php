@@ -68,6 +68,16 @@ class DiscordUser extends Model
     }
 
     /**
+     * How the website shows a person in lists and pickers.
+     *
+     * @return array{id: int, name: string, avatar_url: string}
+     */
+    public function toMember(): array
+    {
+        return ['id' => $this->id, 'name' => $this->display_name, 'avatar_url' => $this->avatarUrl()];
+    }
+
+    /**
      * Global display name, then username.
      *
      * @return Attribute<string, never>

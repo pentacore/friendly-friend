@@ -7,11 +7,13 @@
 export type BroadcastPublicChannels = Record<string, never>;
 
 export type BroadcastPrivateChannels = {
+  'events.{eventId}': { 'event.changed': { event_id: number; section: 'overview' | 'food' | 'transport' | 'costs' } };
   'guilds.{guildId}.quotes': { 'quote.score-changed': { quote_id: number; score: number } };
 };
 
 export type BroadcastPresenceChannels = Record<string, never>;
 
 export type BroadcastEvents = {
+  'event.changed': { event_id: number; section: 'overview' | 'food' | 'transport' | 'costs' };
   'quote.score-changed': { quote_id: number; score: number };
 };

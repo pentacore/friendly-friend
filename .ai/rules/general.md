@@ -11,7 +11,7 @@ A private website and Discord bot for a group of friends across **one or more Di
 
 - quotes captured from Discord, tidied up by AI, browsed, voted on and ranked on the site
 - server activity stats (messages, reactions, voice, games) with an opt-out
-- event planning: RSVP, food, transport, costs (Phase 7)
+- event planning: RSVP, food, transport, costs, Discord announcements (Phase 7)
 
 The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase plans are in `docs/superpowers/plans/`, and the backlog is `ROADMAP.md`.
 
@@ -27,15 +27,16 @@ Laravel 13 on PHP 8.5 (Sail), PostgreSQL, Redis, Horizon, Reverb, Inertia 3 + Vu
 
 ## Shape of the app (each part has one job)
 
-| Namespace     | Job                                                                                                             |
-| ------------- | --------------------------------------------------------------------------------------------------------------- |
-| `App\Access`  | Who gets in, server settings (`GuildAccess`, login, member sync)                                                |
-| `App\Discord` | Talking to Discord: gateway process, REST client, interactions, DTOs                                            |
-| `App\Quotes`  | Quote domain: actions, Discord flows, jobs, imports, rules                                                      |
-| `App\Ai`      | Quote normalizer and detector, laravel/ai agents                                                                |
-| `App\Stats`   | Stats ingest, rollups, opt-out and purge, the `StatsQuery` read model                                           |
-| `App\Http`    | Thin controllers (validate with a FormRequest, call an action, render Inertia), resources, requests, middleware |
-| `App\Enums`   | Backed enums, emitted by Typefinder as `as const` objects plus unions                                           |
+| Namespace      | Job                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------- |
+| `App\Access`   | Who gets in, server settings (`GuildAccess`, login, member sync)                                                |
+| `App\Discord`  | Talking to Discord: gateway process, REST client, interactions, DTOs                                            |
+| `App\Quotes`   | Quote domain: actions, Discord flows, jobs, imports, rules                                                      |
+| `App\Planning` | Event planning: actions, `EventRules`, Discord flows and jobs (`App\Models\Event`)                              |
+| `App\Ai`       | Quote normalizer and detector, laravel/ai agents                                                                |
+| `App\Stats`    | Stats ingest, rollups, opt-out and purge, the `StatsQuery` read model                                           |
+| `App\Http`     | Thin controllers (validate with a FormRequest, call an action, render Inertia), resources, requests, middleware |
+| `App\Enums`    | Backed enums, emitted by Typefinder as `as const` objects plus unions                                           |
 
 - State changes go through **actions** (`final readonly`, one `handle()`). Controllers, jobs and interaction handlers call actions and don't reimplement them.
 - There's no events/listeners layer, and no services or repositories. Work is chained by dispatching jobs. **Exception:** `ShouldBroadcast` events exist only to push live updates to browsers over Reverb. They carry no logic and nothing listens to them server-side.

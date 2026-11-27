@@ -15,6 +15,7 @@ paths:
 
 - **Never hand-write TypeScript types for backend data.** Typefinder generates them into `resources/js/typefinder/` (models, enums, requests, resources, page props, broadcast events). Import from `@/typefinder`. The output is committed, and CI fails on drift.
 - Every Inertia action has `#[TypefinderPage(component: …, props: [...])]`. Prop types are **TypeScript** strings (`'{ id: number; name: string }[]'`), never PHPDoc shapes. Resource class strings become the resource type.
+- Inside a prop type string, reference enums and resources by class (`'{ status: '.RsvpStatus::class.' }'`). A bare TS name like `RsvpStatus` isn't imported into `pages.d.ts` and breaks the type check.
 - Resources are unwrapped app-wide (`JsonResource::withoutWrapping()`), so pass resource objects as props, not `->resolve()`. Paginated feeds use `Inertia::scroll(Resource::collection($paginator))`, typed `SimplePaginatedResourceCollection<…>`, with `<InfiniteScroll data="…">`. Reset them on filter changes (`reset: ['quotes']`).
 - Routes and actions come from Wayfinder (`@/routes/...`, `@/actions/...`). Never hard-code URLs.
 - Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`. The function form of `defineOptions({ layout })` gets no page props.
@@ -47,3 +48,7 @@ paths:
 
 - Boards use `components/stats/StatsBoard.vue` (ranked rows with a quiet relative bar) and `MemberAvatar` / `MemberName` (links to the person page when there is one). Numbers and durations go through `lib/statsFormat.ts`.
 - The heatmap (`ActivityHeatmap.vue`) is the stats pages' one bold element: highlighter ink (`bg-highlight`), opacity scaled by the square root of the count, on `bg-muted` squares. It must fit a phone without scrolling.
+
+## Navigation
+
+- The sidebar (`AppSidebar.vue`) is grouped by what you came to do: Dashboard, then **Quotes**, **Together** (events, stats), and **Admin** (only shown to admins and owners). New pages go into one of these groups, not a flat list. `NavMain` takes one group (`label`, `items`) and marks a link active on its sub-pages too.

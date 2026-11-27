@@ -4,6 +4,7 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+export type { EventResource } from './EventResource';
 export type { GuildResource } from './GuildResource';
 export type { PersonAdminResource } from './PersonAdminResource';
 export type { QuoteImportResource } from './QuoteImportResource';

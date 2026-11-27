@@ -5,6 +5,8 @@
 // ───────────────────────────────────────────────────────────────────────
 
 export * from './AccessDeniedReason';
+export * from './EventStatus';
 export * from './QuoteSource';
 export * from './QuoteStatus';
+export * from './RsvpStatus';
 export * from './SaidAtPrecision';

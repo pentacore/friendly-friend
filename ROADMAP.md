@@ -13,7 +13,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 | 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done                             |
 | 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done                             |
 | 6     | Server stats with opt-out: messages, reactions, voice, games, rollups, `/stats`, person stats, `/settings/privacy`, `/privacy`    | ✅ done                             |
-| 7     | Event planning                                                                                                                    | planned (approved design, spec §14) |
+| 7     | Event planning                                                                                                                    | 🚧 in progress                      |
 
 ## Planned features
 
@@ -38,12 +38,12 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ### Phase 7: Event planning (spec §14)
 
-- [ ] Events per server: RSVP (going/maybe/can't, guests, note, needs a ride), attendee list
+- [x] Events per server: RSVP (going/maybe/can't, guests, note, needs a ride), attendee list
 - [ ] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
 - [ ] Transport: rides with seats, pickup points, "needs a ride" list
 - [ ] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
 - [ ] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
-- [ ] Live updates per event over Reverb
+- [x] Live updates per event over Reverb
 
 ### Ideas (not scheduled)
 
@@ -52,6 +52,9 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Sync Discord's native event "Interested" back to RSVPs (needs the `GUILD_SCHEDULED_EVENTS` intent)
 - [ ] Let server admins (not only owners) manage their own server's settings
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
+- [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
+- [ ] Events: add an "Add to calendar" (.ics) link
+- [x] Sidebar grouped into Quotes, Together and Admin
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Stats: per-channel breakdown on `/stats` (channel names are already cached on `guilds.channels`)
 - [ ] Stats: a small "this week" card on the dashboard
