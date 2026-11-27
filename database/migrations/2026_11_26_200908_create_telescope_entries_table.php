@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +16,16 @@ return new class extends Migration
         $connection = config('telescope.storage.database.connection');
 
         return is_string($connection) ? $connection : null;
+    }
+
+    /**
+     * Telescope is only installed and registered in local development, so its
+     * tables aren't created anywhere else (production, tests).
+     */
+    #[Override]
+    public function shouldRun(): bool
+    {
+        return app()->environment('local');
     }
 
     /**

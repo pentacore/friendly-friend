@@ -67,6 +67,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] `docs-updated` CI check also runs on pushes (compares with the commit before the push).
 - [x] **Stats after bot downtime:** sessions that ended while the bot was down now end at its last heartbeat before the restart (only in the first 10 minutes after a start; events missed during the outage are still lost).
 - [x] **SSR hydration mismatches**: dates and numbers now use one locale, timezone and "now" from the server; SSR also crashed (Echo on the server, `window` in setup) on every page with live updates and on event pages, silently falling back to client rendering. Fixed, with a hydration browser test in CI and SSR switched off in production (no SSR server there).
+- [x] Telescope's tables are created only in local development (`shouldRun()`), not in production or tests.
 
 ## Bugs found and fixed along the way
 
