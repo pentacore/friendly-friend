@@ -15,7 +15,7 @@ final readonly class NormalizedQuote
 {
     /**
      * @param  list<NormalizedLine>  $lines
-     * @param  array<string, mixed>|null  $aiOutput  raw AI answer, kept for debugging
+     * @param  array<mixed>|null  $aiOutput  raw AI answer, kept for debugging
      */
     public function __construct(
         public array $lines,

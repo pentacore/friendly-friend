@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Access\GuildAccess;
+use App\Ai\AiQuoteNormalizer;
+use App\Ai\QuoteNormalizer;
 use App\Discord\DiscordClient;
 use App\Discord\HttpDiscordClient;
 use App\Models\User;
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(DiscordClient::class, HttpDiscordClient::class);
+        $this->app->bind(QuoteNormalizer::class, AiQuoteNormalizer::class);
 
         if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);

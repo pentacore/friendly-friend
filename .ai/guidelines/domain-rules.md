@@ -14,7 +14,7 @@
 - A Discord message can only be quoted once (`quotes.source_message_id` is unique). `DraftQuote` replaces an unsaved draft of it and refuses a saved one (`AlreadyQuotedException`).
 - Quote state changes go through `App\Quotes\Actions` (`DraftQuote`, `UpdateDraft`, `ConfirmQuote`, `CancelDraft`, `RecordRevision`). Details: `docs/quotes.md`.
 - Every capture path ends in draft → private preview → confirm. Drafts expire after 15 minutes. Channel imports become `pending_review`, and an admin approves them.
-- AI failure must never block capture: if the primary provider fails, try the fallback provider, then use the raw text.
+- AI failure must never block capture. `App\Ai\AiQuoteNormalizer` tries the configured providers that have keys (laravel/ai failover, `config/quotes.php`) and falls back to `PlainQuoteNormalizer`. Inject the `QuoteNormalizer` interface, never the agent. Certain facts (message author, message time) always win over the AI's answer.
 - Every edit writes a `quote_revisions` snapshot. Only the submitter and admins can edit (`QuotePolicy`).
 - Quotes are allowed to be unfair by design. **Opting out of tracking never hides or blocks quotes.**
 
@@ -33,7 +33,7 @@
 - **Admin** = owner, or an admin role in an enabled server.
 - Gates: `admin` (Horizon, moderation) and `manage-guilds` (owners only: `/admin/guilds`).
 - Every app route uses `['auth', 'guild.access']`. The middleware re-checks access on each request and logs out anyone who has lost it.
-- Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS.
+- Discord IDs (snowflakes) are **strings** everywhere: DB, PHP, TS. Watch out: PHP turns numeric-looking array **keys** into ints (`['99' => 'Bo']` has key `99`, and `array_flip()` yields int values). Cast with `(string)` when IDs come back out of array keys.
 - The frontend user is the shared prop `auth.user` (`{id, discord_id, name, avatar_url, is_admin, is_owner}`). Never send `discord_users`, `guild_members` or `users` models straight to the frontend. Use resources and page props.
 - Postgres `jsonb` reorders object keys. Never rely on key order in stored JSON, and compare with `toEqual`, not `toBe`, in tests.
 - Values read back from the Redis cache may change type (numbers come back as strings). Store strings and parse them on read.

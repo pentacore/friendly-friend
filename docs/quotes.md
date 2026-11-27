@@ -37,3 +37,13 @@ The preview always shows who each line was matched to, so a wrong guess is caugh
 | `CancelDraft`     | Deletes a draft.                                                                                                                                  |
 | `RecordRevision`  | Snapshot, used by every save and edit.                                                                                                            |
 | `WriteDraftLines` | Shared by draft and update: replaces lines, resolving each speaker.                                                                               |
+
+## AI cleanup (`App\Ai`)
+
+`QuoteNormalizer` (bound to `AiQuoteNormalizer`) turns a `CaptureInput` into a `NormalizedQuote` (lines, context, said_at with precision).
+
+- **AI:** `Agents\QuoteNormalizerAgent` (laravel/ai structured output, cheapest model, temperature 0) keeps the wording, because the quotes are meant to be unfair, splits dialogue into lines and works out the time. It answers in the input's language (Swedish or English).
+- **Providers:** `QUOTES_AI_PROVIDERS` (default `anthropic,openai,gemini`), tried in order. Only those with a key in `.env` are used (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`). Timeout: `QUOTES_AI_TIMEOUT` (15 s).
+- **Fallback:** `PlainQuoteNormalizer` is used with no keys, on AI errors, or when the AI answer has no lines. It handles `Name: text` dialogues, `Name said "text" …`, `today`/`yesterday`/`2026-10-31`, and keeps vague times ("last summer") as context.
+- **Certain facts win:** for a quoted message, the author and the message time always override the AI.
+- The raw AI answer is stored on `quotes.ai_output` for debugging.

@@ -37,5 +37,5 @@
     - preview rendering
     - `DiscordClient` additions: edit the original response, send a DM, send a message with components
     - posting to `quotes_channel_id`, and `/quote random`
-5. **Expiry and import:** scheduled `PruneExpiredDrafts`, `/quote import` and `quotes:import` with the `ImportChannelQuotes` job (paged history, `classifyBatch`, `pending_review`), and a quotes-channel picker on the Servers page.
+5. **Expiry and import** (with an optional **Jev pre-filter**: when `TYPESAFE_API_KEY` is set, `Classification::of(message)` asks Jev, TypeSafe's fast and cheap structured-decision model supported by laravel/ai, "is this a quote?" with a calibrated probability, and only likely messages go to the LLM for extraction. Without the key, the LLM does both): scheduled `PruneExpiredDrafts`, `/quote import` and `quotes:import` with the `ImportChannelQuotes` job (paged history, `classifyBatch`, `pending_review`), and a quotes-channel picker on the Servers page.
 6. **Live test** against the real server, then docs (`docs/quotes.md`, bot, admin) and guidelines. Push and check CI.
