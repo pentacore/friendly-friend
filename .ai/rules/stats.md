@@ -20,6 +20,7 @@ paths:
 
 - Opting out (`OptOutOfStats`) sets the flag and queues `PurgeMemberStats`. The purge deletes every row about them: counters, sessions, rollups, pairs, their reactions, and their name as a reaction target (those rows fold into the reactor's null-target row). Opting back in (`OptIntoStats`) only counts new activity.
 - Opting out never touches quotes.
+- `Access\PersonalData` is the "download my data" export. A new table that stores something about a person adds its rows there, filtered to that person only.
 
 ## Rollups
 

@@ -92,6 +92,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Discord: `/quote search text [person]`, private results with links (person as a Discord user option, not autocomplete).
 - [x] Events list: search by name or place, and every past event through infinite scroll.
 - [x] Events: a personal calendar feed link (Settings → Calendar) to subscribe to.
+- [x] Privacy: "Download my data" as JSON on /settings/privacy.
 
 ## Bugs found and fixed along the way
 

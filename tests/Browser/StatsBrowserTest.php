@@ -102,11 +102,13 @@ it('opts out on the privacy page', function (bool $dark): void {
         ->click('Turn off stats')
         ->assertSee('Turn off stats and delete yours?')
         ->screenshot(filename: 'privacy-confirm-'.($dark ? 'dark' : 'light'))
+        ->assertSee('Download my data')
         ->click('Turn off and delete')
         ->assertSee('Stats are off for you')
         ->assertSee('Turn stats back on')
         ->assertNoJavaScriptErrors()
         ->screenshot(filename: 'privacy-off-'.($dark ? 'dark' : 'light'));
 
-    expect($this->user->discordUser->fresh()?->tracking_opted_out_at)->not->toBeNull();
+    expect($this->user->discordUser->fresh()?->tracking_opted_out_at)->not->toBeNull()
+        ->and($page->script('document.querySelector("a[download]")?.getAttribute("href")'))->toEndWith('/settings/privacy/download');
 })->with(['light' => false, 'dark' => true]);

@@ -16,6 +16,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
 
     Route::get('settings/privacy', [PrivacyController::class, 'edit'])->name('privacy.edit');
     Route::put('settings/privacy', [PrivacyController::class, 'update'])->name('privacy.update');
+    Route::get('settings/privacy/download', [PrivacyController::class, 'download'])->middleware('throttle:6,1')->name('privacy.download');
 
     Route::get('settings/food', [FoodSettingsController::class, 'edit'])->name('food-settings.edit');
     Route::put('settings/food', [FoodSettingsController::class, 'update'])->name('food-settings.update');

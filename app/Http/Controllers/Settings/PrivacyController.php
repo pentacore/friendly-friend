@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Settings;
 
+use App\Access\PersonalData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdatePrivacyRequest;
 use App\Models\User;
 use App\Stats\Actions\OptIntoStats;
 use App\Stats\Actions\OptOutOfStats;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,8 +18,8 @@ use Inertia\Response;
 use Pentacore\Typefinder\Attributes\TypefinderPage;
 
 /**
- * /settings/privacy: see whether stats are counted for you, and turn them
- * off (deleting what was counted) or back on.
+ * /settings/privacy: see whether stats are counted for you, turn them off
+ * (deleting what was counted) or back on, and download your data.
  */
 final class PrivacyController extends Controller
 {
@@ -44,6 +46,16 @@ final class PrivacyController extends Controller
         }
 
         return to_route('privacy.edit');
+    }
+
+    /**
+     * Everything stored about you, as a JSON download.
+     */
+    public function download(Request $request): JsonResponse
+    {
+        return response()->json(PersonalData::for($this->user($request)), 200, [
+            'Content-Disposition' => 'attachment; filename="friendly-friend-data-'.now()->toDateString().'.json"',
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     private function user(Request $request): User

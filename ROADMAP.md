@@ -25,7 +25,6 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Events: capacity limit with a waitlist
 - [ ] Events: memories page afterwards (photos plus quotes captured during the event)
 - [ ] Notification settings: choose which DMs you get (reminders, date chosen, "you were quoted")
-- [ ] Privacy: "download my data" export on `/settings/privacy`
 - [ ] Admin: audit log (who removed, merged, restored what)
 - [ ] Web push notifications for the installed PWA (the web manifest already exists)
 
