@@ -6,6 +6,7 @@ namespace App\Discord\Testing;
 
 use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
 use PHPUnit\Framework\Assert;
 use Throwable;
@@ -202,15 +203,15 @@ final class FakeDiscordClient implements DiscordClient
         return array_slice($messages, 0, $limit);
     }
 
-    public function sendDirectMessage(string $userDiscordId, array $message): bool
+    public function sendDirectMessage(string $userDiscordId, array $message): ?SentMessage
     {
         if (in_array($userDiscordId, $this->closedDms, true)) {
-            return false;
+            return null;
         }
 
         $this->directMessages[] = ['user_id' => $userDiscordId, 'message' => $message];
 
-        return true;
+        return new SentMessage("dm-{$userDiscordId}", (string) (2000 + count($this->directMessages)));
     }
 
     /**

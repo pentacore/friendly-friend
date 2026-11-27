@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
 use App\Discord\DiscordUserApi;
 use App\Discord\HttpDiscordClient;
@@ -137,8 +138,8 @@ it('sends a direct message, or reports closed DMs', function (): void {
 
     $client = app(HttpDiscordClient::class);
 
-    expect($client->sendDirectMessage('42', ['content' => 'hi']))->toBeTrue()
-        ->and($client->sendDirectMessage('42', ['content' => 'hi']))->toBeFalse();
+    expect($client->sendDirectMessage('42', ['content' => 'hi']))->toBeInstanceOf(SentMessage::class)
+        ->and($client->sendDirectMessage('42', ['content' => 'hi']))->toBeNull();
 });
 
 it('resolves the discord client interface to the http client', function (): void {

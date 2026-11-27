@@ -6,6 +6,7 @@ namespace App\Discord;
 
 use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Data\SentMessage;
 use Generator;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -135,7 +136,7 @@ final readonly class HttpDiscordClient implements DiscordClient
         return is_array($messages) ? array_values(array_filter($messages, is_array(...))) : [];
     }
 
-    public function sendDirectMessage(string $userDiscordId, array $message): bool
+    public function sendDirectMessage(string $userDiscordId, array $message): ?SentMessage
     {
         $channelId = $this->request()
             ->post('users/@me/channels', ['recipient_id' => $userDiscordId])
@@ -143,19 +144,19 @@ final readonly class HttpDiscordClient implements DiscordClient
             ->json('id');
 
         if (! is_string($channelId)) {
-            return false;
+            return null;
         }
 
         $response = $this->request()->post("channels/{$channelId}/messages", $this->withoutPings($message));
 
         // 50007: Cannot send messages to this user (DMs closed).
         if ($response->forbidden()) {
-            return false;
+            return null;
         }
 
-        $response->throw();
+        $messageId = $response->throw()->json('id');
 
-        return true;
+        return new SentMessage($channelId, is_string($messageId) ? $messageId : '');
     }
 
     /**

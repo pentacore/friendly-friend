@@ -10,6 +10,7 @@ use App\Enums\QuoteStatus;
 use App\Enums\SaidAtPrecision;
 use Database\Factories\QuoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -40,6 +41,9 @@ use Illuminate\Support\Carbon;
  * @property int $matchup_count
  * @property string $search_text
  * @property Carbon|null $published_at
+ * @property string|null $preview_token interaction token of a draft's private preview (encrypted)
+ * @property string|null $preview_channel_id DM channel of a draft's preview
+ * @property string|null $preview_message_id DM message of a draft's preview
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Guild $guild
@@ -47,7 +51,8 @@ use Illuminate\Support\Carbon;
  * @property-read QuoteVote|null $myVote
  * @property-read Collection<int, QuoteLine> $lines
  */
-#[Fillable(['guild_id', 'status', 'source', 'context', 'said_at', 'said_at_precision', 'source_message_id', 'source_channel_id', 'source_message_url', 'import_id', 'submitted_by_discord_user_id', 'raw_input', 'ai_output', 'published_at'])]
+#[Fillable(['guild_id', 'status', 'source', 'context', 'said_at', 'said_at_precision', 'source_message_id', 'source_channel_id', 'source_message_url', 'import_id', 'submitted_by_discord_user_id', 'raw_input', 'ai_output', 'published_at', 'preview_token', 'preview_channel_id', 'preview_message_id'])]
+#[Hidden(['preview_token', 'preview_channel_id', 'preview_message_id'])]
 class Quote extends Model
 {
     /** @use HasFactory<QuoteFactory> */
@@ -140,6 +145,7 @@ class Quote extends Model
             'said_at' => 'datetime',
             'said_at_precision' => SaidAtPrecision::class,
             'ai_output' => 'array',
+            'preview_token' => 'encrypted',
             'published_at' => 'datetime',
         ];
     }

@@ -28,6 +28,10 @@ final readonly class ConfirmQuote
             $quote->update([
                 'status' => QuoteStatus::Published,
                 'published_at' => now(),
+                // Only drafts need to know where their preview is.
+                'preview_token' => null,
+                'preview_channel_id' => null,
+                'preview_message_id' => null,
             ]);
 
             $this->recordRevision->handle($quote, $editor);

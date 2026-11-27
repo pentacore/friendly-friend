@@ -9,6 +9,7 @@ use App\Access\GuildAccess;
 use App\Ai\CaptureInput;
 use App\Ai\QuoteNormalizer;
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Data\SentMessage;
 use App\Discord\DiscordClient;
 use App\Discord\Interactions\DraftEditForm;
 use App\Enums\QuoteSource;
@@ -92,10 +93,17 @@ final class CaptureFromMention implements ShouldQueue
         $draft->load('lines');
         $editForm->remember($draft);
 
-        if (! $discord->sendDirectMessage($member->discordId, QuoteMessages::preview($draft))) {
+        $sent = $discord->sendDirectMessage($member->discordId, QuoteMessages::preview($draft));
+
+        if (! $sent instanceof SentMessage) {
             $cancelDraft->handle($draft);
             $this->replyDmsClosed($discord, $member->discordId);
+
+            return;
         }
+
+        // Kept so the preview can say "expired" when the draft is pruned.
+        $draft->forceFill(['preview_channel_id' => $sent->channelId, 'preview_message_id' => $sent->messageId])->saveQuietly();
     }
 
     private function draftFromText(Guild $guild, DiscordUser $submitter, QuoteNormalizer $normalizer, DraftQuote $draftQuote): ?Quote

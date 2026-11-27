@@ -57,6 +57,9 @@ export type QuoteCreate = {
   raw_input: string;
   ai_output?: Record<string, unknown> | null;
   published_at?: string | null;
+  preview_token?: string | null;
+  preview_channel_id?: string | null;
+  preview_message_id?: string | null;
 };
 
 export type QuoteUpdate = {
@@ -74,4 +77,7 @@ export type QuoteUpdate = {
   raw_input?: string;
   ai_output?: Record<string, unknown> | null;
   published_at?: string | null;
+  preview_token?: string | null;
+  preview_channel_id?: string | null;
+  preview_message_id?: string | null;
 };

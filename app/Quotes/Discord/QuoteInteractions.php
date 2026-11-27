@@ -33,6 +33,7 @@ use App\Quotes\Exceptions\AlreadyQuotedException;
 use App\Quotes\Imports\StartChannelImport;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -80,6 +81,7 @@ final readonly class QuoteInteractions
 
         if ($reply !== null && $token !== '') {
             $this->discord->editInteractionResponse($token, $reply);
+            $this->rememberPreview($reply, $token);
         }
     }
 
@@ -438,5 +440,21 @@ final readonly class QuoteInteractions
         }
 
         return $fields;
+    }
+
+    /**
+     * A draft preview (it carries the draft's Save button) was sent through
+     * this interaction: keep the token, so the preview can say "expired"
+     * when the draft is pruned.
+     *
+     * @param  array<string, mixed>  $reply
+     */
+    private function rememberPreview(array $reply, string $token): void
+    {
+        $button = CustomId::parse(Payload::string($reply, 'components', 0, 'components', 0, 'custom_id'));
+
+        if ($button instanceof CustomId && $button->action === CustomId::SAVE) {
+            Quote::query()->whereKey($button->quoteId)->where('status', QuoteStatus::Draft)->update(['preview_token' => Crypt::encryptString($token)]);
+        }
     }
 }

@@ -6,6 +6,7 @@ namespace App\Discord;
 
 use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
+use App\Discord\Data\SentMessage;
 
 /**
  * Discord REST calls made as the bot. Everything outside App\Discord talks to
@@ -86,9 +87,10 @@ interface DiscordClient
     public function channelMessages(string $channelId, ?string $before = null, int $limit = 100): array;
 
     /**
-     * DM a user. Returns false when Discord refuses (DMs closed, no shared server).
+     * DM a user. Returns where it landed, or null when Discord refuses (DMs
+     * closed, no shared server).
      *
      * @param  array<string, mixed>  $message
      */
-    public function sendDirectMessage(string $userDiscordId, array $message): bool;
+    public function sendDirectMessage(string $userDiscordId, array $message): ?SentMessage;
 }

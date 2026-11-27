@@ -24,10 +24,12 @@ return [
     ],
 
     /*
-    | Minutes before an unsaved draft is discarded.
+    | Minutes before an unsaved draft is discarded. Kept under Discord's 15
+    | minute interaction token lifetime, so the private preview can still be
+    | edited to say "expired" when the draft goes.
     */
 
-    'draft_ttl_minutes' => 15,
+    'draft_ttl_minutes' => 14,
 
     /*
     | Timezone used to understand "yesterday" etc. and to show times.
