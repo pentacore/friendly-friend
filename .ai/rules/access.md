@@ -21,3 +21,7 @@ paths:
 ## Membership lookups
 
 `GuildAccess` loads a user's active memberships once per `DiscordUser` instance (kept as the `activeMemberships` relation). Reuse the request's instance (`$user->discordUser`) so checks share it; after changing memberships, check on a fresh instance (`->fresh()`), not the one already used. Never serialise a whole `DiscordUser` (`toArray()`), since the relation would come along.
+
+## Personal data export
+
+- `Access\PersonalData` is the "download my data" export. A new table that stores something about a person adds its rows there, filtered to that person only.
