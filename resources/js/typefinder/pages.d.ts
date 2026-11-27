@@ -5,7 +5,7 @@
 // ───────────────────────────────────────────────────────────────────────
 
 import type { AccessDeniedReason } from './enums';
-import type { GuildResource, QuoteResource, QuoteRevisionResource } from './resources';
+import type { GuildResource, PersonAdminResource, QuoteResource, QuoteRevisionResource } from './resources';
 import type { SimplePaginatedResourceCollection } from './helpers';
 
 export type SharedPageProps = {
@@ -17,6 +17,7 @@ export type SharedPageProps = {
 
 export type PageProps = {
   'admin/Guilds': { guilds: GuildResource[] };
+  'admin/People': { people: SimplePaginatedResourceCollection<PersonAdminResource>; search: string; discord_users: { id: number; name: string }[]; all_people: { id: number; display_name: string }[] };
   'auth/Login': { error: AccessDeniedReason | null };
   'people/Show': { person: { id: number; slug: string; display_name: string; aliases: string[]; avatar_url: string | null; quote_count: number }; quotes: SimplePaginatedResourceCollection<QuoteResource> };
   'quotes/Index': { quotes: SimplePaginatedResourceCollection<QuoteResource>; filters: { q: string; guild: number | null; person: string | null }; guilds: { id: number; name: string }[]; person: { slug: string; display_name: string } | null };

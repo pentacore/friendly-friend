@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutGrid, Quote, Scale, Server, Shuffle, Trophy } from '@lucide/vue';
+import {
+    LayoutGrid,
+    Quote,
+    Scale,
+    Server,
+    Shuffle,
+    Trophy,
+    Users,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -16,6 +24,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, top } from '@/routes';
 import { index as guildsIndex } from '@/routes/admin/guilds';
+import { index as peopleIndex } from '@/routes/admin/people';
 import { index as quotesIndex, random as randomQuote } from '@/routes/quotes';
 import { show as thisOrThat } from '@/routes/this-or-that';
 import type { NavItem } from '@/types';
@@ -32,6 +41,9 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Random quote', href: randomQuote(), icon: Shuffle },
     { title: 'This or that', href: thisOrThat(), icon: Scale },
     { title: 'Top lists', href: top(), icon: Trophy },
+    ...(page.props.auth.user?.is_admin
+        ? [{ title: 'People', href: peopleIndex(), icon: Users }]
+        : []),
     ...(page.props.auth.user?.is_owner
         ? [{ title: 'Servers', href: guildsIndex(), icon: Server }]
         : []),

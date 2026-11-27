@@ -4,8 +4,11 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+export type { LinkPersonRequest } from './LinkPersonRequest';
 export type { MatchupRequest } from './MatchupRequest';
+export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
+export type { StoreAliasRequest } from './StoreAliasRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';
 export type { UpdateQuoteRequest } from './UpdateQuoteRequest';
 export type { VoteRequest } from './VoteRequest';

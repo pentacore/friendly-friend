@@ -17,6 +17,7 @@ paths:
 - Every capture path is draft, then a private preview, then Save/Edit/Cancel. Drafts expire after 15 minutes (`PruneExpiredDrafts`). Imports become `pending_review` for admins.
 - A Discord message can only be quoted once (`source_message_id` is unique). Removing a quote sets `removed`; it isn't deleted.
 - Every save and edit writes a `quote_revisions` snapshot (`RecordRevision`), and every content change rebuilds `search_text` (`Quote::refreshSearchText`).
+- People are shared across servers, so managing them (aliases, Discord links, merges via `MergePeople`) is behind the general `admin` gate. Aliases are unique case-insensitively, and a Discord account belongs to at most one person.
 - Permissions live in `QuoteRules` (view / update / delete / review), shared by `QuotePolicy` and `QuoteResource`.
 
 ## AI

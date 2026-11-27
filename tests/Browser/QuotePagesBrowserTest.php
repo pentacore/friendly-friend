@@ -128,3 +128,19 @@ it('shows the top lists', function (bool $dark): void {
     $page->script('document.fonts.ready');
     $page->screenshot(filename: 'top-'.($dark ? 'dark' : 'light'));
 })->with(['light' => false, 'dark' => true]);
+
+it('lets admins manage people', function (bool $dark): void {
+    $admin = User::factory()->memberOf($this->guild, ['900'])->create();
+    $this->actingAs($admin);
+
+    $page = visit('/admin/people');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Martin')
+        ->fill('[aria-label="Nickname for Martin"]', 'Marre')
+        ->click('Add')
+        ->assertSee('Marre')
+        ->assertNoJavaScriptErrors();
+    $page->script('document.fonts.ready');
+    $page->screenshot(filename: 'admin-people-'.($dark ? 'dark' : 'light'));
+})->with(['light' => false, 'dark' => true]);

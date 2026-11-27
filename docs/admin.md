@@ -17,3 +17,11 @@ The bot registers each server when it joins or connects (`GUILD_CREATE`). A new 
 - Access is checked on every request, so changes apply immediately. Someone who loses their last way in is logged out on their next click.
 
 Code: `App\Http\Controllers\Admin\GuildController`, `App\Http\Requests\Admin\UpdateGuildRequest` (role IDs must be assignable roles of that server), `App\Access\Actions\UpdateGuildSettings`, page `resources/js/pages/admin/Guilds.vue`.
+
+# Admin: people
+
+`/admin/people` (sidebar → **People**) is for admins (`admin` gate: owners and admin roles). People are shared across servers.
+
+- **Nicknames:** add or remove aliases ("Marre" → Martin). They are unique regardless of case. Quote capture uses them to find the right person.
+- **Discord account:** link a person to a Discord account, or unlink them ("Not on Discord"). An account can belong to only one person; merge the two people instead.
+- **Merge:** `MergePeople` moves a duplicate's quote lines, nicknames and Discord link to another person, keeps the duplicate's name as a nickname, and deletes the duplicate. It can't be undone.

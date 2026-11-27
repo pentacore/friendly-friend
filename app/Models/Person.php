@@ -7,6 +7,7 @@ namespace App\Models;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,8 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read DiscordUser|null $discordUser
+ * @property-read Collection<int, PersonAlias> $aliases
+ * @property-read int|null $quote_count  withCount() of distinct quotes
  */
 #[Fillable(['display_name', 'slug', 'discord_user_id'])]
 #[Table(name: 'people')]

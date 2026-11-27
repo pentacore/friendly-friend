@@ -25,7 +25,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Voting (👍/👎) with live counts over Reverb
 - [x] This-or-that with Elo ranking
 - [x] Top lists (all-time, this month, by Elo, most quoted people, top submitters)
-- [ ] People pages; admin: merge people, manage aliases, link a person to a Discord user
+- [x] People pages; admin: merge people, manage aliases, link a person to a Discord user
 - [ ] **Import review queue** for `pending_review` quotes from channel imports (approve, edit, reject, approve all), with import progress over Reverb
 - [x] Remove quotes (admins); restore is not built yet
 - [x] Show quotes in the `"quote text" - Person` style on the web too (as in Discord)
