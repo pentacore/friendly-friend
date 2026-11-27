@@ -31,6 +31,7 @@ paths:
 ## Times and money
 
 - `starts_at` and `ends_at` are `timestamptz`. Forms send local `Y-m-d\TH:i` in the event's `timezone` (`SaveEventRequest::details()` converts). The edit form gets local strings back. The frontend formats with `lib/eventDates.ts` in the event's timezone, never the browser's.
+- Event times (start, proposed dates, answer by) must be in the future when set or changed (`SaveEventRequest::after()`); unchanged times on a past event are fine.
 - Without `ends_at`, an event counts as "coming up" until 6 hours after it starts.
 - Money is integer minor units (öre) in the event's `currency`. Balances are computed, never stored.
 
@@ -46,7 +47,7 @@ paths:
 - Organiser-only data (dietary needs, who answered which question) is `null` for everyone else, never just hidden in the UI.
 - Question answers are saved with the RSVP (`answers` in `RsvpRequest`, `SaveAnswers`), only while going or maybe. A value a question doesn't accept clears the answer instead of failing. Counts only include people going or maybe.
 - Anything that can run out (ride seats) is checked inside a transaction with `lockForUpdate()`, and the action throws a domain exception (`RideFullException`) that the controller turns into an error toast.
-- Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. Payments change only the balance, never "paid" or "share".
+- Costs: parse typed amounts with `Planning\Money::toMinor()` (accepts `120`, `120.5`, `120,50`), split with `Money::splitEqually()` (shares always add up), and settle with `Planning\SettleUp`. Balances come from `CostsPlan` on every read. `SplitMode::Attendees` expenses store no shares: `CostsPlan::shares()` splits them by weight (1 + guests) among people going, at read time. Payments change only the balance, never "paid" or "share".
 - Costs are managed with the `manageCosts` ability (view access), not `participate`, so a cancelled event can still be settled.
 
 ## Discord
@@ -54,3 +55,8 @@ paths:
 - Everything Discord-side goes through `SyncEventToDiscord` (announcement + native event), dispatched by the actions: `CreateEvent`/`UpdateEvent`/`CancelEvent` with details, `RecordRsvp` with `details: false` (counts only). It's `ShouldBeUniqueUntilProcessing`, and a Discord 4xx (missing permission, deleted channel) is logged, never retried.
 - Message bodies come from the pure `Planning\Discord\EventAnnouncement` and `Planning\Discord\DatePicker`. Discord allows 5 component rows, so date votes use one button that opens a private picker with two multi-selects (yes, if need be; up to 25 dates), never a button per date. Picker selects are acknowledged with a deferred update (they edit the picker in place); buttons get a private deferred reply. RSVP buttons use `Discord\Interactions\EventCustomId` (`event:rsvp:<id>:<status>`), are acknowledged privately, and are handled by `HandleEventInteraction`, which keeps guests, note and ride flag from the website.
 - Reminders mention people only when their DMs are closed, with `allowed_mentions.users` listing exactly them.
+
+## Creating
+
+- The create form can plan questions, food, the creator's ride and costs in one go (`SaveEventRequest::plan()` → `EventPlan` → `CreateEvent`, which calls the same actions as the tabs). The frontend drops blank rows before sending (`lib/eventPlan.ts`), so plan-ahead inputs aren't `required` in the browser.
+- Event pages use the width: forms in two columns from `lg`, the event page up to `max-w-7xl` with extra columns at `xl`/`2xl`.

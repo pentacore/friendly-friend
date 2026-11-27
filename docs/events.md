@@ -14,13 +14,14 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 ## Pages
 
 - **`/events`** (sidebar → Together → Events): coming up (soonest first) and "been and gone" (latest 30), filterable by server.
-- **`/events/create`**: server, title, start and optional end (in the event's timezone, default `STATS_TIMEZONE`), place and map link, details, co-hosts (current members of that server). The creator is automatically going.
+- **`/events/create`**: server, title, start and optional end (in the event's timezone, default `STATS_TIMEZONE`), place and map link, details, co-hosts (current members of that server, with a filter when there are more than six). The creator is automatically going. Times can't be in the past; a past event can still be edited as long as its date isn't changed.
+    - **Plan ahead (optional):** questions, a bring list, shopping, meals, your own ride, and costs you paid. Each section opens with a button and can be removed again (×, or by removing its last row); rows left blank are skipped. Costs added here are split among **everyone going**.
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.
 - **`/events/{id}/edit`**: the same form, for editors.
 
 ## Voting on the date
 
-Not sure when? Tick **Let people vote on the date** on the new-event form and propose 2 to 10 dates (start, optional end) instead of one.
+Not sure when? Tick **Let people vote on the date** on the new-event form and propose 2 to 10 dates instead of one: a day, a start time, and optionally an end time and a later end day (for trips over several days). New dates take the first date's times and length until you change them.
 
 - While the vote is open the event shows "Date to be decided" (a **?** badge), and the "Are you coming?" box is replaced by **Which dates work for you?**: everyone answers each date **Yes / If need be / No** (press again to take it back), and sees the tallies and who said what. The date with the most yes (then most if need be) is marked **Best so far**.
 - Organisers can **propose another date**, withdraw one (not the last), and **Choose this date**. Choosing sets the event's time, and everyone who voted yes on it becomes **going**, if need be becomes **maybe**, unless they had already answered.
@@ -62,7 +63,7 @@ Organisers can ask everyone coming something, on the Overview tab:
 
 ## Costs tab
 
-- **Expenses:** what, how much (type `450` or `120,50`), who paid, and who shares it: **equally** (leftover öre go to the first people, so it always adds up) or **exact amounts** (they must add up to the total). The people to choose from are everyone going or maybe, the hosts, and anyone already in the costs.
+- **Expenses:** what, how much (type `450` or `120,50`), who paid, and who shares it: **equally** (leftover öre go to the first people, so it always adds up), **exact amounts** (they must add up to the total), or **everyone going**: worked out whenever the costs are shown, from who's going right now, with each guest as an extra share (if nobody is going, the payer carries it). The people to choose from are everyone going or maybe, the hosts, and anyone already in the costs.
 - **Settle up:** everyone's balance (paid minus share, adjusted by payments) and the transfers that square it: the biggest debtor pays the biggest creditor, repeated. **Mark as paid** records the payment; anyone can do it, and the person who recorded it (or an organiser) can undo it.
 - **Balances** table: paid, share and balance per person.
 - Money is stored as integer minor units in the event's currency (`SEK`).

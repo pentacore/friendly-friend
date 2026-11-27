@@ -103,7 +103,7 @@ function add(): void {
                 v-model="quantity"
                 placeholder="Amount"
                 aria-label="How much"
-                class="w-28"
+                class="w-28 shrink-0"
                 maxlength="40"
             />
             <Button type="submit" variant="secondary" :disabled="busy"

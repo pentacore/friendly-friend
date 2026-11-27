@@ -54,4 +54,37 @@ final class Money
 
         return $shares;
     }
+
+    /**
+     * Split an amount by weight (someone bringing two guests weighs 3).
+     * Leftover öre go to the largest remainders, so shares always add up.
+     *
+     * @param  array<int, int>  $weights  person => weight (> 0)
+     * @return array<int, int> person => share
+     */
+    public static function splitByWeight(int $amount, array $weights): array
+    {
+        $weights = array_filter($weights, fn (int $weight): bool => $weight > 0);
+        $total = array_sum($weights);
+
+        if ($total === 0) {
+            return [];
+        }
+
+        $shares = [];
+        $remainders = [];
+
+        foreach ($weights as $person => $weight) {
+            $shares[$person] = intdiv($amount * $weight, $total);
+            $remainders[$person] = ($amount * $weight) % $total;
+        }
+
+        arsort($remainders);
+
+        foreach (array_slice(array_keys($remainders), 0, $amount - array_sum($shares)) as $person) {
+            $shares[$person]++;
+        }
+
+        return $shares;
+    }
 }

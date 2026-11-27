@@ -25,7 +25,7 @@ function filter(): void {
 </script>
 
 <template>
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
             <Heading
                 title="Events"
@@ -52,8 +52,10 @@ function filter(): void {
             </div>
         </div>
 
-        <section class="flex flex-col gap-3">
-            <h2 class="text-sm font-medium text-muted-foreground">Coming up</h2>
+        <section class="grid gap-3 lg:grid-cols-2">
+            <h2 class="text-sm font-medium text-muted-foreground lg:col-span-2">
+                Coming up
+            </h2>
             <EventCard
                 v-for="event in upcoming"
                 :key="event.id"
@@ -62,7 +64,7 @@ function filter(): void {
             />
             <p
                 v-if="upcoming.length === 0"
-                class="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground"
+                class="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground lg:col-span-2"
             >
                 Nothing planned yet. Start something:
                 <Link
@@ -73,8 +75,8 @@ function filter(): void {
             </p>
         </section>
 
-        <section v-if="past.length" class="flex flex-col gap-3">
-            <h2 class="text-sm font-medium text-muted-foreground">
+        <section v-if="past.length" class="grid gap-3 lg:grid-cols-2">
+            <h2 class="text-sm font-medium text-muted-foreground lg:col-span-2">
                 Been and gone
             </h2>
             <EventCard

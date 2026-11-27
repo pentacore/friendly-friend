@@ -113,7 +113,7 @@ const field =
             <h2 class="text-sm font-medium text-muted-foreground">
                 {{ directions[group.direction] }}
             </h2>
-            <div class="grid gap-3 md:grid-cols-2">
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <article
                     v-for="ride in group.rides"
                     :key="ride.id"

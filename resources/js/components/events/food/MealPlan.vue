@@ -165,13 +165,13 @@ const field =
 
         <form
             v-if="canEdit"
-            class="grid gap-2 sm:grid-cols-[auto_auto_1fr_auto]"
+            class="grid grid-cols-2 gap-2"
             @submit.prevent="add"
         >
             <input
                 v-model="draft.date"
                 type="date"
-                :class="field"
+                :class="[field, 'min-w-0']"
                 aria-label="Day"
                 required
             />
@@ -186,8 +186,13 @@ const field =
                 aria-label="What"
                 required
                 maxlength="120"
+                class="col-span-2 sm:col-span-1"
             />
-            <Button type="submit" variant="secondary" :disabled="busy"
+            <Button
+                type="submit"
+                variant="secondary"
+                class="col-span-2 sm:col-span-1"
+                :disabled="busy"
                 >Add meal</Button
             >
         </form>

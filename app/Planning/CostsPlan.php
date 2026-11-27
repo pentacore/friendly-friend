@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Planning;
 
 use App\Access\AccessSnapshot;
+use App\Enums\RsvpStatus;
 use App\Enums\SplitMode;
 use App\Models\DiscordUser;
 use App\Models\Event;
@@ -38,7 +39,7 @@ final readonly class CostsPlan
      */
     public static function for(Event $event, AccessSnapshot $access): array
     {
-        $event->load(['expenses.paidBy', 'expenses.shares.discordUser', 'payments.from', 'payments.to', 'hosts']);
+        $event->load(['expenses.paidBy', 'expenses.shares.discordUser', 'payments.from', 'payments.to', 'hosts', 'rsvps']);
         $organiser = EventRules::canEdit($access, $event);
         $people = DiscordUser::query()->whereIn('id', $event->costPeopleIds())->get()
             ->sortBy(fn (DiscordUser $user): string => mb_strtolower($user->display_name))
@@ -59,10 +60,11 @@ final readonly class CostsPlan
                 'amount' => $expense->amount,
                 'split_mode' => $expense->split_mode,
                 'paid_by' => $expense->paidBy->toMember(),
-                'shares' => array_values($expense->shares->map(fn (EventExpenseShare $share): array => [
-                    'member' => $share->discordUser->toMember(),
-                    'amount' => $share->amount,
-                ])->all()),
+                'shares' => array_map(
+                    fn (int $personId, int $amount): array => ['member' => $member($personId), 'amount' => $amount],
+                    array_keys(self::shares($event, $expense)),
+                    self::shares($event, $expense),
+                ),
                 'created_at' => $expense->created_at?->toIso8601String(),
                 'can_remove' => $ownsOrOrganises($expense->added_by_discord_user_id) || $expense->paid_by_discord_user_id === $access->discordUserId,
             ])->all()),
@@ -103,11 +105,11 @@ final readonly class CostsPlan
             $payer['balance'] += $expense->amount;
             $ledger[$expense->paid_by_discord_user_id] = $payer;
 
-            foreach ($expense->shares as $share) {
-                $sharer = $ledger[$share->discord_user_id] ?? $empty;
-                $sharer['share'] += $share->amount;
-                $sharer['balance'] -= $share->amount;
-                $ledger[$share->discord_user_id] = $sharer;
+            foreach (self::shares($event, $expense) as $personId => $amount) {
+                $sharer = $ledger[$personId] ?? $empty;
+                $sharer['share'] += $amount;
+                $sharer['balance'] -= $amount;
+                $ledger[$personId] = $sharer;
             }
         }
 
@@ -123,5 +125,29 @@ final readonly class CostsPlan
         }
 
         return $ledger;
+    }
+
+    /**
+     * Who carries how much of an expense. "Everyone going" is worked out
+     * now, from the RSVPs (1 share each plus 1 per guest); with nobody
+     * going, the payer carries it.
+     *
+     * @return array<int, int> discord_users.id => minor units
+     */
+    private static function shares(Event $event, EventExpense $expense): array
+    {
+        if ($expense->split_mode !== SplitMode::Attendees) {
+            return $expense->shares->mapWithKeys(fn (EventExpenseShare $share): array => [$share->discord_user_id => $share->amount])->all();
+        }
+
+        $weights = [];
+
+        foreach ($event->rsvps as $rsvp) {
+            if ($rsvp->status === RsvpStatus::Going) {
+                $weights[$rsvp->discord_user_id] = 1 + $rsvp->guests;
+            }
+        }
+
+        return $weights === [] ? [$expense->paid_by_discord_user_id => $expense->amount] : Money::splitByWeight($expense->amount, $weights);
     }
 }

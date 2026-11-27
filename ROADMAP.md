@@ -43,6 +43,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Transport: rides with seats, pickup points, "needs a ride" list
 - [x] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
 - [x] Watched channels: quotes posted without the bot are picked up for review (📝 reaction)
+- [x] Plan questions, food, a ride and costs while creating an event; "everyone going" cost split; no past dates; wider event pages
 - [x] Date vote: propose several dates, everyone answers yes / if need be / no, organisers choose one (votes become RSVPs)
 - [x] Event questions (yes/no, pick one, free text) answered with the RSVP; counts for everyone, names for organisers
 - [x] "Answer by" deadline: closes Going/Maybe (Can't stays open), nudges Maybes a day before, greys out the Discord buttons

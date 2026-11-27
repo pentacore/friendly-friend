@@ -3,6 +3,8 @@ import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { store } from '@/actions/App/Http/Controllers/EventController';
 import EventForm from '@/components/events/EventForm.vue';
+import PlanAhead from '@/components/events/PlanAhead.vue';
+import { withoutBlankRows } from '@/lib/eventPlan';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
@@ -32,20 +34,26 @@ const form = useForm<SaveEventRequest>({
     date_options: null,
     timezone: props.default_timezone,
     host_ids: [],
+    questions: null,
+    bring: null,
+    shopping: null,
+    meals: null,
+    ride: null,
+    costs: null,
 });
 
 const members = computed(() => props.members[form.guild_id] ?? []);
 
 function submit(): void {
-    form.submit(store());
+    form.transform(withoutBlankRows).submit(store());
 }
 </script>
 
 <template>
-    <div class="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-6">
         <Heading
             title="New event"
-            description="The basics now; food, rides and costs on the event page."
+            description="The basics first. Plan food, rides, costs and questions now or later."
         />
 
         <EventForm
@@ -70,6 +78,9 @@ function submit(): void {
                     </select>
                     <InputError :message="form.errors.guild_id" />
                 </div>
+            </template>
+            <template #extras>
+                <PlanAhead :form="form" />
             </template>
         </EventForm>
     </div>

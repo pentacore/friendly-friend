@@ -109,7 +109,22 @@ const field =
                                 >
                             </p>
                             <p class="text-xs text-muted-foreground">
-                                <template v-if="expense.split_mode === 'equal'">
+                                <template
+                                    v-if="expense.split_mode === 'attendees'"
+                                >
+                                    Split among everyone going, now
+                                    {{
+                                        expense.shares
+                                            .map(
+                                                (s) =>
+                                                    `${s.member.name} ${money(s.amount)}`,
+                                            )
+                                            .join(', ')
+                                    }}
+                                </template>
+                                <template
+                                    v-else-if="expense.split_mode === 'equal'"
+                                >
                                     Split {{ expense.shares.length }}
                                     {{
                                         expense.shares.length === 1
@@ -223,10 +238,16 @@ const field =
                             >
                                 <option value="equal">Equally</option>
                                 <option value="exact">Exact amounts</option>
+                                <option value="attendees">
+                                    Everyone going (updates as people answer)
+                                </option>
                             </select>
                         </div>
                     </div>
-                    <fieldset class="grid gap-1.5">
+                    <fieldset
+                        v-if="draft.split_mode !== 'attendees'"
+                        class="grid gap-1.5"
+                    >
                         <legend class="mb-1 text-sm font-medium">
                             Between
                         </legend>

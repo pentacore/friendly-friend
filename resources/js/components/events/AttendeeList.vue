@@ -35,7 +35,7 @@ const groups = computed(() =>
             <h3 class="text-sm font-medium text-muted-foreground">
                 {{ group.label }} · {{ group.people.length }}
             </h3>
-            <ul class="grid gap-1.5 sm:grid-cols-2">
+            <ul class="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
                 <li
                     v-for="person in group.people"
                     :key="person.member.id"

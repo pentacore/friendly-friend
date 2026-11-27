@@ -55,7 +55,7 @@ const nothingYet = computed(
 <template>
     <Head title="Stats" />
 
-    <div class="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 sm:p-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
             <Heading
                 title="Stats"
@@ -134,7 +134,7 @@ const nothingYet = computed(
                 <ActivityHeatmap :cells="heatmap" />
             </section>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <StatsBoard
                     title="Most messages"
                     :rows="messages"

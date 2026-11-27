@@ -90,7 +90,7 @@ function setCancelled(cancelled: boolean): void {
 </script>
 
 <template>
-    <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 sm:p-6">
         <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
             <EventDateBadge
                 size="lg"
@@ -248,7 +248,7 @@ function setCancelled(cancelled: boolean): void {
             :errors="errors"
         />
 
-        <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
             <div class="flex flex-col gap-6">
                 <p
                     v-if="event.description"

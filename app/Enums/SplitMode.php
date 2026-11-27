@@ -13,4 +13,6 @@ enum SplitMode: string
     case Equal = 'equal';
     /** Everyone's amount typed in; they must add up to the total. */
     case Exact = 'exact';
+    /** Everyone going, worked out whenever it's read (guests count as shares). */
+    case Attendees = 'attendees';
 }

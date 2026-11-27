@@ -58,3 +58,38 @@ export function relativeToNow(iso: string): string {
         ? format.format(Math.round(days / 7), 'week')
         : format.format(days, 'day');
 }
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Today as YYYY-MM-DD in the browser's timezone (for date pickers' min). */
+export function localDate(date = new Date()): string {
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** Now as YYYY-MM-DDTHH:mm in the browser's timezone (for datetime pickers' min). */
+export function localDateTime(date = new Date()): string {
+    return `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** The day after a YYYY-MM-DD date. */
+export function nextDay(date: string): string {
+    return addDays(date, 1);
+}
+
+/** A YYYY-MM-DD date plus some days. */
+export function addDays(date: string, days: number): string {
+    const [year, month, day] = date.split('-').map(Number);
+
+    return localDate(new Date(year ?? 0, (month ?? 1) - 1, (day ?? 1) + days));
+}
+
+/** Whole days from one YYYY-MM-DD date to another. */
+export function daysBetween(from: string, to: string): number {
+    const toDate = (value: string) => {
+        const [year, month, day] = value.split('-').map(Number);
+
+        return Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1);
+    };
+
+    return Math.round((toDate(to) - toDate(from)) / 86_400_000);
+}

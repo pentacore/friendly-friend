@@ -38,8 +38,8 @@ final class ExpenseRequest extends FormRequest
             'amount' => ['required', 'string', 'regex:'.Money::PATTERN],
             'paid_by' => ['required', 'integer', Rule::in($people)],
             'split_mode' => ['required', Rule::enum(SplitMode::class)],
-            'people' => ['required', 'array', 'min:1'],
-            'people.*' => ['integer', 'distinct', Rule::in($people)],
+            'people' => ['exclude_if:split_mode,'.SplitMode::Attendees->value, 'required', 'array', 'min:1'],
+            'people.*' => ['exclude_if:split_mode,'.SplitMode::Attendees->value, 'integer', 'distinct', Rule::in($people)],
             'exact' => ['array'],
             'exact.*' => ['nullable', 'string', 'regex:'.Money::PATTERN],
         ];
@@ -85,6 +85,10 @@ final class ExpenseRequest extends FormRequest
     public function shares(): array
     {
         $people = array_values(array_map(intval(...), array_filter($this->array('people'), is_numeric(...))));
+
+        if ($this->mode() === SplitMode::Attendees) {
+            return [];
+        }
 
         if ($this->mode() === SplitMode::Equal) {
             return Money::splitEqually($this->amount(), $people);

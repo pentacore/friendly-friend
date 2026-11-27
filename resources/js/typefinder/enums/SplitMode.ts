@@ -7,6 +7,7 @@
 export const SplitMode = {
     Equal: 'equal',
     Exact: 'exact',
+    Attendees: 'attendees',
 } as const;
 
 export type SplitMode = typeof SplitMode[keyof typeof SplitMode];

@@ -15,10 +15,10 @@ defineProps<{
 </script>
 
 <template>
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <section
             v-if="food.dietary && food.dietary.length"
-            class="flex flex-col gap-2 rounded-xl border bg-card p-4 lg:col-span-2"
+            class="flex flex-col gap-2 rounded-xl border bg-card p-4 lg:col-span-2 2xl:col-span-3"
             data-test="dietary"
         >
             <h2 class="font-medium">Dietary needs</h2>
@@ -52,7 +52,7 @@ defineProps<{
             :can-participate="event.can.participate"
         />
         <MealPlan
-            class="lg:col-span-2"
+            class="lg:col-span-2 2xl:col-span-1"
             :event-id="event.id"
             :meals="food.meals"
             :me="me"

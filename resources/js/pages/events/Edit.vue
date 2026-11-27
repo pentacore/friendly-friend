@@ -32,7 +32,7 @@ function submit(): void {
 </script>
 
 <template>
-    <div class="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-6">
         <Heading :title="`Edit ${event.title}`" />
 
         <EventForm

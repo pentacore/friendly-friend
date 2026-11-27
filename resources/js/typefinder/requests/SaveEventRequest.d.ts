@@ -4,6 +4,8 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+import type { MealSlot, QuestionKind, RideDirection } from '../enums';
+
 export type SaveEventRequest = {
   guild_id: number;
   title: string;
@@ -19,4 +21,32 @@ export type SaveEventRequest = {
     ends_at?: string | null;
   }[] | null;
   host_ids?: number[];
+  questions?: {
+    prompt: string;
+    kind: QuestionKind;
+    options?: (string | null)[] | null;
+  }[] | null;
+  bring?: {
+    label: string;
+    quantity: number;
+  }[] | null;
+  shopping?: {
+    label: string;
+    quantity?: string | null;
+  }[] | null;
+  meals?: {
+    date: string;
+    slot: MealSlot;
+    title: string;
+  }[] | null;
+  ride?: {
+    direction?: RideDirection;
+    seats?: number;
+    departs_from?: string | null;
+    departs_at?: string | null;
+  } | null;
+  costs?: {
+    description: string;
+    amount: string;
+  }[] | null;
 };

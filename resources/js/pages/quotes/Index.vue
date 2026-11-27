@@ -41,7 +41,9 @@ const searchSoon = useDebounceFn(applyFilters, 300);
 </script>
 
 <template>
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 sm:p-6">
+    <div
+        class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 sm:p-6 xl:max-w-6xl"
+    >
         <div class="flex flex-wrap items-end justify-between gap-4">
             <Heading
                 :title="person ? `Quotes by ${person.display_name}` : 'Quotes'"
@@ -88,7 +90,10 @@ const searchSoon = useDebounceFn(applyFilters, 300);
             </Link>
         </p>
 
-        <InfiniteScroll data="quotes" class="flex flex-col gap-4">
+        <InfiniteScroll
+            data="quotes"
+            class="grid items-start gap-4 xl:grid-cols-2"
+        >
             <QuoteCard
                 v-for="quote in quotes.data"
                 :key="quote.id"

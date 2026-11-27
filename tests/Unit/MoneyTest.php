@@ -51,3 +51,12 @@ it('always balances out, with at most n - 1 transfers', function (): void {
 
     expect(array_filter($balances))->toBe([])->and(count($transfers))->toBeLessThanOrEqual(4);
 });
+
+it('splits by weight without losing an öre', function (): void {
+    // Bo brings two guests: three shares of four.
+    $shares = Money::splitByWeight(10000, [7 => 1, 8 => 3]);
+
+    expect($shares)->toBe([7 => 2500, 8 => 7500])
+        ->and(array_sum(Money::splitByWeight(1000, [1 => 1, 2 => 1, 3 => 1])))->toBe(1000)
+        ->and(Money::splitByWeight(100, []))->toBe([]);
+});

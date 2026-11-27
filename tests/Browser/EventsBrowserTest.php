@@ -72,7 +72,7 @@ it('creates an event', function (): void {
 
     visit('/events/create')
         ->fill('title', 'Board game night')
-        ->fill('starts_at', '2026-12-12T19:00')
+        ->fill('starts_at', now()->addDays(15)->format('Y-m-d').'T19:00')
         ->fill('location', 'Kim’s place')
         ->screenshot(filename: 'events-create-light')
         ->press('Create event')
@@ -240,4 +240,56 @@ it('votes on dates and chooses one', function (bool $dark): void {
         ->assertNoJavaScriptErrors();
 
     expect($poll->fresh()?->date_polling)->toBeFalse();
+})->with(['light' => false, 'dark' => true]);
+
+it('creates a date vote with the first date’s times and plans ahead', function (bool $dark): void {
+    foreach (['Alex', 'Robin', 'Kim', 'Sam', 'Noor', 'Liv', 'Ture'] as $name) {
+        User::factory()->forDiscordUser(DiscordUser::factory()->create(['global_name' => $name]))->memberOf($this->guild)->create();
+    }
+    $this->actingAs($this->user);
+    $day = fn (int $days): string => now()->addDays($days)->format('Y-m-d');
+
+    $page = visit('/events/create');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->fill('title', 'Cabin weekend')
+        ->click('Not sure when? Let people vote on the date')
+        ->fill('[data-test="date-option-0"] input[aria-label$=": day"]', $day(10))
+        ->fill('[data-test="date-option-0"] input[aria-label$="from"]', '17:30')
+        ->fill('[data-test="date-option-0"] input[aria-label$="until day (optional)"]', $day(12))
+        ->fill('[data-test="date-option-0"] input[aria-label$="until (optional)"]', '12:00')
+        ->click('Another date')
+        ->assertValue('[data-test="date-option-2"] input[aria-label$="from"]', '17:30')
+        ->fill('[data-test="date-option-1"] input[aria-label$=": day"]', $day(17))
+        ->fill('[data-test="date-option-2"] input[aria-label$=": day"]', $day(24))
+        ->assertValue('[data-test="date-option-2"] input[aria-label$="until day (optional)"]', $day(26))
+        ->fill('input[aria-label="Find a co-host"]', 'rob')
+        ->assertSee('Robin')
+        ->assertDontSee('Ture')
+        ->click('label:has-text("Robin") button')
+        ->fill('input[aria-label="Find a co-host"]', '')
+        ->click('[data-test="plan-ahead"] button:has-text("Questions")')
+        ->fill('[data-test="plan-questions"] input', 'Will you eat crayfish?')
+        ->click('[data-test="plan-ahead"] button:has-text("Costs")')
+        ->fill('[data-test="plan-costs"] input[aria-label="Cost 1"]', 'Cabin rent')
+        ->fill('[data-test="plan-costs"] input[aria-label="Amount of cost 1"]', '4000')
+        ->click('[data-test="plan-ahead"] button:has-text("Bring list")')
+        ->click('[data-test="plan-ahead"] button:has-text("Shopping")')
+        ->click('[data-test="plan-shopping"] button[aria-label="Remove this section"]')
+        ->assertMissing('[data-test="plan-shopping"]')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-create-'.($dark ? 'dark' : 'light'));
+
+    $page->press('Create event')->assertSee('Which dates work for you?')->assertNoJavaScriptErrors();
+
+    $event = Event::query()->where('title', 'Cabin weekend')->sole();
+    expect($event->date_polling)->toBeTrue()
+        ->and($event->dateOptions()->get()->map(fn ($o) => $o->starts_at->setTimezone('Europe/Stockholm')->format('H:i'))->all())->toBe(['17:30', '17:30', '17:30'])
+        ->and($event->dateOptions()->get()->map(fn ($o) => $o->ends_at?->setTimezone('Europe/Stockholm')->format('Y-m-d H:i'))->all())->toBe([$day(12).' 12:00', $day(19).' 12:00', $day(26).' 12:00'])
+        ->and($event->hosts()->pluck('global_name')->all())->toBe(['Robin'])
+        ->and($event->questions()->count())->toBe(1)
+        ->and($event->expenses()->count())->toBe(1)
+        ->and($event->bringItems()->count())->toBe(0);
 })->with(['light' => false, 'dark' => true]);

@@ -84,7 +84,7 @@ final class EventController extends Controller
     public function store(SaveEventRequest $request, CreateEvent $create): RedirectResponse
     {
         $guild = Guild::query()->findOrFail($request->integer('guild_id'));
-        $event = $create->handle($guild, $this->user($request)->discordUser, $request->details());
+        $event = $create->handle($guild, $this->user($request)->discordUser, $request->details(), $request->plan());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Event created.')]);
 
