@@ -26,6 +26,7 @@ final readonly class EventAttributes
             'location_url' => $details->locationUrl,
             'starts_at' => $details->startsAt,
             'ends_at' => $details->endsAt,
+            'rsvp_by' => $details->rsvpBy,
             'timezone' => $details->timezone,
         ];
     }

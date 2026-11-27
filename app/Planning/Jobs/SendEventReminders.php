@@ -21,7 +21,9 @@ use Throwable;
  * hours before it starts. People whose DMs are closed are mentioned in the
  * events channel instead (the one deliberate ping the bot makes). Each
  * reminder is sent once (`reminded_day_at`, `reminded_hours_at`); an event
- * created less than 2 hours ahead only gets the second one.
+ * created less than 2 hours ahead only gets the second one. Also nudges
+ * people on Maybe a day before the "answer by" time, and refreshes the
+ * announcement once answers close.
  */
 final class SendEventReminders implements ShouldQueue
 {
@@ -42,6 +44,58 @@ final class SendEventReminders implements ShouldQueue
             $event->forceFill(['reminded_day_at' => now()])->saveQuietly();
             $this->remind($discord, $event);
         }
+
+        $this->nudgeMaybes($discord);
+        $this->closeAnswers();
+    }
+
+    /**
+     * A day before the "answer by" time, ask everyone still on Maybe to decide.
+     */
+    private function nudgeMaybes(DiscordClient $discord): void
+    {
+        $events = Event::query()
+            ->with(['guild', 'rsvps.discordUser'])
+            ->where('status', EventStatus::Planned)
+            ->whereNull('reminded_rsvp_at')
+            ->whereBetween('rsvp_by', [now(), now()->addDay()])
+            ->whereHas('guild', fn (Builder $guild) => $guild->where('enabled', true))
+            ->get();
+
+        foreach ($events as $event) {
+            $event->forceFill(['reminded_rsvp_at' => now()])->saveQuietly();
+            $by = $event->rsvp_by?->getTimestamp();
+            $url = route('events.show', $event);
+
+            $event->rsvps
+                ->filter(fn (EventRsvp $rsvp): bool => $rsvp->status === RsvpStatus::Maybe)
+                ->each(function (EventRsvp $rsvp) use ($discord, $event, $by, $url): void {
+                    try {
+                        $discord->sendDirectMessage($rsvp->discordUser->discord_id, [
+                            'content' => "You're down as maybe for **{$event->title}**. Answers close <t:{$by}:R>: are you coming? {$url}",
+                        ]);
+                    } catch (Throwable $e) {
+                        Log::warning("Couldn't DM an answer-by nudge.", ['event' => $event->id, 'exception' => $e]);
+                    }
+                });
+        }
+    }
+
+    /**
+     * Once the "answer by" time passes, refresh the announcement so Going and Maybe grey out.
+     */
+    private function closeAnswers(): void
+    {
+        Event::query()
+            ->where('status', EventStatus::Planned)
+            ->whereNull('rsvp_closed_synced_at')
+            ->where('rsvp_by', '<=', now())
+            ->whereNotNull('discord_message_id')
+            ->get()
+            ->each(function (Event $event): void {
+                $event->forceFill(['rsvp_closed_synced_at' => now()])->saveQuietly();
+                dispatch(new SyncEventToDiscord($event->id, details: false));
+            });
     }
 
     /**

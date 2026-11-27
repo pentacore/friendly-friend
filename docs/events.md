@@ -18,6 +18,15 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.
 - **`/events/{id}/edit`**: the same form, for editors.
 
+## Answer by
+
+An event can have an **Answer by** time (in the event's timezone, no later than the start).
+
+- Before it, any answer goes. After it, Going and Maybe close and only **Can't** is accepted: dropping out is always possible. Organisers can still change their own answer.
+- The RSVP box says "Please answer by …", the events list shows "Answer by …" to anyone who hasn't answered or is on Maybe, and the Discord announcement shows it as a field.
+- A day before it, everyone on **Maybe** gets a DM asking them to decide (once).
+- When it passes, the announcement is refreshed once, so Going and Maybe grey out; Discord answers say answers are closed.
+
 ## Food tab
 
 - **Dietary needs** (organisers only): the notes of everyone going or maybe going. People write them once in **Settings → Food** (`/settings/food`, `discord_users.dietary_notes`).
@@ -62,5 +71,6 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
 - `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).
+- `events.rsvp_by` (answer by), `reminded_rsvp_at` (Maybe nudge sent), `rsvp_closed_synced_at` (announcement refreshed after the deadline).
 - Discord: `guilds.events_channel_id`, and on `events`: announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
 - `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats, note) and `event_ride_passengers` (one per person and ride: pickup_note).

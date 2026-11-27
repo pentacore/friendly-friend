@@ -36,6 +36,9 @@ export type Event = {
   discord_scheduled_event_id: string | null;
   reminded_day_at: string | null;
   reminded_hours_at: string | null;
+  rsvp_by: string | null;
+  reminded_rsvp_at: string | null;
+  rsvp_closed_synced_at: string | null;
   guild?: Guild | null;
   created_by?: DiscordUser | null;
   hosts?: (DiscordUser & { pivot: EventHostsPivot })[];
@@ -65,6 +68,9 @@ export type EventCreate = {
   discord_scheduled_event_id?: string | null;
   reminded_day_at?: string | null;
   reminded_hours_at?: string | null;
+  rsvp_by?: string | null;
+  reminded_rsvp_at?: string | null;
+  rsvp_closed_synced_at?: string | null;
 };
 
 export type EventUpdate = {
@@ -84,4 +90,7 @@ export type EventUpdate = {
   discord_scheduled_event_id?: string | null;
   reminded_day_at?: string | null;
   reminded_hours_at?: string | null;
+  rsvp_by?: string | null;
+  reminded_rsvp_at?: string | null;
+  rsvp_closed_synced_at?: string | null;
 };

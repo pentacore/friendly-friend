@@ -69,6 +69,18 @@ const answer = {
                     >
                 </span>
                 <span v-if="showServer">{{ event.guild.name }}</span>
+                <span
+                    v-if="
+                        event.rsvp_by &&
+                        !event.rsvp_closed &&
+                        event.status === 'planned' &&
+                        (!event.my_rsvp || event.my_rsvp.status === 'maybe')
+                    "
+                    class="font-medium text-foreground"
+                >
+                    Answer by
+                    {{ formatEventWhen(event.rsvp_by, null, event.timezone) }}
+                </span>
             </p>
         </div>
     </Link>

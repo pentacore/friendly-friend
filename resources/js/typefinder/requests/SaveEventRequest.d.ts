@@ -12,6 +12,7 @@ export type SaveEventRequest = {
   location_url?: string | null;
   starts_at: string;
   ends_at?: string | null;
+  rsvp_by?: string | null;
   timezone: string;
   host_ids?: number[];
 };

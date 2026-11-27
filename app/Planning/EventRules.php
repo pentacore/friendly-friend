@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Planning;
 
 use App\Access\AccessSnapshot;
+use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
 
@@ -41,6 +42,17 @@ final class EventRules
     public static function canParticipate(AccessSnapshot $access, Event $event): bool
     {
         return self::canView($access, $event) && ! $event->isCancelled();
+    }
+
+    /**
+     * Whether this answer is still accepted: before the "answer by" time
+     * anything goes; after it only Can't (dropping out is always allowed),
+     * and organisers may still change their own answer.
+     */
+    public static function canAnswer(AccessSnapshot $access, Event $event, RsvpStatus $status): bool
+    {
+        return self::canParticipate($access, $event)
+            && ($status === RsvpStatus::Declined || ! $event->rsvpClosed() || self::canEdit($access, $event));
     }
 
     /**

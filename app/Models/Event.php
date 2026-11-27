@@ -28,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $location_url
  * @property Carbon $starts_at
  * @property Carbon|null $ends_at
+ * @property Carbon|null $rsvp_by when answers close (Can't stays open)
  * @property string $timezone
  * @property EventStatus $status
  * @property string $currency
@@ -36,12 +37,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $discord_scheduled_event_id
  * @property Carbon|null $reminded_day_at
  * @property Carbon|null $reminded_hours_at
+ * @property Carbon|null $reminded_rsvp_at
+ * @property Carbon|null $rsvp_closed_synced_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Guild $guild
  * @property-read DiscordUser $createdBy
  */
-#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'timezone', 'status', 'currency', 'announce_channel_id', 'discord_message_id', 'discord_scheduled_event_id', 'reminded_day_at', 'reminded_hours_at'])]
+#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'rsvp_by', 'timezone', 'status', 'currency', 'announce_channel_id', 'discord_message_id', 'discord_scheduled_event_id', 'reminded_day_at', 'reminded_hours_at', 'reminded_rsvp_at', 'rsvp_closed_synced_at'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -150,6 +153,14 @@ class Event extends Model
         return array_values(array_unique(array_filter(array_map(intval(...), array_filter($ids, is_numeric(...))))));
     }
 
+    /**
+     * Past the "answer by" time: Going and Maybe are closed, Can't is not.
+     */
+    public function rsvpClosed(): bool
+    {
+        return $this->rsvp_by !== null && $this->rsvp_by->isPast();
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === EventStatus::Cancelled;
@@ -166,6 +177,9 @@ class Event extends Model
             'status' => EventStatus::class,
             'reminded_day_at' => 'datetime',
             'reminded_hours_at' => 'datetime',
+            'rsvp_by' => 'datetime',
+            'reminded_rsvp_at' => 'datetime',
+            'rsvp_closed_synced_at' => 'datetime',
         ];
     }
 }

@@ -23,6 +23,7 @@ const form = useForm({
     location: props.form.location || null,
     location_url: props.form.location_url || null,
     ends_at: props.form.ends_at || null,
+    rsvp_by: props.form.rsvp_by || null,
 });
 
 function submit(): void {

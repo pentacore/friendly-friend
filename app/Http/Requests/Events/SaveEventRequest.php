@@ -42,6 +42,7 @@ final class SaveEventRequest extends FormRequest
             'location_url' => ['nullable', 'url:http,https', 'max:500'],
             'starts_at' => ['required', 'date_format:'.self::LOCAL_TIME],
             'ends_at' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'after:starts_at'],
+            'rsvp_by' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'before_or_equal:starts_at'],
             'timezone' => ['required', 'timezone:all'],
             'host_ids' => ['array', 'max:20'],
             'host_ids.*' => ['integer'],
@@ -62,6 +63,7 @@ final class SaveEventRequest extends FormRequest
             locationUrl: $this->filled('location_url') ? $this->string('location_url')->value() : null,
             startsAt: $local('starts_at') ?? CarbonImmutable::now(),
             endsAt: $local('ends_at'),
+            rsvpBy: $local('rsvp_by'),
             timezone: $timezone,
             hostIds: array_values(array_map(intval(...), array_filter($this->array('host_ids'), is_numeric(...)))),
         );

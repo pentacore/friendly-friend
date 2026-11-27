@@ -68,6 +68,10 @@ final readonly class EventInteractions
             return "**{$event->title}** was cancelled.";
         }
 
+        if ($event->rsvpClosed() && $button->status !== RsvpStatus::Declined) {
+            return 'Answers for **'.$event->title.'** closed on <t:'.$event->rsvp_by?->getTimestamp().":f>. You can still say you can't, or ask an organiser.";
+        }
+
         $member = GuildMemberData::fromPayload(Payload::array($payload, 'member'));
 
         if (! $member->isValid()) {

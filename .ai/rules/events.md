@@ -19,7 +19,8 @@ paths:
 
 - **view**: access through the event's server.
 - **edit**: the creator, co-hosts (`event_hosts`, only current members of that server) and the server's admins.
-- **participate**: view, and the event isn't cancelled. Costs stay open on cancelled events so they can be settled.
+- **participate**: view, and the event isn't cancelled.
+- **answer** (`canAnswer`): participate, and before `rsvp_by`, except that Can't is always allowed and organisers may still answer. Checked in `RsvpRequest::after()` (a validation error, not a 403) and in the Discord button handler. Costs stay open on cancelled events so they can be settled.
 - Load `hosts` before calling `canEdit` in a loop.
 
 ## Times and money

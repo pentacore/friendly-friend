@@ -21,6 +21,7 @@ final readonly class EventDetails
         public ?string $locationUrl,
         public CarbonImmutable $startsAt,
         public ?CarbonImmutable $endsAt,
+        public ?CarbonImmutable $rsvpBy,
         public string $timezone,
         public array $hostIds,
     ) {}

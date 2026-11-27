@@ -28,6 +28,7 @@ const form = useForm<SaveEventRequest>({
     location_url: null,
     starts_at: '',
     ends_at: null,
+    rsvp_by: null,
     timezone: props.default_timezone,
     host_ids: [],
 });

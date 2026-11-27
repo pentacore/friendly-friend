@@ -81,8 +81,22 @@ const field =
                 <InputError :message="form.errors.ends_at" />
             </div>
         </div>
+        <div class="grid gap-2 sm:w-1/2 sm:pr-2">
+            <Label for="rsvp_by"
+                >Answer by
+                <span class="text-muted-foreground">(optional)</span></Label
+            >
+            <Input
+                id="rsvp_by"
+                :model-value="form.rsvp_by ?? ''"
+                type="datetime-local"
+                @update:model-value="form.rsvp_by = String($event) || null"
+            />
+            <InputError :message="form.errors.rsvp_by" />
+        </div>
         <p class="-mt-3 text-xs text-muted-foreground">
-            Times are in {{ form.timezone }}.
+            Times are in {{ form.timezone }}. After the answer-by time, people
+            can only say they can't make it.
         </p>
 
         <div class="grid gap-4 sm:grid-cols-2">

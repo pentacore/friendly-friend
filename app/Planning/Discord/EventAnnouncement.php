@@ -51,6 +51,11 @@ final class EventAnnouncement
             ['name' => 'When', 'value' => "<t:{$start}:F> (<t:{$start}:R>)", 'inline' => false],
         ];
 
+        if ($event->rsvp_by !== null) {
+            $by = $event->rsvp_by->getTimestamp();
+            $fields[] = ['name' => 'Answer by', 'value' => $event->rsvpClosed() ? "<t:{$by}:f> (closed; you can still say you can't)" : "<t:{$by}:f> (<t:{$by}:R>)", 'inline' => false];
+        }
+
         if ($event->location !== null) {
             $fields[] = ['name' => 'Where', 'value' => $event->location_url !== null ? "[{$event->location}]({$event->location_url})" : $event->location, 'inline' => false];
         }
@@ -108,7 +113,7 @@ final class EventAnnouncement
             'style' => $style,
             'label' => $status->label(),
             'custom_id' => EventCustomId::rsvp($event->id, $status),
-            'disabled' => $event->isCancelled(),
+            'disabled' => $event->isCancelled() || ($status !== RsvpStatus::Declined && $event->rsvpClosed()),
         ];
     }
 }
