@@ -44,6 +44,7 @@ final class GuildController extends Controller
             allowAllMembers: $request->boolean('allow_all_members'),
             allowedRoleIds: $this->ids($request->array('allowed_role_ids')),
             adminRoleIds: $this->ids($request->array('admin_role_ids')),
+            quotesChannelId: $request->string('quotes_channel_id')->value() ?: null,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':name saved.', ['name' => $guild->name])]);

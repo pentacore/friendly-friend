@@ -9,10 +9,12 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 ## Where code goes (each part has one job)
 
 - `App\Discord\Gateway`: the bot process. `RunBot` (`bot:run`) forwards raw gateway dispatches to `GatewayEventRouter::route($type, $payload)`, which validates the payload, builds a DTO and **queues a job** (the jobs decide whether the server is enabled). Never put DB queries, HTTP calls or business logic in the router or the command. Add new gateway events as router branches with a JSON fixture in `tests/Fixtures/gateway/` and a test. The opt-out check (Phase 6) also lives in the router.
-- `App\Discord\Interactions`: slash commands, the message context menu, buttons and forms. They call actions and build replies.
+- `App\Discord\Interactions`: command definitions (`QuoteCommands`), custom IDs, the pure `InteractionAck` (decides the 3-second answer: deferred, deferred update, or the cached edit form), and `InteractionAcknowledger` (in the bot: `Gateway\DiscordPhpAcknowledger`, async). **The acknowledgement is the only Discord call allowed in the bot process.** The real handling runs in a queued job (`App\Quotes\Discord\QuoteInteractions` via `HandleQuoteInteraction`), which edits the response.
+- `App\Quotes`: `Actions` (draft lifecycle, `ResolvePerson`, `PublishQuote`), `Discord` (interaction handling, `QuoteMessages` payloads), `Jobs` (`CaptureFromMention`, `ImportChannelQuotes`, `PruneExpiredDrafts`), `Imports`.
+- `App\Ai`: `QuoteNormalizer` (+ `AiQuoteNormalizer`, `PlainQuoteNormalizer`), `QuoteDetector` (Jev, then LLM, then heuristics), agents in `App\Ai\Agents`.
+- Discord JSON: read nested payloads with `App\Discord\Data\Payload::get()/array()/string()`, not raw `$a['x']['y']` on mixed. Build test payloads with `Tests\Support\DiscordPayloads`.
 - `App\Discord\DiscordClient`: interface for **bot-token** REST calls (`HttpDiscordClient`; tests use `Testing\FakeDiscordClient`). Add methods there instead of calling Discord's HTTP API elsewhere. `DiscordUserApi` is only for the OAuth user token at login.
 - `App\Quotes\Actions`: `DraftQuote`, `ConfirmQuote`, `EditQuote`, `ResolvePerson`, `RecordVote`, `RecordMatchup`. All quote state changes go through these.
-- `App\Ai\QuoteNormalizer`: an interface whose implementation uses laravel/ai structured output. Tests use the fake.
 - `App\Stats`: ingest jobs, rollups, `PurgeMemberStats`.
 - `App\Access`: who gets in and server settings. `GuildAccess` (rules), `Actions\LoginWithDiscord`, `Actions\RecordDiscordUser`, `Actions\RecordGuildMember`, `Actions\UpdateGuildSettings`, `Jobs\SyncGuildMembers` (one server), `Jobs\SyncAllGuilds` (scheduled), `Jobs\UpsertGuildMember`, `Jobs\MarkMemberLeft`. The `EnsureGuildAccess` middleware (alias `guild.access`) lives in `App\Http\Middleware`.
 - `App\Discord\Jobs`: guild lifecycle from the gateway (`RegisterGuild`, `RefreshGuild`, `MarkGuildLeft`).

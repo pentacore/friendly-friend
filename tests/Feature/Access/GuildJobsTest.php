@@ -77,6 +77,7 @@ it('caches the guild\'s text channels from the gateway, keeping them when REST s
             ['id' => '1', 'name' => 'general', 'type' => 0, 'position' => 1],
             ['id' => '3', 'name' => 'Voice', 'type' => 2, 'position' => 0],
             ['id' => '4', 'name' => 'news', 'type' => 5, 'position' => 3],
+            ['id' => '5', 'name' => '___hidden___', 'type' => 0, 'position' => 4],
         ],
     ]))->handle();
 

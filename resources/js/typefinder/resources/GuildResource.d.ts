@@ -15,5 +15,7 @@ export type GuildResource = {
   allowed_role_ids: string[];
   admin_role_ids: string[];
   roles: { id: string; name: string; color: number; position: number; managed: boolean }[];
+  channels: { id: string; name: string; position: number }[];
+  quotes_channel_id: string | null;
   member_count: number;
 };

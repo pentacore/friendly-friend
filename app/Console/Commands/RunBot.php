@@ -6,8 +6,10 @@ namespace App\Console\Commands;
 
 use App\Discord\DiscordClient;
 use App\Discord\Gateway\BotHeartbeat;
+use App\Discord\Gateway\DiscordPhpAcknowledger;
 use App\Discord\Gateway\GatewayEventRouter;
 use App\Discord\Gateway\GatewayIntents;
+use App\Discord\Interactions\InteractionAcknowledger;
 use Discord\Discord;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -72,6 +74,9 @@ final class RunBot extends Command
             'disableVoiceClient' => true,
             'logger' => Log::channel(),
         ]);
+
+        // Interactions are acknowledged from inside the event loop, async.
+        app()->instance(InteractionAcknowledger::class, new DiscordPhpAcknowledger($discord));
 
         $this->lastTrafficAt = microtime(true);
 

@@ -44,5 +44,9 @@ final class RegisterGuild implements ShouldQueue
         if ($this->syncMembers && $guild->enabled) {
             dispatch(new SyncGuildMembers($guild->discord_id));
         }
+
+        if ($this->syncMembers) {
+            dispatch(new RegisterGuildCommands($guild->discord_id));
+        }
     }
 }

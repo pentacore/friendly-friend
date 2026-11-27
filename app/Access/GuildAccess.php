@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Access;
 
 use App\Models\DiscordUser;
+use App\Models\Guild;
 use App\Models\GuildMember;
 use Illuminate\Support\Collection;
 
@@ -31,6 +32,25 @@ final readonly class GuildAccess
     public function isOwner(DiscordUser $user): bool
     {
         return in_array($user->discord_id, $this->ownerIds(), true);
+    }
+
+    /**
+     * May the user use the bot's features in this particular guild?
+     */
+    public function allowsInGuild(DiscordUser $user, Guild $guild): bool
+    {
+        return $guild->enabled
+            && ($this->isOwner($user) || in_array($guild->id, $this->accessibleGuildIds($user), true));
+    }
+
+    /**
+     * Is the user an admin of this particular guild (or an owner)?
+     */
+    public function isAdminInGuild(DiscordUser $user, Guild $guild): bool
+    {
+        return $guild->enabled
+            && ($this->isOwner($user) || $this->activeMemberships($user)
+                ->contains(fn (GuildMember $membership): bool => $membership->guild_id === $guild->id && $this->membershipIsAdmin($membership)));
     }
 
     /**

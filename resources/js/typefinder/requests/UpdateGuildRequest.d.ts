@@ -9,4 +9,5 @@ export type UpdateGuildRequest = {
   allow_all_members: boolean;
   allowed_role_ids: string[];
   admin_role_ids: string[];
+  quotes_channel_id?: string | null;
 };

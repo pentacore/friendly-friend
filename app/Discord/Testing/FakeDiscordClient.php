@@ -8,6 +8,7 @@ use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
 use App\Discord\DiscordClient;
 use PHPUnit\Framework\Assert;
+use Throwable;
 
 /**
  * In-memory DiscordClient for tests: `app()->instance(DiscordClient::class, $fake = new FakeDiscordClient)`.
@@ -20,8 +21,25 @@ final class FakeDiscordClient implements DiscordClient
     /** @var array<string, GuildData> */
     private array $guilds = [];
 
-    /** @var list<array{channel_id: string, content: string}> */
+    /** @var list<array{channel_id: string, message: array<string, mixed>}> */
     private array $sent = [];
+
+    /** @var list<array{user_id: string, message: array<string, mixed>}> */
+    private array $directMessages = [];
+
+    /** @var list<array{token: string, message: array<string, mixed>}> */
+    private array $responses = [];
+
+    /** @var array<string, list<array<string, mixed>>> */
+    private array $commands = [];
+
+    /** @var array<string, list<array<mixed>>> channel ID → messages, newest first */
+    private array $channelMessages = [];
+
+    private ?Throwable $channelMessagesFailure = null;
+
+    /** @var list<string> user IDs whose DMs are closed */
+    private array $closedDms = [];
 
     /**
      * @param  list<GuildMemberData>  $members
@@ -40,9 +58,28 @@ final class FakeDiscordClient implements DiscordClient
         return $this;
     }
 
-    public function guild(string $guildId): GuildData
+    /**
+     * @param  list<array<mixed>>  $messages  newest first
+     */
+    public function withChannelMessages(string $channelId, array $messages): self
     {
-        return $this->guilds[$guildId] ?? new GuildData($guildId, "Guild {$guildId}", null, []);
+        $this->channelMessages[$channelId] = $messages;
+
+        return $this;
+    }
+
+    public function failChannelMessagesWith(Throwable $failure): self
+    {
+        $this->channelMessagesFailure = $failure;
+
+        return $this;
+    }
+
+    public function withClosedDms(string $userDiscordId): self
+    {
+        $this->closedDms[] = $userDiscordId;
+
+        return $this;
     }
 
     public function configured(): bool
@@ -60,26 +97,116 @@ final class FakeDiscordClient implements DiscordClient
         return $this->members;
     }
 
-    public function sendMessage(string $channelId, string $content): void
+    public function guild(string $guildId): GuildData
     {
-        $this->sent[] = ['channel_id' => $channelId, 'content' => $content];
+        return $this->guilds[$guildId] ?? new GuildData($guildId, "Guild {$guildId}", null, []);
+    }
+
+    public function registerGuildCommands(string $guildId, array $commands): void
+    {
+        $this->commands[$guildId] = $commands;
+    }
+
+    public function editInteractionResponse(string $interactionToken, array $message): void
+    {
+        $this->responses[] = ['token' => $interactionToken, 'message' => $message];
+    }
+
+    public function sendMessage(string $channelId, array $message): string
+    {
+        $this->sent[] = ['channel_id' => $channelId, 'message' => $message];
+
+        return (string) (1000 + count($this->sent));
+    }
+
+    public function channelMessages(string $channelId, ?string $before = null, int $limit = 100): array
+    {
+        if ($this->channelMessagesFailure instanceof Throwable) {
+            throw $this->channelMessagesFailure;
+        }
+
+        $messages = $this->channelMessages[$channelId] ?? [];
+
+        if ($before !== null) {
+            $index = array_search($before, array_column($messages, 'id'), true);
+            $messages = $index === false ? [] : array_slice($messages, $index + 1);
+        }
+
+        return array_slice($messages, 0, $limit);
+    }
+
+    public function sendDirectMessage(string $userDiscordId, array $message): bool
+    {
+        if (in_array($userDiscordId, $this->closedDms, true)) {
+            return false;
+        }
+
+        $this->directMessages[] = ['user_id' => $userDiscordId, 'message' => $message];
+
+        return true;
     }
 
     /**
-     * @return list<array{channel_id: string, content: string}>
+     * @return list<array{channel_id: string, message: array<string, mixed>}>
      */
     public function sentMessages(): array
     {
         return $this->sent;
     }
 
+    /**
+     * @return list<array{user_id: string, message: array<string, mixed>}>
+     */
+    public function directMessages(): array
+    {
+        return $this->directMessages;
+    }
+
+    /**
+     * @return list<array{token: string, message: array<string, mixed>}>
+     */
+    public function interactionResponses(): array
+    {
+        return $this->responses;
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    public function commandsFor(string $guildId): ?array
+    {
+        return $this->commands[$guildId] ?? null;
+    }
+
+    /**
+     * The last response to an interaction, for assertions.
+     *
+     * @return array<string, mixed>
+     */
+    public function lastResponse(): array
+    {
+        $last = array_last($this->responses);
+
+        Assert::assertNotNull($last, 'No interaction response was sent.');
+
+        return $last['message'];
+    }
+
     public function assertSent(string $channelId, string $contains): void
     {
         $matching = array_filter(
             $this->sent,
-            fn (array $message): bool => $message['channel_id'] === $channelId && str_contains($message['content'], $contains),
+            fn (array $sent): bool => $sent['channel_id'] === $channelId && str_contains(self::content($sent['message']), $contains),
         );
 
         Assert::assertNotEmpty($matching, "No message to channel [{$channelId}] containing [{$contains}] was sent.");
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     */
+    public static function content(array $message): string
+    {
+        return is_string($message['content'] ?? null) ? $message['content'] : '';
     }
 }

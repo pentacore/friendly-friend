@@ -9,6 +9,8 @@ use App\Ai\AiQuoteNormalizer;
 use App\Ai\QuoteNormalizer;
 use App\Discord\DiscordClient;
 use App\Discord\HttpDiscordClient;
+use App\Discord\Interactions\HttpInteractionAcknowledger;
+use App\Discord\Interactions\InteractionAcknowledger;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Middleware\TrustProxies;
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(DiscordClient::class, HttpDiscordClient::class);
         $this->app->bind(QuoteNormalizer::class, AiQuoteNormalizer::class);
+        $this->app->bindIf(InteractionAcknowledger::class, HttpInteractionAcknowledger::class);
 
         if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);

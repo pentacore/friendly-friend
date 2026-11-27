@@ -29,6 +29,7 @@ const form = useForm({
     allow_all_members: props.guild.allow_all_members,
     allowed_role_ids: [...props.guild.allowed_role_ids],
     admin_role_ids: [...props.guild.admin_role_ids],
+    quotes_channel_id: props.guild.quotes_channel_id,
 });
 
 type RoleList = 'allowed_role_ids' | 'admin_role_ids';
@@ -147,6 +148,25 @@ function save(): void {
                 No roles synced yet. They appear once the bot has connected to
                 this server.
             </p>
+
+            <div class="grid gap-2">
+                <Label for="quotes-channel">Post saved quotes in</Label>
+                <select
+                    id="quotes-channel"
+                    v-model="form.quotes_channel_id"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                    <option :value="null">Don't post</option>
+                    <option
+                        v-for="channel in guild.channels"
+                        :key="channel.id"
+                        :value="channel.id"
+                    >
+                        #{{ channel.name }}
+                    </option>
+                </select>
+                <InputError :message="form.errors.quotes_channel_id" />
+            </div>
 
             <InputError
                 v-for="message in roleErrors"

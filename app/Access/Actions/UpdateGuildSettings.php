@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Access\Actions;
 
 use App\Access\Jobs\SyncGuildMembers;
+use App\Discord\Jobs\RegisterGuildCommands;
 use App\Models\Guild;
 
 /**
@@ -17,7 +18,7 @@ final readonly class UpdateGuildSettings
      * @param  list<string>  $allowedRoleIds
      * @param  list<string>  $adminRoleIds
      */
-    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds): Guild
+    public function handle(Guild $guild, bool $enabled, bool $allowAllMembers, array $allowedRoleIds, array $adminRoleIds, ?string $quotesChannelId = null): Guild
     {
         $wasEnabled = $guild->enabled;
 
@@ -26,10 +27,15 @@ final readonly class UpdateGuildSettings
             'allow_all_members' => $allowAllMembers,
             'allowed_role_ids' => array_values(array_unique($allowedRoleIds)),
             'admin_role_ids' => array_values(array_unique($adminRoleIds)),
+            'quotes_channel_id' => $quotesChannelId,
         ]);
 
         if ($enabled && ! $wasEnabled) {
             dispatch(new SyncGuildMembers($guild->discord_id));
+        }
+
+        if ($enabled !== $wasEnabled) {
+            dispatch(new RegisterGuildCommands($guild->discord_id));
         }
 
         return $guild;

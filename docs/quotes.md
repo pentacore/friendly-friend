@@ -1,6 +1,6 @@
 # Quotes
 
-Quotes are captured in Discord (Phase 4), shown and voted on on the website (Phase 5), and belong to the server they came from (`quotes.guild_id`). People and quotes are one shared pool across servers.
+Quotes are captured in Discord, shown and voted on on the website (Phase 5), and belong to the server they came from (`quotes.guild_id`). People and quotes are one shared pool across servers.
 
 ## Data model
 
@@ -47,3 +47,40 @@ The preview always shows who each line was matched to, so a wrong guess is caugh
 - **Fallback:** `PlainQuoteNormalizer` is used with no keys, on AI errors, or when the AI answer has no lines. It handles `Name: text` dialogues, `Name said "text" …`, `today`/`yesterday`/`2026-10-31`, and keeps vague times ("last summer") as context.
 - **Certain facts win:** for a quoted message, the author and the message time always override the AI.
 - The raw AI answer is stored on `quotes.ai_output` for debugging.
+
+## Capturing quotes in Discord
+
+Members with access through an **enabled** server can do all of this. The bot registers its commands in every enabled server: on connect, when a server is enabled, or by hand with `vendor/bin/sail artisan discord:register-commands`.
+
+| How                                                                       | What happens                                                                                                             |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Right-click a message → **Apps → Save quote**                             | Quotes that message: its author is the speaker, its time is exact. A private preview appears.                            |
+| Reply to a message and **@mention the bot**                               | Same, for the replied-to message. The preview arrives by **DM**.                                                         |
+| **@bot** with text, e.g. `@bot Bo said "I can fix it" before breaking it` | Speakers, text, context and time are worked out from what you wrote. The preview arrives by DM.                          |
+| **`/quote add`** `text` `[who]` `[who_name]` `[context]` `[when]`         | `who` picks a member; `who_name` is for someone not on Discord; `Name: text` lines make a conversation. Private preview. |
+| **`/quote random`** `[person]`                                            | Posts a random saved quote from this server, visible to everyone.                                                        |
+| **`/quote import`** `channel`                                             | Admins of that server: scan a channel's history for old quotes (see below).                                              |
+
+**Preview:** shows who each line was matched to ("_(new person)_" for someone new) with three buttons:
+
+- **Save:** publishes the quote and posts it to the server's quotes channel, if one is chosen on `/admin/guilds`.
+- **Edit:** opens a form with `Name: text` lines, context and when.
+- **Cancel:** discards it.
+
+Only the person who started the quote can use the buttons. Unsaved drafts expire after 15 minutes (`PruneExpiredDrafts`, every minute). A message can only be quoted once. Posts never ping anyone. If the bot can't DM you, it says so in the channel and you can use `/quote add` instead.
+
+**How it works:** Discord requires an answer within 3 seconds. The bot process answers immediately (`App\Discord\Interactions\InteractionAck`: a "thinking…" placeholder, a silent update, or the edit form from the cache via `DraftEditForm`), then `HandleQuoteInteraction` does the work on the queue and replaces the placeholder (`App\Quotes\Discord\QuoteInteractions`). Mentions are handled by `CaptureFromMention`.
+
+## Channel import (`/quote import` or `quotes:import`)
+
+`ImportChannelQuotes` walks the channel's history backwards (5 pages of 100 per job run, resumable), skips bots, links, empty messages and messages already quoted, and turns the ones that look like quotes into quotes with status **`pending_review`**. Their submitter is the message author, and their time is the stated time or the day it was posted. They wait for an admin on the website (Phase 5).
+
+Is it a quote? `App\Ai\QuoteDetector` decides, in this order:
+
+1. **Jev** (TypeSafe's fast structured-decision model, through laravel/ai `Classification`), if `TYPESAFE_API_KEY` is set (waitlisted access). It's cheap and gives calibrated probabilities (threshold 0.5).
+2. A cheap LLM yes/no (`QuoteDetectorAgent`), if a quote AI provider key is set.
+3. Heuristics: `Name: text`, quotation marks, "said".
+
+```bash
+vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discord user id>
+```

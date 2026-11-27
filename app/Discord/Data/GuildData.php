@@ -9,6 +9,9 @@ namespace App\Discord\Data;
  */
 final readonly class GuildData
 {
+    /** Discord masks channels the bot can't see with this name. */
+    private const string HIDDEN_CHANNEL_NAME = '___hidden___';
+
     /** Discord channel types that hold messages: text and announcement. */
     private const array MESSAGE_CHANNEL_TYPES = [0, 5];
 
@@ -57,7 +60,7 @@ final readonly class GuildData
                 continue;
             }
 
-            if (is_string($channel['id'] ?? null) && is_string($channel['name'] ?? null)) {
+            if (is_string($channel['id'] ?? null) && is_string($channel['name'] ?? null) && $channel['name'] !== self::HIDDEN_CHANNEL_NAME) {
                 $result[] = [
                     'id' => $channel['id'],
                     'name' => $channel['name'],

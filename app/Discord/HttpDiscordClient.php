@@ -7,8 +7,11 @@ namespace App\Discord;
 use App\Discord\Data\GuildData;
 use App\Discord\Data\GuildMemberData;
 use Generator;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 /**
  * DiscordClient over Discord's REST API with the bot token.
@@ -71,11 +74,77 @@ final readonly class HttpDiscordClient implements DiscordClient
         return GuildData::fromPayload(is_array($payload) ? $payload : []);
     }
 
-    public function sendMessage(string $channelId, string $content): void
+    public function registerGuildCommands(string $guildId, array $commands): void
     {
         $this->request()
-            ->post("channels/{$channelId}/messages", ['content' => $content])
+            ->put("applications/{$this->applicationId()}/guilds/{$guildId}/commands", $commands)
             ->throw();
+    }
+
+    public function editInteractionResponse(string $interactionToken, array $message): void
+    {
+        // Interaction webhooks are authorised by the token in the URL.
+        Http::baseUrl(config()->string('discord.api_base'))
+            ->acceptJson()
+            ->patch("webhooks/{$this->applicationId()}/{$interactionToken}/messages/@original", $this->withoutPings($message))
+            ->throw();
+    }
+
+    public function sendMessage(string $channelId, array $message): string
+    {
+        $sent = $this->request()
+            ->post("channels/{$channelId}/messages", $this->withoutPings($message))
+            ->throw()
+            ->json('id');
+
+        return is_string($sent) ? $sent : '';
+    }
+
+    public function channelMessages(string $channelId, ?string $before = null, int $limit = 100): array
+    {
+        $messages = $this->request()
+            ->get("channels/{$channelId}/messages", array_filter(['limit' => $limit, 'before' => $before]))
+            ->throw()
+            ->json();
+
+        return is_array($messages) ? array_values(array_filter($messages, is_array(...))) : [];
+    }
+
+    public function sendDirectMessage(string $userDiscordId, array $message): bool
+    {
+        $channelId = $this->request()
+            ->post('users/@me/channels', ['recipient_id' => $userDiscordId])
+            ->throw()
+            ->json('id');
+
+        if (! is_string($channelId)) {
+            return false;
+        }
+
+        $response = $this->request()->post("channels/{$channelId}/messages", $this->withoutPings($message));
+
+        // 50007: Cannot send messages to this user (DMs closed).
+        if ($response->forbidden()) {
+            return false;
+        }
+
+        $response->throw();
+
+        return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     * @return array<string, mixed>
+     */
+    private function withoutPings(array $message): array
+    {
+        return ['allowed_mentions' => ['parse' => []], ...$message];
+    }
+
+    private function applicationId(): string
+    {
+        return config()->string('services.discord.client_id');
     }
 
     private function request(): PendingRequest
@@ -83,6 +152,9 @@ final readonly class HttpDiscordClient implements DiscordClient
         return Http::baseUrl(config()->string('discord.api_base'))
             ->withToken(config()->string('discord.bot_token'), 'Bot')
             ->acceptJson()
-            ->retry(3, 1000, throw: false);
+            // Only transient failures are worth retrying: never a 4xx such
+            // as "DMs closed" or "missing permission".
+            ->retry(3, 1000, fn (Throwable $e): bool => $e instanceof ConnectionException
+                || ($e instanceof RequestException && ($e->response->status() === 429 || $e->response->serverError())), throw: false);
     }
 }

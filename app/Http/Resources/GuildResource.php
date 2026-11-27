@@ -31,6 +31,8 @@ final class GuildResource extends JsonResource
      *     allowed_role_ids: list<string>,
      *     admin_role_ids: list<string>,
      *     roles: list<array{id: string, name: string, color: int, position: int, managed: bool}>,
+     *     channels: list<array{id: string, name: string, position: int}>,
+     *     quotes_channel_id: string|null,
      *     member_count: int,
      * }
      */
@@ -50,6 +52,8 @@ final class GuildResource extends JsonResource
             'allowed_role_ids' => $guild->allowed_role_ids,
             'admin_role_ids' => $guild->admin_role_ids,
             'roles' => $guild->assignableRoles(),
+            'channels' => $guild->channels,
+            'quotes_channel_id' => $guild->quotes_channel_id,
             'member_count' => $guild->member_count ?? $guild->members()->where('in_guild', true)->count(),
         ];
     }

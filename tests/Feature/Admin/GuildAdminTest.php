@@ -121,3 +121,19 @@ test('the server list does not query member counts per server', function (): voi
     $countQueries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'count(*)'));
     expect($countQueries)->toHaveCount(1);
 });
+
+test('owners pick the channel where saved quotes are posted', function (): void {
+    $guild = Guild::factory()->create(['discord_id' => '555', 'channels' => [['id' => '777', 'name' => 'quotes', 'position' => 1]], ...guildRoles()]);
+    $payload = ['enabled' => true, 'allow_all_members' => false, 'allowed_role_ids' => ['100'], 'admin_role_ids' => []];
+    $owner = owner();
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'quotes_channel_id' => '999'])
+        ->assertSessionHasErrors('quotes_channel_id');
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'quotes_channel_id' => '777'])
+        ->assertSessionHasNoErrors();
+    expect($guild->refresh()->quotes_channel_id)->toBe('777');
+
+    $this->actingAs($owner)->put(route('admin.guilds.update', $guild), [...$payload, 'quotes_channel_id' => null]);
+    expect($guild->refresh()->quotes_channel_id)->toBeNull();
+});
