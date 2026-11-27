@@ -101,3 +101,9 @@ vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discor
 
 - **Edit** (quote page, the submitter or that server's admins): change the lines, context and date. `EditQuote` rewrites the lines, gives every speaker a person (`EnsureLinePeople`, the same as saving in Discord), rebuilds the search text and records a revision, which shows under _Edit history_.
 - **Remove** (that server's admins): `RemoveQuote` sets the status to `removed`. The quote disappears everywhere but isn't deleted, so its source message can't be quoted again by accident.
+
+## Voting (live)
+
+- 👍/👎 on every quote card and quote page. Clicking the same vote again removes it, and clicking the other one switches. `RecordVote` recomputes the cached `quotes.score` from `quote_votes` (one vote per user per quote).
+- The buttons update straight away (optimistic) and roll back if the request fails. The request is `POST /quotes/{id}/vote` (JSON, Inertia `useHttp`), answered with `VoteResultResource`.
+- **Live:** `QuoteScoreChanged` is broadcast on the private channel `guilds.{id}.quotes` (Reverb), authorised for anyone who can see that server's quotes. Pages call `provideLiveQuoteScores()` once (one listener per server), and `VoteButtons` read the shared live score.

@@ -83,3 +83,18 @@ it('edits a quote in the browser', function (bool $dark): void {
         ->assertSee('I am a philosopher')
         ->assertNoJavaScriptErrors();
 })->with(['light' => false, 'dark' => true]);
+
+it('votes on a quote', function (): void {
+    $this->actingAs($this->user);
+
+    $page = visit("/quotes/{$this->single->id}");
+
+    $page->assertSeeIn('[data-test="score"]', '0')
+        ->click('[aria-label="Funny"]')
+        ->assertSeeIn('[data-test="score"]', '1')
+        ->assertNoJavaScriptErrors();
+
+    expect($this->single->refresh()->score)->toBe(1);
+
+    visit("/quotes/{$this->single->id}")->assertSeeIn('[data-test="score"]', '1');
+});

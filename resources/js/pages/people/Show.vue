@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { InfiniteScroll, setLayoutProps } from '@inertiajs/vue3';
 import QuoteCard from '@/components/quotes/QuoteCard.vue';
+import { provideLiveQuoteScores } from '@/composables/useLiveQuoteScores';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
 import { show } from '@/routes/people';
@@ -15,6 +16,8 @@ setLayoutProps({
         { title: props.person.display_name, href: show(props.person.slug) },
     ],
 });
+
+provideLiveQuoteScores(props.quotes.data.map((quote) => quote.guild.id));
 
 const { getInitials } = useInitials();
 </script>

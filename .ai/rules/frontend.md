@@ -20,6 +20,12 @@ paths:
 - Layout props that depend on page props (breadcrumbs) use `setLayoutProps()` in `<script setup>`. The function form of `defineOptions({ layout })` gets no page props.
 - **Dev server trap:** `defineProps<PageProps['x']>()` is resolved through Vue's type cache. The `refreshVueTypesOnTypefinderChange` plugin in `vite.config.ts` invalidates it when Typefinder writes. Without it, pages silently compile with **no props**. If props are ever undefined in dev, restart `npm run dev`.
 
+## Live updates
+
+- Broadcast events are typed by Typefinder (`BroadcastEvents['…']`). Declare payloads with `#[TypefinderBroadcast(payload: [...])]` (TS types), because `broadcastWith()` can't be evaluated statically.
+- A page subscribes **once** per channel (e.g. `provideLiveQuoteScores()` with `useEcho`) and shares the values through `provide`/`inject`. Components never open their own subscriptions per item.
+- Interactions that shouldn't reload the page (votes) use `useHttp` with an optimistic local update and a rollback on failure. The endpoint answers with a resource.
+
 ## Design
 
 - Theme tokens only (`bg-background`, `text-muted-foreground`, `border`, `bg-card`…). Never use fixed colours, so light and dark both work. Default appearance is "system".

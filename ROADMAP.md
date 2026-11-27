@@ -22,7 +22,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Quote feed (newest first, filter by person and server), quote page with permalink and edit history
 - [x] Full-text search (Postgres `tsvector` over lines and context; deferred from Phase 4)
 - [x] Editing on the web (submitter and admins, `QuotePolicy`), every edit writes a revision
-- [ ] Voting (👍/👎) with live counts over Reverb
+- [x] Voting (👍/👎) with live counts over Reverb
 - [ ] This-or-that with Elo ranking
 - [ ] Top lists (all-time, this month, by Elo, most quoted people, top submitters)
 - [ ] People pages; admin: merge people, manage aliases, link a person to a Discord user
@@ -99,5 +99,6 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [ ] **laravel-typefinder / Vite plugin:** generating needs a database (schema), which Docker image builds don't have. A built-in way to skip build-time generation when types are committed would help (we use `TYPEFINDER_SKIP_BUILD` with `buildCommand: false`).
 - [ ] **laravel-typefinder:** page prop types are emitted verbatim, so a PHPDoc shape like `array{id: int}` produced invalid TypeScript without a warning, even with `--strict`. Validate or convert prop types.
 - [ ] **@pentacore/vite-plugin-laravel-typefinder:** after regenerating `.d.ts` files during `vite dev`, Vue's SFC type cache keeps the old types (`defineProps<PageProps['x']>()` then compiles to no props). The plugin could call `invalidateTypeCache()` from `vue/compiler-sfc` for written files, as our local plugin does.
+- [ ] **laravel-typefinder:** `broadcastWith()` with a PHPDoc `@return array{…}` shape still needs `#[TypefinderBroadcast(payload: …)]`; reading the PHPDoc shape (as for resources) would avoid the duplication.
 - [ ] **pest-plugin-drift:** `pest --drift` rejected its directory argument in this setup ("only accepts the directory to convert as argument"); the tests were converted by hand.
 - [ ] **DiscordPHP:** an invalid token produces an unhandled promise rejection (`InvalidTokenException`) on the gateway lookup, and the client stays alive after critical close codes.

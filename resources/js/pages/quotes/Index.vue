@@ -7,6 +7,7 @@ import Heading from '@/components/Heading.vue';
 import QuoteCard from '@/components/quotes/QuoteCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { provideLiveQuoteScores } from '@/composables/useLiveQuoteScores';
 import { index, random } from '@/routes/quotes';
 import type { PageProps } from '@/typefinder';
 
@@ -17,6 +18,8 @@ defineOptions({
 });
 
 const props = defineProps<PageProps['quotes/Index']>();
+
+provideLiveQuoteScores(props.guilds.map((g) => g.id));
 
 const search = ref(props.filters.q);
 const guild = ref<number | null>(props.filters.guild);

@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import QuoteText from '@/components/quotes/QuoteText.vue';
+import VoteButtons from '@/components/quotes/VoteButtons.vue';
 import { formatSaidAt } from '@/lib/quoteDates';
 import { show } from '@/routes/quotes';
 import type { QuoteResource } from '@/typefinder';
@@ -30,7 +31,7 @@ const saidAt = computed(() =>
         <footer
             class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground"
         >
-            <slot name="actions" />
+            <VoteButtons :quote="quote" />
             <span v-if="showServer" class="font-medium text-foreground/80">
                 {{ quote.guild.name }}
             </span>

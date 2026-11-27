@@ -16,6 +16,8 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import QuoteText from '@/components/quotes/QuoteText.vue';
+import VoteButtons from '@/components/quotes/VoteButtons.vue';
+import { provideLiveQuoteScores } from '@/composables/useLiveQuoteScores';
 import { formatSaidAt } from '@/lib/quoteDates';
 import { index, show } from '@/routes/quotes';
 import type { PageProps } from '@/typefinder';
@@ -32,6 +34,8 @@ setLayoutProps({
 const saidAt = computed(() =>
     formatSaidAt(props.quote.said_at, props.quote.said_at_precision),
 );
+
+provideLiveQuoteScores([props.quote.guild.id]);
 
 const editing = ref(false);
 
@@ -67,8 +71,12 @@ const editedAt = new Intl.DateTimeFormat(undefined, {
             </p>
 
             <dl
-                class="flex flex-wrap gap-x-6 gap-y-2 border-t pt-4 text-sm text-muted-foreground"
+                class="flex flex-wrap items-center gap-x-6 gap-y-2 border-t pt-4 text-sm text-muted-foreground"
             >
+                <div>
+                    <dt class="sr-only">Score</dt>
+                    <dd><VoteButtons :quote="quote" /></dd>
+                </div>
                 <div v-if="saidAt">
                     <dt class="sr-only">Said</dt>
                     <dd>{{ saidAt }}</dd>
