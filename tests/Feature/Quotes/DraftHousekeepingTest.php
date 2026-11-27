@@ -37,7 +37,7 @@ it('registers commands in enabled servers and removes them from disabled ones', 
     dispatch_sync(new RegisterGuildCommands('1'));
     dispatch_sync(new RegisterGuildCommands('2'));
 
-    expect($discord->commandsFor('1'))->toBe(QuoteCommands::definitions())
+    expect(array_column($discord->commandsFor('1') ?? [], 'name'))->toBe(['quote', 'Save quote', 'privacy'])
         ->and($discord->commandsFor('2'))->toBe([]);
 });
 

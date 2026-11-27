@@ -4,11 +4,11 @@ The bot counts activity in every **enabled** server: messages, reactions, voice 
 
 ## What is collected
 
-| Stat      | Table                    | Granularity                                                         |
-| --------- | ------------------------ | ------------------------------------------------------------------- |
-| Messages  | `stat_messages`          | count per member, channel and hour (UTC)                            |
-| Reactions | `stat_reactions`         | count per reactor, emoji, day, and whose message it was (if known)  |
-| Voice     | `stat_voice_sessions`    | one row per stay in a voice channel (`ended_at` null while there)   |
+| Stat      | Table                    | Granularity                                                        |
+| --------- | ------------------------ | ------------------------------------------------------------------ |
+| Messages  | `stat_messages`          | count per member, channel and hour (UTC)                           |
+| Reactions | `stat_reactions`         | count per reactor, emoji, day, and whose message it was (if known) |
+| Voice     | `stat_voice_sessions`    | one row per stay in a voice channel (`ended_at` null while there)  |
 | Games     | `stat_activity_sessions` | one row per game played ("Playing …" activities only, in a server) |
 
 Not counted: bots, webhooks, system notices (joins, pins, boosts), DMs, Spotify, custom statuses, and servers that aren't enabled.
@@ -36,6 +36,11 @@ vendor/bin/sail artisan stats:rollup --days=30
 ```
 
 ## Opting out
+
+Two ways, both available to everyone, with or without access to the website:
+
+- **Website:** Settings → Privacy (`/settings/privacy`) shows whether stats are on, with a confirmation before turning them off.
+- **Discord:** `/privacy status`, `/privacy optout`, `/privacy optin`. Answered privately (`Stats\Jobs\HandlePrivacyCommand`). Registered next to `/quote` in every enabled server when the bot connects (or right away with `vendor/bin/sail artisan discord:register-commands`).
 
 Opting out sets `discord_users.tracking_opted_out_at`, refreshes the cached opted-out list the bot reads, and queues `PurgeMemberStats`, which deletes:
 

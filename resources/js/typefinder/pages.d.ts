@@ -27,6 +27,7 @@ export type PageProps = {
   'quotes/Show': { quote: QuoteResource; revisions: QuoteRevisionResource[] };
   'quotes/ThisOrThat': { pair: QuoteResource[] | null };
   'quotes/Top': { all_time: QuoteResource[]; this_month: QuoteResource[]; elo: QuoteResource[]; most_quoted: { slug: string; display_name: string; quote_count: number }[]; top_submitters: { name: string; avatar_url: string; quote_count: number }[] };
+  'settings/Privacy': { opted_out_at: string | null };
 };
 
 export type PageName = keyof PageProps;

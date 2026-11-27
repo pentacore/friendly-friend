@@ -22,5 +22,6 @@ paths:
 - Retries cover only transient failures (connection errors, 429, 5xx), never 4xx.
 - Read nested Discord JSON with `Data\Payload::get()/array()/string()`, not raw `$a['x']['y']` on mixed. DTOs are built with `fromPayload()`.
 - Messages are full payload arrays (`content`, `components`, …). `HttpDiscordClient` adds `allowed_mentions: none` unless the message sets its own.
-- Custom IDs follow the `quote:<action>:<id>` pattern (`Interactions\CustomId`). Commands are defined in `Interactions\QuoteCommands` and registered per enabled server by `Jobs\RegisterGuildCommands`.
+- Custom IDs follow the `quote:<action>:<id>` pattern (`Interactions\CustomId`). Commands are defined per feature (`Interactions\QuoteCommands`, `Interactions\PrivacyCommands`), combined in `Interactions\BotCommands`, and registered per enabled server by `Jobs\RegisterGuildCommands`.
 - Channels Discord masks as `___hidden___` (the bot can't see them) are left out of the channel cache.
+- Each command gets its own handler job: the router sends `/privacy` to `Stats\Jobs\HandlePrivacyCommand` and everything else to `Quotes\Jobs\HandleQuoteInteraction`. Its acknowledgement (private or public) is decided in `InteractionAck`.

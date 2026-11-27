@@ -10,5 +10,6 @@ export type { MergePeopleRequest } from './MergePeopleRequest';
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
 export type { StoreAliasRequest } from './StoreAliasRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';
+export type { UpdatePrivacyRequest } from './UpdatePrivacyRequest';
 export type { UpdateQuoteRequest } from './UpdateQuoteRequest';
 export type { VoteRequest } from './VoteRequest';

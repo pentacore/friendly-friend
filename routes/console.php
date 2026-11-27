@@ -48,7 +48,7 @@ Artisan::command('discord:register-commands', function (): void {
     $guilds = Guild::query()->get();
     $guilds->each(fn (Guild $guild) => dispatch_sync(new RegisterGuildCommands($guild->discord_id)));
     $this->info("Registered commands for {$guilds->count()} server(s) (removed from disabled ones).");
-})->purpose('Register the /quote and "Save quote" commands in every server (bot token)');
+})->purpose('Register the /quote, /privacy and "Save quote" commands in every server (bot token)');
 
 Artisan::command('quotes:import {guild : Discord server ID} {channel : Discord channel ID} {--as= : Discord user ID of the admin requesting it}', function (StartChannelImport $start): int {
     $guild = Guild::query()->enabled()->where('discord_id', $this->argument('guild'))->first();

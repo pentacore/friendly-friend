@@ -34,7 +34,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 - [x] Message, voice, reaction/emoji and game/presence tracking per server; hourly/daily rollups
 - [ ] Dashboards (heatmap, leaderboards, "who hangs out with whom")
-- [ ] Opt-out on the website and with `/privacy optout|optin|status`; purge on opt-out; cached opted-out set checked in the bot router and again in the jobs
+- [x] Opt-out on the website and with `/privacy optout|optin|status`; purge on opt-out; cached opted-out set checked in the bot router and again in the jobs
 
 ### Phase 7: Event planning (spec §14)
 

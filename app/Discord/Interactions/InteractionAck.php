@@ -56,7 +56,7 @@ final class InteractionAck
     {
         $name = $data['name'] ?? null;
 
-        if ($name === QuoteCommands::SAVE_MESSAGE) {
+        if ($name === QuoteCommands::SAVE_MESSAGE || $name === PrivacyCommands::SLASH) {
             return self::deferred(ephemeral: true);
         }
 

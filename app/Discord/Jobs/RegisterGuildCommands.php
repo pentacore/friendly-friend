@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Discord\Jobs;
 
 use App\Discord\DiscordClient;
-use App\Discord\Interactions\QuoteCommands;
+use App\Discord\Interactions\BotCommands;
 use App\Models\Guild;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -41,6 +41,6 @@ final class RegisterGuildCommands implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $discord->registerGuildCommands($guild->discord_id, $guild->enabled && $guild->bot_present ? QuoteCommands::definitions() : []);
+        $discord->registerGuildCommands($guild->discord_id, $guild->enabled && $guild->bot_present ? BotCommands::definitions() : []);
     }
 }

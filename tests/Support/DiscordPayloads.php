@@ -30,7 +30,7 @@ final class DiscordPayloads
      * @param  array<string, mixed>|null  $member
      * @return array<string, mixed>
      */
-    public static function slash(string $subcommand, array $options = [], array $resolved = [], string $guildId = '555', ?array $member = null): array
+    public static function slash(string $subcommand, array $options = [], array $resolved = [], string $guildId = '555', ?array $member = null, string $command = 'quote'): array
     {
         return [
             'id' => 'int-1',
@@ -40,7 +40,7 @@ final class DiscordPayloads
             'channel_id' => '777',
             'member' => $member ?? self::member(),
             'data' => [
-                'name' => 'quote',
+                'name' => $command,
                 'options' => [['type' => 1, 'name' => $subcommand, 'options' => $options]],
                 'resolved' => $resolved,
             ],
