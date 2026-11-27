@@ -34,6 +34,23 @@ vendor/bin/sail npm run check
 vendor/bin/sail npm run types:check
 ```
 
+## Releases (`release.yml`)
+
+After `ci` passes on a push to `main`, the `release` workflow runs semantic-release (`.releaserc.json`). It reads the conventional commit subjects since the last tag and picks the next version:
+
+| Commits since the last tag                 | Release |
+| ------------------------------------------ | ------- |
+| a `BREAKING CHANGE:` footer or `feat!:`    | major   |
+| `feat:`                                    | minor   |
+| `fix:`, `perf:`, `chore(deps):`            | patch   |
+| only `docs:`, `test:`, `ci:`, other chores | none    |
+
+It writes `CHANGELOG.md`, commits it as `chore(release): X.Y.Z` on `main`, tags `vX.Y.Z` and publishes a GitHub release. The `image` job in the same workflow then builds that tag and pushes `ghcr.io/pentacore/friendly-friend` as `X.Y.Z`, `X.Y` and `latest`. (A tag pushed with `GITHUB_TOKEN` never triggers another workflow, so both jobs share one.)
+
+The frontend compiles in where browsers reach Reverb, so the image is built for this one site. Set these **repository variables** (Settings → Secrets and variables → Actions → Variables): `VITE_REVERB_HOST` and `REVERB_APP_KEY` (required), plus `VITE_REVERB_PORT`, `VITE_REVERB_SCHEME` and `APP_NAME` when they differ from 443, https and "Friendly Friend". Without the two required ones, the image job fails with an error naming them, and the release itself still happens.
+
+semantic-release 26 needs Node 26.13 or newer, newer than the app's Node, so the job runs it pinned through `npx` rather than from `package.json`.
+
 ## `image` job
 
 Builds the production `Dockerfile` (target `app`) and runs `php -v` in it, so a broken image fails CI before a deploy.

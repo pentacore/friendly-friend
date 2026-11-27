@@ -3,6 +3,9 @@
 # pulled first (security updates don't wait). Minor and patch updates are
 # grouped per ecosystem and dependency type; majors arrive one by one.
 #
+# Commit prefixes drive releases (.releaserc.json): chore(deps) cuts a patch
+# release, chore(deps-dev) and ci(deps) none.
+#
 # Hold an update with an `ignore` entry whose comment names the upstream
 # issue that lifts it, and list it in ROADMAP.md (.ai/rules/dependencies.md).
 
@@ -12,6 +15,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
     cooldown:
       default-days: 5
     groups:
@@ -26,6 +32,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
     cooldown:
       default-days: 5
     groups:
@@ -51,6 +60,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "ci(deps)"
     cooldown:
       default-days: 5
     groups:

@@ -35,7 +35,7 @@
 ## Habits
 
 - Write the failing test first (Pest). Fix Larastan errors at their cause: no baseline, no `@phpstan-ignore`, no casts or `@var` only to silence it.
-- Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
+- Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`). They drive releases: `feat:` cuts a minor version, `fix:` a patch, a `BREAKING CHANGE:` footer a major, and each `feat`/`fix` subject becomes a `CHANGELOG.md` line, so write it for the people who use the site.
 - When the implementation deliberately departs from the spec (`docs/superpowers/specs/`), update the spec too.
 
 === foundation rules ===

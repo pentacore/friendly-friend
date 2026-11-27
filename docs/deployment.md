@@ -73,10 +73,23 @@ Then log in as an owner (`DISCORD_OWNER_IDS`) and enable your servers on `/admin
 
 ## Updating
 
+Either pull a released image (built by CI for each version, see [ci.md](ci.md#releases-releaseyml)):
+
+```bash
+git pull                                   # compose file and .env.example changes
+export FF_IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3   # or :latest; set it in your shell profile or a wrapper script
+docker compose -f compose.prod.yaml pull
+docker compose -f compose.prod.yaml up -d
+```
+
+or build on the server, as on the first deploy:
+
 ```bash
 git pull
 docker compose -f compose.prod.yaml up -d --build
 ```
+
+A released image has the `VITE_REVERB_*` values from the repository variables compiled in, so they must match this server's `.env`. Build locally when they differ.
 
 `migrate` runs again first. The other services are recreated on the new image once it succeeds. If a migration fails, the app services keep running the old containers. Check `docker compose -f compose.prod.yaml logs migrate`.
 

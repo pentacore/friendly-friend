@@ -3,7 +3,9 @@
 
 # Shared by every app container (same image, different command).
 x-base: &base
-    image: friendly-friend:latest
+    # A released image from GHCR (FF_IMAGE=ghcr.io/pentacore/friendly-friend:1.2.3, then `pull`),
+    # or the local build below when FF_IMAGE is unset.
+    image: '${FF_IMAGE:-friendly-friend:latest}'
     build:
         context: .
         # Compiled into the frontend: the public WebSocket endpoint browsers use.
