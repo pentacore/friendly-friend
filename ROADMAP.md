@@ -34,9 +34,6 @@ All seven build phases are done (see `COMPLETED.md`).
 
 Today there are two searches: the quote feed (`QuoteController::index`, `search_vector @@ websearch_to_tsquery('simple', …)`, newest first) and admin people (`Admin\PeopleController::index`, `ilike` on names and aliases). Ideas in rough priority order:
 
-- [ ] Quotes: one shared search scope (e.g. `Quote::search($text)`) so the feed, person pages and a Discord command run the same query, and the items below land in one place
-- [ ] Quotes: match while typing. `websearch_to_tsquery` only matches whole words, so "Uncl" finds nothing until "Uncle" is typed in full. Turn the last term (or every term) into a prefix query (`word:*`, built with `to_tsquery` from sanitised words)
-- [ ] Quotes: find quotes by a person's current name and nicknames. `search_text` only holds `speaker_name` as written when the quote was saved, so renaming a person, adding an alias or `MergePeople` doesn't make their quotes findable under the new name. Either add the linked people's `display_name` and aliases to `search_text` (and rebuild it on rename, alias change and merge), or match the query against people too and OR in their quotes
 - [ ] Quotes: tolerate typos and missing accents ("hakan" → "Håkan", "kanelbule" → "kanelbulle"). `pg_trgm` is already installed (for `ResolvePerson`); add a trigram GIN index on `search_text` and fall back to `word_similarity` when full-text finds nothing. Accent folding needs the `unaccent` extension (an immutable wrapper for the generated column)
 - [ ] Quotes: sort by relevance (`ts_rank`) when there is a query, with a sort switch (newest / top score / best match) on the feed
 - [ ] Quotes: highlight the matched words in the quote cards

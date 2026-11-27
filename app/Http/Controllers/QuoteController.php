@@ -51,7 +51,7 @@ final class QuoteController extends Controller
         $quotes = Quote::query()->visibleTo($access)->with(self::cardRelations($access))
             ->when($guildId !== null, fn (Builder $query) => $query->where('guild_id', $guildId))
             ->when($person !== null, fn (Builder $query) => $query->whereHas('lines', fn (Builder $lines) => $lines->where('person_id', $person?->id)))
-            ->when($search !== '', fn (Builder $query) => $query->whereRaw("search_vector @@ websearch_to_tsquery('simple', ?)", [$search]))
+            ->search($search)
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->simplePaginate(self::PER_PAGE)

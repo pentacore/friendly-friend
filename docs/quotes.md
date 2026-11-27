@@ -117,7 +117,7 @@ For when people post a quote as a normal message and forget the bot. On the Serv
     - update: the submitter, or that server's admins
     - delete and review imports: that server's admins
 - **`AccessSnapshot`:** computes the user's visible and moderated servers once per request (cached on the Request), so lists don't re-check access per quote.
-- **Search:** `quotes.search_text` (speakers, lines and context) is rebuilt on every content change (`Quote::refreshSearchText`). `search_vector` is a generated `tsvector` (`simple` config, which suits mixed Swedish and English) with a GIN index.
+- **Search:** `quotes.search_text` (speakers, lines and context) is rebuilt on every content change (`Quote::refreshSearchText`). `search_vector` is a generated `tsvector` (`simple` config, which suits mixed Swedish and English) with a GIN index. Every search goes through `Quote::search($text)`: each word must match as a prefix (`kanel` finds _kanelbulle_ while typing), `-word` leaves quotes with it out, and a word also matches the current name or a nickname of a person on the quote, so renamed, merged or nicknamed people are found under any of their names. Only letters and digits are kept, so any input is safe.
 
 ## Editing and removing on the website
 

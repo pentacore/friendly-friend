@@ -83,6 +83,9 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Conventions adopted from media manager: `ai-rules.md` (narrowest glob, owner's rules, skills for procedures) with a test that every rule glob matches a file, the `formatting-project` and `running-browser-tests` skills, owner approval for new production packages (`dependencies.md`), a rule that a behaviour change updates every description of it, and Dependabot for Composer and npm.
 - [x] Admin people search: `%` and `_` are literal, the nickname match is grouped, and the closest name comes first.
 - [x] Mentions asking for "a quote from Bo" (a name, not an @mention) pick from that person, resolved like a speaker.
+- [x] Quote search: one shared scope (`Quote::search()`).
+- [x] Quote search matches prefixes while typing; `-word` excludes.
+- [x] Quote search finds quotes by a person's current name and nicknames.
 
 ## Bugs found and fixed along the way
 

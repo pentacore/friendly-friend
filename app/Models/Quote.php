@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 
 /**
@@ -110,6 +111,64 @@ class Quote extends Model
     protected function visibleTo(Builder $query, AccessSnapshot $access): void
     {
         $query->where('status', QuoteStatus::Published)->whereIn('guild_id', $access->guildIds);
+    }
+
+    /**
+     * The shared quote search (feed, person pages, Discord). Every word must
+     * match, as a prefix so it works while typing; `-word` leaves quotes with
+     * it out. A word matches the quote's text (`search_vector`: speakers as
+     * written, lines, context) or the current name or a nickname of a person
+     * on one of its lines. Blank or symbol-only text matches everything.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function search(Builder $query, string $text): void
+    {
+        ['include' => $include, 'exclude' => $exclude] = self::searchTerms($text);
+
+        foreach ($include as $term) {
+            $query->where(fn (Builder $matches) => $matches
+                ->whereRaw("quotes.search_vector @@ to_tsquery('simple', ?)", [$term])
+                ->orWhereExists(fn (QueryBuilder $people) => $people
+                    ->selectRaw('1')
+                    ->from('quote_lines')
+                    ->join('people', 'people.id', '=', 'quote_lines.person_id')
+                    ->whereColumn('quote_lines.quote_id', 'quotes.id')
+                    ->where(fn (QueryBuilder $names) => $names
+                        ->whereRaw("to_tsvector('simple', people.display_name) @@ to_tsquery('simple', ?)", [$term])
+                        ->orWhereExists(fn (QueryBuilder $aliases) => $aliases
+                            ->selectRaw('1')
+                            ->from('person_aliases')
+                            ->whereColumn('person_aliases.person_id', 'people.id')
+                            ->whereRaw("to_tsvector('simple', person_aliases.alias) @@ to_tsquery('simple', ?)", [$term])))));
+        }
+
+        foreach ($exclude as $term) {
+            $query->whereRaw("not (quotes.search_vector @@ to_tsquery('simple', ?))", [$term]);
+        }
+    }
+
+    /**
+     * The words of a search as prefix tsquery terms (`word:*`), split into
+     * words to match and words to leave out. Only letters and digits are
+     * kept, so the terms are always valid tsquery syntax.
+     *
+     * @return array{include: list<string>, exclude: list<string>}
+     */
+    public static function searchTerms(string $text): array
+    {
+        $terms = ['include' => [], 'exclude' => []];
+
+        foreach (preg_split('/\s+/u', trim($text)) ?: [] as $word) {
+            $list = str_starts_with($word, '-') ? 'exclude' : 'include';
+
+            foreach (preg_split('/[^\p{L}\p{N}]+/u', $word, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $part) {
+                $terms[$list][] = mb_strtolower($part).':*';
+            }
+        }
+
+        return ['include' => array_values(array_unique($terms['include'])), 'exclude' => array_values(array_unique($terms['exclude']))];
     }
 
     /**
