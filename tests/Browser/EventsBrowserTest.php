@@ -208,3 +208,36 @@ it('asks questions and shows the answers', function (bool $dark): void {
 
     expect(EventQuestionAnswer::query()->value('value'))->toBe('yes');
 })->with(['light' => false, 'dark' => true]);
+
+it('votes on dates and chooses one', function (bool $dark): void {
+    $poll = Event::factory()->create([
+        'guild_id' => $this->guild->id,
+        'created_by_discord_user_id' => $this->user->discord_user_id,
+        'title' => 'Board game night',
+        'date_polling' => true,
+        'starts_at' => now()->addWeek()->setTime(17, 0),
+    ]);
+    $first = $poll->dateOptions()->create(['starts_at' => now()->addWeek()->setTime(17, 0)]);
+    $poll->dateOptions()->create(['starts_at' => now()->addWeeks(2)->setTime(17, 0)]);
+    $first->votes()->create(['discord_user_id' => DiscordUser::factory()->create(['global_name' => 'Kim'])->id, 'answer' => 'yes']);
+    $this->actingAs($this->user);
+
+    $page = visit("/events/{$poll->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->assertSee('Which dates work for you?')
+        ->assertSee('Best so far')
+        ->click("[data-test=\"date-{$first->id}\"] button[aria-pressed]:first-child")
+        ->assertSee('2 yes')
+        ->assertNoJavaScriptErrors();
+
+    $page->script('document.fonts.ready');
+    $page->screenshot(fullPage: true, filename: 'events-date-poll-'.($dark ? 'dark' : 'light'));
+
+    $page->click("[data-test=\"date-{$first->id}\"] >> text=Choose this date")
+        ->click('Choose it')
+        ->assertSee('Are you coming?')
+        ->assertNoJavaScriptErrors();
+
+    expect($poll->fresh()?->date_polling)->toBeFalse();
+})->with(['light' => false, 'dark' => true]);

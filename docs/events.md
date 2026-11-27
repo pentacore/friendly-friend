@@ -18,6 +18,15 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.
 - **`/events/{id}/edit`**: the same form, for editors.
 
+## Voting on the date
+
+Not sure when? Tick **Let people vote on the date** on the new-event form and propose 2 to 10 dates (start, optional end) instead of one.
+
+- While the vote is open the event shows "Date to be decided" (a **?** badge), and the "Are you coming?" box is replaced by **Which dates work for you?**: everyone answers each date **Yes / If need be / No** (press again to take it back), and sees the tallies and who said what. The date with the most yes (then most if need be) is marked **Best so far**.
+- Organisers can **propose another date**, withdraw one (not the last), and **Choose this date**. Choosing sets the event's time, and everyone who voted yes on it becomes **going**, if need be becomes **maybe**, unless they had already answered.
+- Until a date is chosen: only "Can't" is accepted as an RSVP, the Discord announcement lists the proposed dates without RSVP buttons, no native Discord event is created, and no reminders go out. Editing the event keeps the date out of the form.
+- `starts_at` holds the earliest proposed date while voting, so lists still sort sensibly.
+
 ## Answer by
 
 An event can have an **Answer by** time (in the event's timezone, no later than the start).
@@ -80,6 +89,7 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
 - `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).
+- `events.date_polling`, `event_date_options` (starts_at, ends_at) and `event_date_votes` (one per person and date: answer `yes`/`if_need_be`/`no`).
 - `event_questions` (position, prompt, kind `yes_no`/`choice`/`text`, options) and `event_question_answers` (one per person and question: value).
 - `events.rsvp_by` (answer by), `reminded_rsvp_at` (Maybe nudge sent), `rsvp_closed_synced_at` (announcement refreshed after the deadline).
 - Discord: `guilds.events_channel_id`, and on `events`: announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.

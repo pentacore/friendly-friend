@@ -56,6 +56,12 @@ final class RsvpRequest extends FormRequest
                 return;
             }
 
+            if ($event->date_polling && $status !== RsvpStatus::Declined) {
+                $validator->errors()->add('status', __('The date isn’t decided yet. Vote on the dates instead.'));
+
+                return;
+            }
+
             if (! EventRules::canAnswer($access, $event, $status)) {
                 $validator->errors()->add('status', __('Answers closed on :date. You can still say you can’t make it.', [
                     'date' => $event->rsvp_by?->setTimezone($event->timezone)->format('j M H:i'),

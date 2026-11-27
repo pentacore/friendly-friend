@@ -39,6 +39,7 @@ function submit(): void {
             :form="form"
             :members="members"
             :exclude-host-id="event.created_by.id"
+            :dates-locked="event.date_polling"
             submit-label="Save changes"
             @submit="submit"
         >

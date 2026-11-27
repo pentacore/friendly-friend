@@ -26,6 +26,7 @@ const answer = {
             :starts-at="event.starts_at"
             :timezone="event.timezone"
             :cancelled="event.status === 'cancelled'"
+            :undecided="event.date_polling"
         />
         <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-2">
@@ -40,7 +41,10 @@ const answer = {
                     {{ answer[event.my_rsvp.status] }}
                 </Badge>
             </div>
-            <p class="text-sm text-muted-foreground">
+            <p v-if="event.date_polling" class="text-sm text-muted-foreground">
+                Date to be decided: vote on the dates
+            </p>
+            <p v-else class="text-sm text-muted-foreground">
                 {{
                     formatEventWhen(
                         event.starts_at,

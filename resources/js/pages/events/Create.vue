@@ -29,6 +29,7 @@ const form = useForm<SaveEventRequest>({
     starts_at: '',
     ends_at: null,
     rsvp_by: null,
+    date_options: null,
     timezone: props.default_timezone,
     host_ids: [],
 });
@@ -51,6 +52,7 @@ function submit(): void {
             :form="form"
             :members="members"
             submit-label="Create event"
+            allow-date-poll
             @submit="submit"
         >
             <template v-if="guilds.length > 1" #before>

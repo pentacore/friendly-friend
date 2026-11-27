@@ -77,8 +77,13 @@ const field =
         <header>
             <h2 class="font-medium">Questions</h2>
             <p class="text-xs text-muted-foreground">
-                Answered in "Are you coming?". Counts are from people going or
-                maybe.
+                <template v-if="event.date_polling">
+                    People answer these once the date is decided.
+                </template>
+                <template v-else>
+                    Answered in "Are you coming?". Counts are from people going
+                    or maybe.
+                </template>
             </p>
         </header>
 

@@ -23,6 +23,11 @@ paths:
 - **answer** (`canAnswer`): participate, and before `rsvp_by`, except that Can't is always allowed and organisers may still answer. Checked in `RsvpRequest::after()` (a validation error, not a 403) and in the Discord button handler.
 - Load `hosts` before calling `canEdit` in a loop.
 
+## Date vote
+
+- `events.date_polling` means the date isn't decided: `starts_at` holds the earliest `event_date_options` row (kept in sync by `AddDateOption` / `RemoveDateOption`) and is never edited through the event form (`UpdateEvent` skips start and end). Anything that needs a real date (reminders, the native Discord event, RSVP buttons, going/maybe answers) checks `date_polling` first.
+- `ChooseDate` is the only way out of a vote: it sets the date and turns yes/if-need-be votes into going/maybe RSVPs for people who hadn't answered.
+
 ## Times and money
 
 - `starts_at` and `ends_at` are `timestamptz`. Forms send local `Y-m-d\TH:i` in the event's `timezone` (`SaveEventRequest::details()` converts). The edit form gets local strings back. The frontend formats with `lib/eventDates.ts` in the event's timezone, never the browser's.

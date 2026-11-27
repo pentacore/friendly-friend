@@ -5,6 +5,7 @@
 // ───────────────────────────────────────────────────────────────────────
 
 export * from './AccessDeniedReason';
+export * from './DateVote';
 export * from './EventStatus';
 export * from './MealSlot';
 export * from './QuestionKind';

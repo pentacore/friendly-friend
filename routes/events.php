@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventCostController;
+use App\Http\Controllers\EventDatePollController;
 use App\Http\Controllers\EventFoodController;
 use App\Http\Controllers\EventQuestionController;
 use App\Http\Controllers\EventRideController;
@@ -33,6 +34,13 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
         Route::put('meals/{meal}', 'updateMeal')->name('meals.update');
         Route::delete('meals/{meal}', 'destroyMeal')->name('meals.destroy');
         Route::put('meals/{meal}/cook', 'cook')->name('meals.cook');
+    });
+
+    Route::scopeBindings()->prefix('events/{event}/dates')->name('events.dates.')->controller(EventDatePollController::class)->group(function (): void {
+        Route::post('/', 'store')->name('store');
+        Route::delete('{dateOption}', 'destroy')->name('destroy');
+        Route::put('{dateOption}/vote', 'vote')->name('vote');
+        Route::post('{dateOption}/choose', 'choose')->name('choose');
     });
 
     Route::scopeBindings()->prefix('events/{event}/rides')->name('events.rides.')->controller(EventRideController::class)->group(function (): void {

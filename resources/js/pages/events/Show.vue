@@ -15,6 +15,7 @@ import EventDateBadge from '@/components/events/EventDateBadge.vue';
 import MemberAvatar from '@/components/stats/MemberAvatar.vue';
 import FoodTab from '@/components/events/FoodTab.vue';
 import QuestionsCard from '@/components/events/QuestionsCard.vue';
+import DatePollPanel from '@/components/events/DatePollPanel.vue';
 import RsvpPanel from '@/components/events/RsvpPanel.vue';
 import TransportTab from '@/components/events/TransportTab.vue';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +47,7 @@ setLayoutProps({
 });
 
 useLiveEvent(props.event.id, {
-    overview: ['event', 'attendees', 'questions', 'transport'],
+    overview: ['event', 'attendees', 'questions', 'date_poll', 'transport'],
     food: ['food'],
     transport: ['transport'],
     costs: ['costs'],
@@ -96,6 +97,7 @@ function setCancelled(cancelled: boolean): void {
                 :starts-at="event.starts_at"
                 :timezone="event.timezone"
                 :cancelled="event.status === 'cancelled'"
+                :undecided="event.date_polling"
             />
             <div class="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div class="flex flex-wrap items-center gap-2">
@@ -108,7 +110,10 @@ function setCancelled(cancelled: boolean): void {
                         >Cancelled</Badge
                     >
                 </div>
-                <p class="text-muted-foreground">
+                <p v-if="event.date_polling" class="text-muted-foreground">
+                    Date to be decided. Vote on the dates that work for you.
+                </p>
+                <p v-else class="text-muted-foreground">
                     {{
                         formatEventWhen(
                             event.starts_at,
@@ -259,8 +264,14 @@ function setCancelled(cancelled: boolean): void {
                 />
             </div>
             <aside class="order-first flex flex-col gap-4 lg:order-none">
+                <DatePollPanel
+                    v-if="event.date_polling"
+                    :event="event"
+                    :options="date_poll"
+                    :errors="errors"
+                />
                 <RsvpPanel
-                    v-if="event.can.participate"
+                    v-else-if="event.can.participate"
                     :key="`${event.my_rsvp?.status ?? 'none'}-${questions.length}`"
                     :event="event"
                     :questions="questions"

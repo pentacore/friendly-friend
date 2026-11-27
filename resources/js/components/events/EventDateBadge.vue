@@ -6,6 +6,8 @@ const props = defineProps<{
     startsAt: string;
     timezone: string;
     cancelled?: boolean;
+    /** The date is still being voted on. */
+    undecided?: boolean;
     size?: 'md' | 'lg';
 }>();
 
@@ -24,7 +26,7 @@ const badge = computed(() => eventDateBadge(props.startsAt, props.timezone));
         <span
             class="text-[10px] font-medium tracking-wider text-muted-foreground uppercase"
         >
-            {{ badge.month }}
+            {{ undecided ? 'Date' : badge.month }}
         </span>
         <span
             :class="[
@@ -33,10 +35,10 @@ const badge = computed(() => eventDateBadge(props.startsAt, props.timezone));
                 cancelled ? 'line-through' : '',
             ]"
         >
-            {{ badge.day }}
+            {{ undecided ? '?' : badge.day }}
         </span>
         <span class="text-[10px] text-muted-foreground">{{
-            badge.weekday
+            undecided ? 'vote' : badge.weekday
         }}</span>
     </div>
 </template>

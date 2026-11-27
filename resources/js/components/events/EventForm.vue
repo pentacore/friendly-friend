@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { InertiaForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Plus, X } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,7 +19,44 @@ const props = defineProps<{
     members: Member[];
     submitLabel: string;
     excludeHostId?: number;
+    /** Offer "let people vote on the date" (new events only). */
+    allowDatePoll?: boolean;
+    /** The date is being voted on: dates are set on the event page. */
+    datesLocked?: boolean;
 }>();
+
+const voting = ref((props.form.date_options?.length ?? 0) > 0);
+
+function setVoting(on: boolean | 'indeterminate'): void {
+    voting.value = on === true;
+    props.form.date_options = voting.value
+        ? [
+              { starts_at: props.form.starts_at ?? '', ends_at: null },
+              { starts_at: '', ends_at: null },
+          ]
+        : null;
+}
+
+/** The first error about the proposed dates, whichever row it's on. */
+const dateOptionsError = computed(
+    () =>
+        Object.entries(
+            props.form.errors as Record<string, string | undefined>,
+        ).find(([key]) => key.startsWith('date_options'))?.[1],
+);
+
+function addDateOption(): void {
+    props.form.date_options = [
+        ...(props.form.date_options ?? []),
+        { starts_at: '', ends_at: null },
+    ];
+}
+
+function removeDateOption(index: number): void {
+    props.form.date_options = (props.form.date_options ?? []).filter(
+        (_, i) => i !== index,
+    );
+}
 
 defineEmits<{ submit: [] }>();
 
@@ -56,14 +94,75 @@ const field =
             <InputError :message="form.errors.title" />
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2">
+        <p
+            v-if="datesLocked"
+            class="rounded-md border border-dashed p-3 text-sm text-muted-foreground"
+        >
+            The date is being voted on. Propose dates and choose one on the
+            event page.
+        </p>
+
+        <label v-if="allowDatePoll" class="flex items-center gap-2 text-sm">
+            <Checkbox :model-value="voting" @update:model-value="setVoting" />
+            Not sure when? Let people vote on the date
+        </label>
+
+        <fieldset v-if="voting" class="grid gap-2">
+            <legend class="mb-1 text-sm font-medium">Dates to vote on</legend>
+            <div
+                v-for="(option, index) in form.date_options ?? []"
+                :key="index"
+                class="grid grid-cols-[1fr_1fr_auto] items-center gap-2"
+            >
+                <Input
+                    v-model="option.starts_at"
+                    type="datetime-local"
+                    :aria-label="`Date ${index + 1} starts`"
+                    required
+                />
+                <Input
+                    :model-value="option.ends_at ?? ''"
+                    type="datetime-local"
+                    :aria-label="`Date ${index + 1} ends (optional)`"
+                    @update:model-value="
+                        option.ends_at = String($event) || null
+                    "
+                />
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    :disabled="(form.date_options?.length ?? 0) <= 2"
+                    :aria-label="`Remove date ${index + 1}`"
+                    @click="removeDateOption(index)"
+                >
+                    <X class="size-3.5" />
+                </Button>
+            </div>
+            <Button
+                v-if="(form.date_options?.length ?? 0) < 10"
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="self-start"
+                @click="addDateOption"
+            >
+                <Plus class="size-3.5" />Another date
+            </Button>
+            <InputError :message="dateOptionsError" />
+        </fieldset>
+
+        <div v-if="!voting && !datesLocked" class="grid gap-4 sm:grid-cols-2">
             <div class="grid gap-2">
                 <Label for="starts_at">Starts</Label>
                 <Input
                     id="starts_at"
-                    v-model="form.starts_at"
+                    :model-value="form.starts_at ?? ''"
+                    @update:model-value="
+                        form.starts_at = String($event) || null
+                    "
                     type="datetime-local"
-                    required
+                    :required="!voting"
                 />
                 <InputError :message="form.errors.starts_at" />
             </div>

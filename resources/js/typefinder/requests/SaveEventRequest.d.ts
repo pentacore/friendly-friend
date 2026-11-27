@@ -10,9 +10,13 @@ export type SaveEventRequest = {
   description?: string | null;
   location?: string | null;
   location_url?: string | null;
-  starts_at: string;
+  starts_at?: string | null;
   ends_at?: string | null;
   rsvp_by?: string | null;
   timezone: string;
+  date_options?: {
+    starts_at: string;
+    ends_at?: string | null;
+  }[] | null;
   host_ids?: number[];
 };

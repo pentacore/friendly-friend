@@ -40,10 +40,14 @@ final class SaveEventRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'location' => ['nullable', 'string', 'max:200'],
             'location_url' => ['nullable', 'url:http,https', 'max:500'],
-            'starts_at' => ['required', 'date_format:'.self::LOCAL_TIME],
+            'starts_at' => ['required_without:date_options', 'nullable', 'date_format:'.self::LOCAL_TIME],
             'ends_at' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'after:starts_at'],
             'rsvp_by' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'before_or_equal:starts_at'],
             'timezone' => ['required', 'timezone:all'],
+            // Creating with a date vote instead of a fixed date (2 to 10 proposed dates).
+            'date_options' => ['nullable', 'array', 'min:2', 'max:10'],
+            'date_options.*.starts_at' => ['required', 'date_format:'.self::LOCAL_TIME],
+            'date_options.*.ends_at' => ['nullable', 'date_format:'.self::LOCAL_TIME],
             'host_ids' => ['array', 'max:20'],
             'host_ids.*' => ['integer'],
         ];
@@ -56,16 +60,30 @@ final class SaveEventRequest extends FormRequest
             ? CarbonImmutable::createFromFormat(self::LOCAL_TIME, $this->string($key)->value(), $timezone)?->utc()
             : null;
 
+        $options = [];
+
+        foreach ($this->array('date_options') as $option) {
+            $start = is_array($option) && is_string($option['starts_at'] ?? null) ? CarbonImmutable::createFromFormat(self::LOCAL_TIME, $option['starts_at'], $timezone)?->utc() : null;
+            $end = is_array($option) && is_string($option['ends_at'] ?? null) && $option['ends_at'] !== '' ? CarbonImmutable::createFromFormat(self::LOCAL_TIME, $option['ends_at'], $timezone)?->utc() : null;
+
+            if ($start instanceof CarbonImmutable) {
+                $options[] = ['starts_at' => $start, 'ends_at' => $end];
+            }
+        }
+
+        usort($options, fn (array $a, array $b): int => $a['starts_at'] <=> $b['starts_at']);
+
         return new EventDetails(
             title: $this->string('title')->trim()->value(),
             description: $this->filled('description') ? $this->string('description')->trim()->value() : null,
             location: $this->filled('location') ? $this->string('location')->trim()->value() : null,
             locationUrl: $this->filled('location_url') ? $this->string('location_url')->value() : null,
-            startsAt: $local('starts_at') ?? CarbonImmutable::now(),
+            startsAt: $local('starts_at') ?? $options[0]['starts_at'] ?? CarbonImmutable::now(),
             endsAt: $local('ends_at'),
             rsvpBy: $local('rsvp_by'),
             timezone: $timezone,
             hostIds: array_values(array_map(intval(...), array_filter($this->array('host_ids'), is_numeric(...)))),
+            dateOptions: $options,
         );
     }
 }

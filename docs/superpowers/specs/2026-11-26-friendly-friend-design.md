@@ -244,6 +244,8 @@ Approved 2026-11-27. It gets its own implementation plans when we start it.
     - `event_payments` (from, to, amount, settled_at)
     - Balances are computed from these. "Settle up" proposes the minimal set of transfers (greedy largest-debtor ↔ largest-creditor).
 
+**Added after approval (2026-11-27):** an "answer by" deadline, questions for everyone coming, and a date vote before the date is fixed (see `docs/events.md`).
+
 **Website:** `/events` (upcoming and past, filter by server) and `/events/{id}`, with tabs Overview (RSVP, attendees, dietary summary), Food, Transport and Costs. Updates are live over a private Reverb channel per event.
 
 **Discord**

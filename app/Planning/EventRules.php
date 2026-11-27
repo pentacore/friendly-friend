@@ -45,14 +45,18 @@ final class EventRules
     }
 
     /**
-     * Whether this answer is still accepted: before the "answer by" time
+     * Whether this answer is still accepted. While the date is being voted
+     * on, people vote on dates instead (only Can't is taken). Before the "answer by" time
      * anything goes; after it only Can't (dropping out is always allowed),
      * and organisers may still change their own answer.
      */
     public static function canAnswer(AccessSnapshot $access, Event $event, RsvpStatus $status): bool
     {
-        return self::canParticipate($access, $event)
-            && ($status === RsvpStatus::Declined || ! $event->rsvpClosed() || self::canEdit($access, $event));
+        if (! self::canParticipate($access, $event) || ($event->date_polling && $status !== RsvpStatus::Declined)) {
+            return false;
+        }
+
+        return $status === RsvpStatus::Declined || ! $event->rsvpClosed() || self::canEdit($access, $event);
     }
 
     /**

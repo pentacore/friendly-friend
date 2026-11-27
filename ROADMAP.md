@@ -42,6 +42,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] Food: bring list with claims, shared shopping list, meal plan, dietary needs on the person's profile
 - [x] Transport: rides with seats, pickup points, "needs a ride" list
 - [x] Costs: expenses (equal or exact splits, minor units), balances, minimal settle-up transfers, payments
+- [x] Date vote: propose several dates, everyone answers yes / if need be / no, organisers choose one (votes become RSVPs)
 - [x] Event questions (yes/no, pick one, free text) answered with the RSVP; counts for everyone, names for organisers
 - [x] "Answer by" deadline: closes Going/Maybe (Can't stays open), nudges Maybes a day before, greys out the Discord buttons
 - [x] Discord: announcement post with RSVP buttons, native scheduled-event mirror (needs the bot's **Create/Manage Events** permission), reminder DMs 24 h and 2 h before
@@ -58,6 +59,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Events: add an "Add to calendar" (.ics) link
 - [ ] Events: edit an expense (now: remove and add again); link a shopping item to the expense that paid for it (spec §14 `expense_id`)
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
+- [ ] Events: vote on dates from Discord (buttons per proposed date), and DM voters when a date is chosen
 - [ ] Events: reorder questions, make a question required, ask questions from the Discord RSVP reply
 - [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Events: edit a ride (seats, time) instead of cancelling and offering it again

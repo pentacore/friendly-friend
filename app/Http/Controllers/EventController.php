@@ -17,6 +17,7 @@ use App\Planning\Actions\CancelEvent;
 use App\Planning\Actions\CreateEvent;
 use App\Planning\Actions\UpdateEvent;
 use App\Planning\CostsPlan;
+use App\Planning\DatePollPlan;
 use App\Planning\FoodPlan;
 use App\Planning\QuestionsPlan;
 use App\Planning\TransportPlan;
@@ -94,6 +95,7 @@ final class EventController extends Controller
         'event' => EventResource::class,
         'attendees' => '{ member: '.self::MEMBER.'; status: '.RsvpStatus::class.'; guests: number; note: string | null; needs_ride: boolean }[]',
         'questions' => QuestionsPlan::TYPE,
+        'date_poll' => DatePollPlan::TYPE,
         'food' => FoodPlan::TYPE,
         'transport' => TransportPlan::TYPE,
         'costs' => CostsPlan::TYPE,
@@ -117,6 +119,7 @@ final class EventController extends Controller
                     'needs_ride' => $rsvp->needs_ride,
                 ])->all()),
             'questions' => QuestionsPlan::for($event, $access),
+            'date_poll' => DatePollPlan::for($event, $access),
             'food' => fn (): array => FoodPlan::for($event, $access),
             'transport' => fn (): array => TransportPlan::for($event, $access),
             'costs' => fn (): array => CostsPlan::for($event, $access),

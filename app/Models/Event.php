@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $starts_at
  * @property Carbon|null $ends_at
  * @property Carbon|null $rsvp_by when answers close (Can't stays open)
+ * @property bool $date_polling the date is still being voted on (starts_at holds the earliest candidate)
  * @property string $timezone
  * @property EventStatus $status
  * @property string $currency
@@ -44,7 +45,7 @@ use Illuminate\Support\Carbon;
  * @property-read Guild $guild
  * @property-read DiscordUser $createdBy
  */
-#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'rsvp_by', 'timezone', 'status', 'currency', 'announce_channel_id', 'discord_message_id', 'discord_scheduled_event_id', 'reminded_day_at', 'reminded_hours_at', 'reminded_rsvp_at', 'rsvp_closed_synced_at'])]
+#[Fillable(['guild_id', 'created_by_discord_user_id', 'title', 'description', 'location', 'location_url', 'starts_at', 'ends_at', 'rsvp_by', 'timezone', 'status', 'currency', 'announce_channel_id', 'discord_message_id', 'discord_scheduled_event_id', 'reminded_day_at', 'reminded_hours_at', 'reminded_rsvp_at', 'rsvp_closed_synced_at', 'date_polling'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -162,6 +163,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<EventDateOption, $this>
+     */
+    public function dateOptions(): HasMany
+    {
+        return $this->hasMany(EventDateOption::class)->orderBy('starts_at');
+    }
+
+    /**
      * Past the "answer by" time: Going and Maybe are closed, Can't is not.
      */
     public function rsvpClosed(): bool
@@ -186,6 +195,7 @@ class Event extends Model
             'reminded_day_at' => 'datetime',
             'reminded_hours_at' => 'datetime',
             'rsvp_by' => 'datetime',
+            'date_polling' => 'boolean',
             'reminded_rsvp_at' => 'datetime',
             'rsvp_closed_synced_at' => 'datetime',
         ];

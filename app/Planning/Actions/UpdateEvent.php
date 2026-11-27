@@ -21,7 +21,10 @@ final readonly class UpdateEvent
     public function handle(Event $event, EventDetails $details): Event
     {
         DB::transaction(function () use ($event, $details): void {
-            $event->update($this->attributes->columns($details));
+            $columns = $this->attributes->columns($details);
+
+            // While the date is being voted on, the date comes from the vote.
+            $event->update($event->date_polling ? array_diff_key($columns, array_flip(['starts_at', 'ends_at'])) : $columns);
             $this->attributes->syncHosts($event, $details->hostIds);
         });
 

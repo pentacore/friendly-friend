@@ -8,6 +8,8 @@ export type { DiscordUser, DiscordUserCreate, DiscordUserUpdate } from './Discor
 export type { Event, EventCreate, EventUpdate } from './Event';
 export type { EventBringClaim, EventBringClaimCreate, EventBringClaimUpdate } from './EventBringClaim';
 export type { EventBringItem, EventBringItemCreate, EventBringItemUpdate } from './EventBringItem';
+export type { EventDateOption, EventDateOptionCreate, EventDateOptionUpdate } from './EventDateOption';
+export type { EventDateVote, EventDateVoteCreate, EventDateVoteUpdate } from './EventDateVote';
 export type { EventExpense, EventExpenseCreate, EventExpenseUpdate } from './EventExpense';
 export type { EventExpenseShare, EventExpenseShareCreate, EventExpenseShareUpdate } from './EventExpenseShare';
 export type { EventHostsPivot } from './EventHostsPivot';

@@ -7,6 +7,7 @@ namespace App\Planning\Discord;
 use App\Discord\Interactions\EventCustomId;
 use App\Enums\RsvpStatus;
 use App\Models\Event;
+use App\Models\EventDateOption;
 use App\Models\EventRsvp;
 use Illuminate\Support\Str;
 
@@ -48,7 +49,7 @@ final class EventAnnouncement
         $start = $event->starts_at->getTimestamp();
 
         $fields = [
-            ['name' => 'When', 'value' => "<t:{$start}:F> (<t:{$start}:R>)", 'inline' => false],
+            ['name' => 'When', 'value' => $event->date_polling ? self::candidates($event) : "<t:{$start}:F> (<t:{$start}:R>)", 'inline' => false],
         ];
 
         if ($event->rsvp_by !== null) {
@@ -60,7 +61,9 @@ final class EventAnnouncement
             $fields[] = ['name' => 'Where', 'value' => $event->location_url !== null ? "[{$event->location}]({$event->location_url})" : $event->location, 'inline' => false];
         }
 
-        $fields[] = ['name' => 'Coming', 'value' => "{$going} going · {$count(RsvpStatus::Maybe)} maybe · {$count(RsvpStatus::Declined)} can't", 'inline' => false];
+        if (! $event->date_polling) {
+            $fields[] = ['name' => 'Coming', 'value' => "{$going} going · {$count(RsvpStatus::Maybe)} maybe · {$count(RsvpStatus::Declined)} can't", 'inline' => false];
+        }
 
         return [
             'content' => '',
@@ -71,7 +74,8 @@ final class EventAnnouncement
                 'fields' => $fields,
                 'footer' => ['text' => 'Food, rides and costs are on the website.'],
             ]],
-            'components' => [[
+            // No RSVP buttons until the date is decided.
+            'components' => $event->date_polling ? [] : [[
                 'type' => self::ACTION_ROW,
                 'components' => [
                     self::button($event, RsvpStatus::Going, self::SUCCESS),
@@ -80,6 +84,16 @@ final class EventAnnouncement
                 ],
             ]],
         ];
+    }
+
+    /**
+     * "Not decided yet" plus the proposed dates. Load `dateOptions`.
+     */
+    private static function candidates(Event $event): string
+    {
+        $dates = $event->dateOptions->map(fn (EventDateOption $option): string => '• <t:'.$option->starts_at->getTimestamp().':F>')->implode("\n");
+
+        return "Not decided yet: vote on the website.\n{$dates}";
     }
 
     /**

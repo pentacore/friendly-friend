@@ -35,7 +35,7 @@ final class SyncEventToDiscord implements ShouldBeUniqueUntilProcessing, ShouldQ
 
     public function handle(DiscordClient $discord): void
     {
-        $event = Event::query()->with(['guild', 'rsvps'])->find($this->eventId);
+        $event = Event::query()->with(['guild', 'rsvps', 'dateOptions'])->find($this->eventId);
 
         if ($event === null || ! $discord->configured() || ! $event->guild->enabled || ! $event->guild->bot_present) {
             return;
@@ -72,7 +72,7 @@ final class SyncEventToDiscord implements ShouldBeUniqueUntilProcessing, ShouldQ
     {
         $alreadyMirrored = $event->discord_scheduled_event_id !== null;
 
-        if (! $alreadyMirrored && ($event->isCancelled() || $event->starts_at->isPast())) {
+        if (! $alreadyMirrored && ($event->isCancelled() || $event->date_polling || $event->starts_at->isPast())) {
             return;
         }
 

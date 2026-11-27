@@ -29,7 +29,13 @@ final readonly class CreateEvent
                 'created_by_discord_user_id' => $creator->id,
                 'currency' => 'SEK',
                 ...$this->attributes->columns($details),
+                'date_polling' => count($details->dateOptions) >= 2,
             ]);
+
+            if ($event->date_polling) {
+                $event->dateOptions()->createMany($details->dateOptions);
+                $event->update(['ends_at' => null]);
+            }
 
             $this->attributes->syncHosts($event, $details->hostIds);
 

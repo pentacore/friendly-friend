@@ -7,6 +7,8 @@
 export type { BringItemRequest } from './BringItemRequest';
 export type { ClaimRequest } from './ClaimRequest';
 export type { CookRequest } from './CookRequest';
+export type { DateOptionRequest } from './DateOptionRequest';
+export type { DateVoteRequest } from './DateVoteRequest';
 export type { ExpenseRequest } from './ExpenseRequest';
 export type { JoinRideRequest } from './JoinRideRequest';
 export type { LinkPersonRequest } from './LinkPersonRequest';

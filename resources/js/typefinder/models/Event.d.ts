@@ -6,6 +6,7 @@
 
 import type { DiscordUser } from './DiscordUser';
 import type { EventBringItem } from './EventBringItem';
+import type { EventDateOption } from './EventDateOption';
 import type { EventExpense } from './EventExpense';
 import type { EventHostsPivot } from './EventHostsPivot';
 import type { EventMeal } from './EventMeal';
@@ -40,6 +41,7 @@ export type Event = {
   rsvp_by: string | null;
   reminded_rsvp_at: string | null;
   rsvp_closed_synced_at: string | null;
+  date_polling: boolean;
   guild?: Guild | null;
   created_by?: DiscordUser | null;
   hosts?: (DiscordUser & { pivot: EventHostsPivot })[];
@@ -51,6 +53,7 @@ export type Event = {
   expenses?: EventExpense[];
   payments?: EventPayment[];
   questions?: EventQuestion[];
+  date_options?: EventDateOption[];
 };
 
 export type EventCreate = {
@@ -73,6 +76,7 @@ export type EventCreate = {
   rsvp_by?: string | null;
   reminded_rsvp_at?: string | null;
   rsvp_closed_synced_at?: string | null;
+  date_polling?: boolean;
 };
 
 export type EventUpdate = {
@@ -95,4 +99,5 @@ export type EventUpdate = {
   rsvp_by?: string | null;
   reminded_rsvp_at?: string | null;
   rsvp_closed_synced_at?: string | null;
+  date_polling?: boolean;
 };

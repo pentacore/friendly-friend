@@ -17,6 +17,7 @@ export type EventResource = {
   ends_at: string | null;
   rsvp_by: string | null;
   rsvp_closed: boolean;
+  date_polling: boolean;
   timezone: string;
   status: EventStatus;
   currency: string;
