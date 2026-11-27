@@ -4,11 +4,14 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
+import { recordHydrationMismatches } from '@/lib/hydrationCheck';
 import { configureEcho } from '@laravel/echo-vue';
 
 configureEcho({
     broadcaster: 'reverb',
 });
+
+recordHydrationMismatches();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

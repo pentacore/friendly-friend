@@ -1,3 +1,5 @@
+import { displayLocale, pageNow } from '@/lib/locale';
+
 /** Dates of an event, always shown in the event's own timezone. */
 
 function parts(
@@ -5,9 +7,10 @@ function parts(
     timeZone: string,
     options: Intl.DateTimeFormatOptions,
 ): string {
-    return new Intl.DateTimeFormat(undefined, { timeZone, ...options }).format(
-        new Date(iso),
-    );
+    return new Intl.DateTimeFormat(displayLocale(), {
+        timeZone,
+        ...options,
+    }).format(new Date(iso));
 }
 
 /** "Sat 5 Dec, 18:00–23:30" (or across days: "Sat 5 Dec, 18:00 – Sun 6 Dec, 12:00"). */
@@ -50,9 +53,11 @@ export function eventDateBadge(
 /** "in 3 days", "tomorrow", "2 weeks ago". */
 export function relativeToNow(iso: string): string {
     const days = Math.round(
-        (new Date(iso).getTime() - Date.now()) / 86_400_000,
+        (new Date(iso).getTime() - pageNow().getTime()) / 86_400_000,
     );
-    const format = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const format = new Intl.RelativeTimeFormat(displayLocale(), {
+        numeric: 'auto',
+    });
 
     return Math.abs(days) >= 14
         ? format.format(Math.round(days / 7), 'week')
@@ -61,14 +66,9 @@ export function relativeToNow(iso: string): string {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** Today as YYYY-MM-DD in the browser's timezone (for date pickers' min). */
-export function localDate(date = new Date()): string {
+/** A Date's own calendar day as YYYY-MM-DD (for date arithmetic on plain dates, never "today"). */
+function ymd(date: Date): string {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-/** Now as YYYY-MM-DDTHH:mm in the browser's timezone (for datetime pickers' min). */
-export function localDateTime(date = new Date()): string {
-    return `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** The day after a YYYY-MM-DD date. */
@@ -80,7 +80,7 @@ export function nextDay(date: string): string {
 export function addDays(date: string, days: number): string {
     const [year, month, day] = date.split('-').map(Number);
 
-    return localDate(new Date(year ?? 0, (month ?? 1) - 1, (day ?? 1) + days));
+    return ymd(new Date(year ?? 0, (month ?? 1) - 1, (day ?? 1) + days));
 }
 
 /** Whole days from one YYYY-MM-DD date to another. */
@@ -111,4 +111,14 @@ export function localInputIn(iso: string, timeZone: string): string {
     );
 
     return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+/** Today as YYYY-MM-DD in a timezone, from the page's "now" (date pickers' min). */
+export function todayIn(timeZone: string): string {
+    return localInputIn(pageNow().toISOString(), timeZone).split('T')[0] ?? '';
+}
+
+/** Now as YYYY-MM-DDTHH:mm in a timezone, from the page's "now" (datetime pickers' min). */
+export function nowInputIn(timeZone: string): string {
+    return localInputIn(pageNow().toISOString(), timeZone);
 }

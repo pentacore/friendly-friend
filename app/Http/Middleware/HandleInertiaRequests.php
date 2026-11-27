@@ -15,6 +15,8 @@ use Override;
  */
 class HandleInertiaRequests extends Middleware
 {
+    private const string FALLBACK_LOCALE = 'en-GB';
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -46,6 +48,9 @@ class HandleInertiaRequests extends Middleware
      *     name: string,
      *     auth: array{user: array{id: int, discord_id: string, name: string, avatar_url: string, is_admin: bool, is_owner: bool}|null},
      *     sidebarOpen: bool,
+     *     locale: string,
+     *     timezone: string,
+     *     now: string,
      * }
      */
     public function share(Request $request): array
@@ -57,7 +62,23 @@ class HandleInertiaRequests extends Middleware
                 'user' => $this->currentUser($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // One locale, timezone and "now" for both the server render and the browser, so dates and
+            // numbers come out the same on both sides (no hydration mismatches).
+            'locale' => $this->locale($request),
+            'timezone' => config()->string('stats.timezone'),
+            'now' => now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * The viewer's preferred language for formatting dates and numbers
+     * (`Accept-Language`, as a BCP 47 tag), or British English.
+     */
+    private function locale(Request $request): string
+    {
+        $preferred = str_replace('_', '-', $request->getPreferredLanguage() ?? '');
+
+        return preg_match('/^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/', $preferred) === 1 ? $preferred : self::FALLBACK_LOCALE;
     }
 
     /**

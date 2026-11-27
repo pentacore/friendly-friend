@@ -13,6 +13,11 @@ export function useLiveEvent(
     eventId: number,
     propsBySection: Record<EventSection, string[]>,
 ): void {
+    // Live updates are browser-only: during the server render there's no socket to open.
+    if (import.meta.env.SSR) {
+        return;
+    }
+
     useEcho<EventChanged>(`events.${eventId}`, '.event.changed', (change) => {
         router.reload({ only: propsBySection[change.section] });
     });

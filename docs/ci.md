@@ -11,10 +11,10 @@ Steps, in order:
 3. **Typefinder drift check**: `php artisan typefinder:generate --check --strict`. The generated types in `resources/js/typefinder/` are committed. The job fails if they're out of date (a model, enum, request, resource, Inertia page or broadcast event changed without regenerating) or if the generator printed any warning.
 4. `composer lint:check` (Rector dry run, Pint test)
 5. `composer types:check` (Larastan at max level)
-6. `npm run build` (also generates the Wayfinder routes the type check needs)
+6. `npm run build:ssr` (client and SSR bundles; also generates the Wayfinder routes the type check needs)
 7. `npm run check` (lint and format), `npm run types:check` (vue-tsc)
 8. `php artisan test --parallel` (Pest)
-9. `npx playwright install --with-deps chromium`, then `php artisan test --testsuite=Browser`: real-browser checks in light and dark mode
+9. `npx playwright install --with-deps chromium`, start the SSR server (`php artisan inertia:start-ssr`), then `php artisan test --testsuite=Browser`: real-browser checks in light and dark mode, plus a hydration check (server-rendered pages hydrated in a browser with another locale and timezone must not mismatch)
 
 Run the same checks locally before pushing:
 

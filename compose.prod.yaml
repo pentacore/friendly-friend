@@ -17,6 +17,8 @@ x-base: &base
     environment:
         # Logs go to `docker compose logs`, not to a file inside the container.
         LOG_CHANNEL: stderr
+        # No SSR server runs in production, so pages render in the browser (see docs/deployment.md).
+        INERTIA_SSR_ENABLED: '${INERTIA_SSR_ENABLED:-false}'
     volumes:
         - storage:/app/storage/app
 

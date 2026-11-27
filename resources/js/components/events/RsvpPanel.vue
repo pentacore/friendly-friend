@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { displayLocale } from '@/lib/locale';
 import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
@@ -35,7 +36,7 @@ const closed = computed(() => props.event.rsvp_closed && !props.event.can.edit);
 
 const answerBy = computed(() =>
     props.event.rsvp_by
-        ? new Intl.DateTimeFormat(undefined, {
+        ? new Intl.DateTimeFormat(displayLocale(), {
               timeZone: props.event.timezone,
               weekday: 'short',
               day: 'numeric',

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { displayLocale } from '@/lib/locale';
 import { ChefHat, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import {
@@ -42,7 +43,9 @@ const days = computed(() => {
 });
 
 function dayLabel(date: string): string {
-    return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+    // A calendar date: read at noon UTC, shown in UTC, so it's the same day everywhere.
+    return new Date(`${date}T12:00:00Z`).toLocaleDateString(displayLocale(), {
+        timeZone: 'UTC',
         weekday: 'long',
         day: 'numeric',
         month: 'short',

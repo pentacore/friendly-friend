@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router, setLayoutProps } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
     CalendarPlus,
     CalendarX,
@@ -63,9 +63,14 @@ const tabs = [
 
 type Tab = (typeof tabs)[number]['id'];
 
-const tab = ref<Tab>(
-    tabs.find((t) => `#${t.id}` === window.location.hash)?.id ?? 'overview',
-);
+// Starts on Overview on the server and in the browser alike (no window on the server, and the
+// same first render on both sides); a #tab in the URL is applied once mounted.
+const tab = ref<Tab>('overview');
+
+onMounted(() => {
+    tab.value =
+        tabs.find((t) => `#${t.id}` === window.location.hash)?.id ?? 'overview';
+});
 
 watch(tab, (value) => {
     history.replaceState(

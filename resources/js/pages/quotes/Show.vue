@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { displayLocale, displayTimeZone } from '@/lib/locale';
 import { Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { ArchiveRestore, ExternalLink, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -46,9 +47,10 @@ function remove(): void {
     router.visit(destroy(props.quote.id));
 }
 
-const editedAt = new Intl.DateTimeFormat(undefined, {
+const editedAt = new Intl.DateTimeFormat(displayLocale(), {
     dateStyle: 'medium',
     timeStyle: 'short',
+    timeZone: displayTimeZone(),
 });
 </script>
 

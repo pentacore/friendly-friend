@@ -85,8 +85,8 @@ jobs:
       - name: Static analysis (Larastan max)
         run: composer types:check
 
-      - name: Build frontend (generates Wayfinder routes)
-        run: npm run build
+      - name: Build frontend and SSR bundle (generates Wayfinder routes)
+        run: npm run build:ssr
 
       - name: Frontend lint and format
         run: npm run check
@@ -100,7 +100,13 @@ jobs:
       - name: Install Chromium for browser tests
         run: npx playwright install --with-deps chromium
 
-      - name: Browser tests (light + dark, Pest + Playwright)
+      # The hydration test renders pages on this SSR server and hydrates them in the browser.
+      - name: Start the SSR server
+        run: |
+          php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:13714/health && break; sleep 1; done
+
+      - name: Browser tests (light + dark, SSR hydration; Pest + Playwright)
         run: php artisan test --testsuite=Browser
 
   image:

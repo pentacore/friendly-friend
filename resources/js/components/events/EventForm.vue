@@ -12,8 +12,8 @@ import { Spinner } from '@/components/ui/spinner';
 import {
     addDays,
     daysBetween,
-    localDate,
-    localDateTime,
+    nowInputIn,
+    todayIn,
     nextDay,
 } from '@/lib/eventDates';
 import type { SaveEventRequest } from '@/typefinder';
@@ -36,8 +36,9 @@ const props = defineProps<{
 defineEmits<{ submit: [] }>();
 
 /** Pickers start at today: events can't be planned in the past. */
-const today = localDate();
-const now = localDateTime();
+// In the event's timezone, from the page's "now" (the same on the server render and in the browser).
+const today = computed(() => todayIn(props.form.timezone));
+const now = computed(() => nowInputIn(props.form.timezone));
 
 /**
  * One proposed date, edited as a day, a start time, and an optional end

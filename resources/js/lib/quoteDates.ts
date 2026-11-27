@@ -1,14 +1,12 @@
+import { displayLocale, displayTimeZone } from '@/lib/locale';
 import type { SaidAtPrecision } from '@/typefinder';
 
-const day = new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-});
-const month = new Intl.DateTimeFormat(undefined, {
-    month: 'long',
-    year: 'numeric',
-});
+function format(date: Date, options: Intl.DateTimeFormatOptions): string {
+    return new Intl.DateTimeFormat(displayLocale(), {
+        timeZone: displayTimeZone(),
+        ...options,
+    }).format(date);
+}
 
 /** When a quote was said, as precise as we know it. */
 export function formatSaidAt(
@@ -22,6 +20,6 @@ export function formatSaidAt(
     const date = new Date(saidAt);
 
     return precision === 'approximate'
-        ? `around ${month.format(date)}`
-        : day.format(date);
+        ? `around ${format(date, { month: 'long', year: 'numeric' })}`
+        : format(date, { day: 'numeric', month: 'short', year: 'numeric' });
 }

@@ -16,7 +16,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { localDate, localDateTime } from '@/lib/eventDates';
+import { nowInputIn, todayIn } from '@/lib/eventDates';
 import type {
     MealSlot,
     QuestionKind,
@@ -143,7 +143,7 @@ const firstDay = computed(
             props.form.starts_at ??
             props.form.date_options?.[0]?.starts_at ??
             ''
-        ).split('T')[0] || localDate(),
+        ).split('T')[0] || todayIn(props.form.timezone),
 );
 
 const kinds: Record<QuestionKind, string> = {
@@ -466,7 +466,7 @@ const field =
                     <Input
                         v-model="meal.date"
                         type="date"
-                        :min="localDate()"
+                        :min="todayIn(form.timezone)"
                         :aria-label="`Day of meal ${i + 1}`"
                     />
                     <select
@@ -584,7 +584,7 @@ const field =
                             id="plan-ride-at"
                             :model-value="form.ride.departs_at ?? ''"
                             type="datetime-local"
-                            :min="localDateTime()"
+                            :min="nowInputIn(form.timezone)"
                             @update:model-value="
                                 form.ride.departs_at = String($event) || null
                             "

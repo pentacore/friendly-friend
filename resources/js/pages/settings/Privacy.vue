@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { displayLocale, displayTimeZone } from '@/lib/locale';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Settings/PrivacyController';
@@ -31,8 +32,9 @@ const confirmOpen = ref(false);
 
 const offSince = computed(() =>
     props.opted_out_at
-        ? new Date(props.opted_out_at).toLocaleDateString(undefined, {
+        ? new Date(props.opted_out_at).toLocaleDateString(displayLocale(), {
               dateStyle: 'long',
+              timeZone: displayTimeZone(),
           })
         : null,
 );

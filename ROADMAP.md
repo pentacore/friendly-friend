@@ -92,7 +92,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [x] **Stats after bot downtime:** sessions that ended while the bot was down now end at its last heartbeat before the restart (only in the first 10 minutes after a start; events missed during the outage are still lost).
 - [ ] **Stats need the Presence intent** turned on in the developer portal (game sessions), and the bot must see a channel to count messages there (see "Bot can't see most channels").
 - [ ] Old `stat_*` rows are kept forever. Add a retention setting (e.g. delete hourly message buckets older than two years) if the tables grow.
-- [ ] **SSR hydration mismatch in dev** on pages with dates (`/events`): the server renders dates in its own locale (and "in 3 days" at render time), the browser in the viewer's, so Vue logs "Hydration completed but contains mismatches". Format with one shared locale, or render those bits client-side only.
+- [x] **SSR hydration mismatches**: dates and numbers now use one locale, timezone and "now" from the server; SSR also crashed (Echo on the server, `window` in setup) on every page with live updates and on event pages, silently falling back to client rendering. Fixed, with a hydration browser test in CI and SSR switched off in production (no SSR server there).
 - [ ] Boost MCP server: configured through Sail in `.mcp.json`, but this Claude Code session started before it existed. Restart Claude Code in the project to use its tools.
 
 ## Bugs found and fixed along the way
@@ -126,6 +126,8 @@ Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (tr
 - [x] Tests could reach real services: page tests called the Vite SSR dev server whenever it ran, and the real `DISCORD_BOT_TOKEN` from `.env` let jobs call Discord (it hit random fake server IDs, so nothing was created). Feature tests now block stray HTTP, SSR is off in tests, and the bot token is blanked in `phpunit.xml`.
 
 ## Upstream reports (other projects)
+
+- [ ] **pest-plugin-browser:** each browser test run leaves its `playwright run-server` processes behind (about 60, 120 MB each, had piled up in the Sail container). Also, its console capture only wraps `console.log`, so `assertNoConsoleLogs()` misses `console.error` (e.g. Vue hydration errors).
 
 - [ ] **Rector:** removing a redundant `(int)` cast changed `(int) ((int) $id >> 22) % 6` into `(int) $id >> 22 % 6` (different precedence, wrong result). Worked around in `DiscordUser::avatarUrl()` and pinned by a test. Report to rectorphp/rector.
 - [ ] **laravel-typefinder:** the README documents `vendor:publish --tag=typefinder-skill`, but 8.5.0 ships the skill as a Boost skill (`resources/boost/skills`) and has no such tag. Reported: [#245](https://github.com/pentacore/Laravel-Typefinder/issues/245).

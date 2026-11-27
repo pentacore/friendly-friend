@@ -108,3 +108,7 @@ Restore: `gunzip -c backups/db-YYYY-MM-DD.sql.gz | docker compose -f compose.pro
 ## Smoke-testing the stack locally
 
 Run it next to Sail on other ports. Use a throwaway `.env` with `APP_ENV=production`, `DB_HOST=postgres`, `REDIS_HOST=redis`, `VITE_REVERB_HOST=<anything>`, `WEB_PORT=8088` and `REVERB_PUBLIC_PORT=8089`, then run `docker compose -p fftest -f compose.prod.yaml up -d --build`. To check proxy handling, look at the raw `Location` header of `GET /dashboard` sent with `X-Forwarded-Proto: https`.
+
+## Server-side rendering
+
+Production renders pages in the browser: no SSR server runs, so `compose.prod.yaml` sets `INERTIA_SSR_ENABLED=false` (otherwise every request would first try to reach one). To turn SSR on, build the SSR bundle (`npm run build:ssr`, bundle at `bootstrap/ssr/app.js`), run `php artisan inertia:start-ssr` as an extra service from the same image, and set `INERTIA_SSR_ENABLED=true`. Pages are written to render the same on the server and in the browser (see `.ai/rules/frontend.md`), and CI checks hydration.

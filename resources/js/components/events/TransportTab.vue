@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { displayLocale } from '@/lib/locale';
 import { Car, MapPin, Pencil, Trash2, X } from '@lucide/vue';
 import { computed, nextTick, ref } from 'vue';
 import {
@@ -50,7 +51,7 @@ function seated(ride: Ride): boolean {
 
 function departs(ride: Ride): string | null {
     return ride.departs_at
-        ? new Intl.DateTimeFormat(undefined, {
+        ? new Intl.DateTimeFormat(displayLocale(), {
               timeZone: props.event.timezone,
               weekday: 'short',
               hour: '2-digit',

@@ -21,7 +21,8 @@ return [
         // Off in tests (phpunit.xml): page tests must not call the SSR or Vite dev server.
         'enabled' => (bool) env('INERTIA_SSR_ENABLED', true),
         'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
+        // vp build --ssr writes the server bundle here (npm run build:ssr).
+        'bundle' => base_path('bootstrap/ssr/app.js'),
 
     ],
 

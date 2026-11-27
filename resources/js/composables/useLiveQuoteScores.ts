@@ -14,7 +14,8 @@ const liveScoresKey: InjectionKey<Map<number, number>> = Symbol('liveScores');
 export function provideLiveQuoteScores(guildIds: number[]): void {
     const scores = reactive(new Map<number, number>());
 
-    for (const guildId of new Set(guildIds)) {
+    // Live updates are browser-only: during the server render there's no socket to open.
+    for (const guildId of import.meta.env.SSR ? [] : new Set(guildIds)) {
         useEcho<ScoreChanged>(
             `guilds.${guildId}.quotes`,
             '.quote.score-changed',

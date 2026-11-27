@@ -1,4 +1,9 @@
-const number = new Intl.NumberFormat();
+import { displayLocale } from '@/lib/locale';
+
+const number = {
+    format: (value: number) =>
+        new Intl.NumberFormat(displayLocale()).format(value),
+};
 
 /** 1234 → "1,234" (in the viewer's locale). */
 export function formatNumber(value: number): string {

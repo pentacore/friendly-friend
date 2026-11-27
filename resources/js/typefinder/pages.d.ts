@@ -13,6 +13,9 @@ export type SharedPageProps = {
   name: string;
   auth: { user: { id: number; discord_id: string; name: string; avatar_url: string; is_admin: boolean; is_owner: boolean } | null };
   sidebarOpen: boolean;
+  locale: string;
+  timezone: string;
+  now: string;
 };
 
 export type PageProps = {

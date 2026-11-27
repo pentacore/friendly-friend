@@ -54,3 +54,11 @@ paths:
 ## Navigation
 
 - The sidebar (`AppSidebar.vue`) is grouped by what you came to do: Dashboard, then **Quotes**, **Together** (events, stats), and **Admin** (only shown to admins and owners). New pages go into one of these groups, not a flat list. `NavMain` takes one group (`label`, `items`) and marks a link active on its sub-pages too.
+
+## Server-side rendering (same output on server and browser)
+
+- Pages render on the server (Vite dev SSR, or `inertia:start-ssr`) and hydrate in the browser, so the first render must be identical on both.
+- **Format every date and number through `lib/locale.ts`** (`displayLocale()`, `displayTimeZone()`, `pageNow()`: shared props from `HandleInertiaRequests`). Never `undefined` locales, timezone-less date formatting of instants, `Date.now()` or `new Date()` for "now" in render code. Calendar dates (`YYYY-MM-DD`) are formatted at noon UTC with `timeZone: 'UTC'`.
+- **No browser-only APIs in `setup()` or render** (`window`, `document`, `localStorage`, `location.hash`): read them in `onMounted` and start from a server-safe default.
+- **Live updates are browser-only**: `useEcho` subscriptions are skipped when `import.meta.env.SSR` (Echo can't connect on the server, and a throw there makes Inertia silently fall back to client rendering for the whole page).
+- `lib/hydrationCheck.ts` records Vue's hydration errors in `window.__hydrationMismatches`; `tests/Browser/HydrationBrowserTest.php` checks key pages with a Swedish, New York browser. Run it locally with `npm run build:ssr` and `php artisan inertia:start-ssr` (it skips without an SSR server; CI runs one).
