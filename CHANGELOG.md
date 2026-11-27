@@ -1,3 +1,11 @@
+## [1.1.0](https://github.com/pentacore/friendly-friend/compare/v1.0.0...v1.1.0) (2026-11-27)
+
+### Features
+
+* **quotes:** ask the bot to find a quote with an [@mention](https://github.com/mention) ([da96923](https://github.com/pentacore/friendly-friend/commit/da96923f90503e3d7335530399c9bbd72d8df2b9))
+* **quotes:** search ignores accents and falls back to close spellings ([e75b7b2](https://github.com/pentacore/friendly-friend/commit/e75b7b29469e306ac3c870602d00ecb438b259f3))
+* search quotes, people and events from the header (Ctrl+K) ([e7db21a](https://github.com/pentacore/friendly-friend/commit/e7db21ae46b2db0a10ca9aa57740ff1bcf8f9bf5))
+
 ## 1.0.0 (2026-11-27)
 
 ### Features
