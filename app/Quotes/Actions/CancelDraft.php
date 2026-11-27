@@ -7,6 +7,9 @@ namespace App\Quotes\Actions;
 use App\Enums\QuoteStatus;
 use App\Models\Quote;
 
+/**
+ * Discards an unsaved draft (Cancel button).
+ */
 final readonly class CancelDraft
 {
     public function handle(Quote $quote): void

@@ -6,3 +6,4 @@
 
 export type { QuoteIndexRequest, QuoteIndexRequestQuery } from './QuoteIndexRequest';
 export type { UpdateGuildRequest } from './UpdateGuildRequest';
+export type { UpdateQuoteRequest } from './UpdateQuoteRequest';

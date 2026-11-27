@@ -9,6 +9,9 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Owners changing a server's access settings and quotes channel; roles and channels must belong to that server.
+ */
 final class UpdateGuildRequest extends FormRequest
 {
     public function authorize(): bool

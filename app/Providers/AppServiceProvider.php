@@ -23,6 +23,9 @@ use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\Discord\DiscordExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 
+/**
+ * Container bindings (Discord client, quote normalizer, interaction acknowledger) and app-wide setup: dates, unwrapped resources, trusted proxies, Socialite Discord, gates.
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**

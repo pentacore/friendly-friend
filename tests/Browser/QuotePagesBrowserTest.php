@@ -67,3 +67,19 @@ it('renders a person page on a phone', function (): void {
         ->assertNoJavaScriptErrors()
         ->screenshot(filename: 'people-show-phone');
 });
+
+it('edits a quote in the browser', function (bool $dark): void {
+    $this->single->update(['submitted_by_discord_user_id' => $this->user->discord_user_id]);
+    $this->actingAs($this->user);
+
+    $page = visit("/quotes/{$this->single->id}");
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->click('Edit')
+        ->assertSee('Who said what')
+        ->screenshot(filename: 'quotes-edit-'.($dark ? 'dark' : 'light'))
+        ->fill('[aria-label="Line 1"]', 'I am a philosopher')
+        ->click('Save changes')
+        ->assertSee('I am a philosopher')
+        ->assertNoJavaScriptErrors();
+})->with(['light' => false, 'dark' => true]);

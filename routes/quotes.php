@@ -10,6 +10,8 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::get('quotes/random', [QuoteController::class, 'random'])->name('quotes.random');
     Route::get('quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
+    Route::put('quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');
+    Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('quotes.destroy');
 });
 
 Route::middleware(['auth', 'guild.access'])->group(function (): void {

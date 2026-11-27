@@ -22,6 +22,9 @@ use SocialiteProviders\Discord\Provider as DiscordProvider;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 use Throwable;
 
+/**
+ * Discord OAuth login: login page, redirect, callback and logout.
+ */
 final class DiscordAuthController extends Controller
 {
     #[TypefinderPage(component: 'auth/Login', props: ['error' => AccessDeniedReason::class.' | null'])]

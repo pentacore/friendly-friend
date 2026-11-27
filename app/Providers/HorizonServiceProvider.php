@@ -8,6 +8,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\HorizonApplicationServiceProvider;
 
+/**
+ * Horizon dashboard access: open in local, otherwise the `admin` gate.
+ */
 class HorizonServiceProvider extends HorizonApplicationServiceProvider
 {
     /**

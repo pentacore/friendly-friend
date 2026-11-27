@@ -6,6 +6,9 @@ namespace App\Discord\Interactions;
 
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Acknowledges interactions with a plain HTTP call (outside the bot process).
+ */
 final readonly class HttpInteractionAcknowledger implements InteractionAcknowledger
 {
     public function acknowledge(string $interactionId, string $interactionToken, array $body): void

@@ -6,11 +6,15 @@ namespace App\Http\Controllers;
 
 use App\Access\AccessSnapshot;
 use App\Http\Requests\Quotes\QuoteIndexRequest;
+use App\Http\Requests\Quotes\UpdateQuoteRequest;
 use App\Http\Resources\QuoteResource;
 use App\Http\Resources\QuoteRevisionResource;
 use App\Models\Guild;
 use App\Models\Person;
 use App\Models\Quote;
+use App\Models\User;
+use App\Quotes\Actions\EditQuote;
+use App\Quotes\Actions\RemoveQuote;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -22,6 +26,9 @@ use Inertia\Response;
 use LogicException;
 use Pentacore\Typefinder\Attributes\TypefinderPage;
 
+/**
+ * The quote feed, quote pages, editing and removal on the website.
+ */
 final class QuoteController extends Controller
 {
     private const int PER_PAGE = 20;
@@ -72,6 +79,30 @@ final class QuoteController extends Controller
             'quote' => new QuoteResource($quote),
             'revisions' => QuoteRevisionResource::collection($quote->revisions()->with('editor')->latest('id')->get()),
         ]);
+    }
+
+    public function update(UpdateQuoteRequest $request, Quote $quote, EditQuote $editQuote): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            $editQuote->handle($quote, $request->content(), $user->discordUser);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Quote updated.')]);
+
+        return to_route('quotes.show', $quote);
+    }
+
+    public function destroy(Quote $quote, RemoveQuote $removeQuote): RedirectResponse
+    {
+        Gate::authorize('delete', $quote);
+
+        $removeQuote->handle($quote);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Quote removed.')]);
+
+        return to_route('quotes.index');
     }
 
     public function random(Request $request): RedirectResponse

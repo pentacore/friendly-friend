@@ -16,6 +16,9 @@ use Inertia\Response;
 use LogicException;
 use Pentacore\Typefinder\Attributes\TypefinderPage;
 
+/**
+ * A person's page: who they are and their visible quotes.
+ */
 final class PersonController extends Controller
 {
     #[TypefinderPage(component: 'people/Show', props: [

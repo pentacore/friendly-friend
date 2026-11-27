@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Override;
 
+/**
+ * Inertia root view and shared props (app name, the logged-in Discord user, sidebar state).
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**

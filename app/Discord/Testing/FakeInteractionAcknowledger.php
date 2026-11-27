@@ -6,6 +6,9 @@ namespace App\Discord\Testing;
 
 use App\Discord\Interactions\InteractionAcknowledger;
 
+/**
+ * Records interaction acknowledgements instead of sending them (tests).
+ */
 final class FakeInteractionAcknowledger implements InteractionAcknowledger
 {
     /** @var list<array{id: string, token: string, body: array<string, mixed>}> */

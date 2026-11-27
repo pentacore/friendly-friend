@@ -1,7 +1,20 @@
 <script setup lang="ts">
-import { Link, setLayoutProps } from '@inertiajs/vue3';
-import { ExternalLink } from '@lucide/vue';
-import { computed } from 'vue';
+import { Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { ExternalLink, Pencil, Trash2 } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import { destroy } from '@/actions/App/Http/Controllers/QuoteController';
+import QuoteEditForm from '@/components/quotes/QuoteEditForm.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import QuoteText from '@/components/quotes/QuoteText.vue';
 import { formatSaidAt } from '@/lib/quoteDates';
 import { index, show } from '@/routes/quotes';
@@ -20,6 +33,12 @@ const saidAt = computed(() =>
     formatSaidAt(props.quote.said_at, props.quote.said_at_precision),
 );
 
+const editing = ref(false);
+
+function remove(): void {
+    router.visit(destroy(props.quote.id));
+}
+
 const editedAt = new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -28,7 +47,19 @@ const editedAt = new Intl.DateTimeFormat(undefined, {
 
 <template>
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-10 p-4 sm:p-10">
-        <section class="flex flex-col gap-6" :data-test="`quote-${quote.id}`">
+        <section
+            v-if="editing"
+            aria-label="Edit quote"
+            class="rounded-xl border p-5"
+        >
+            <QuoteEditForm :quote="quote" @done="editing = false" />
+        </section>
+
+        <section
+            v-else
+            class="flex flex-col gap-6"
+            :data-test="`quote-${quote.id}`"
+        >
             <QuoteText :lines="quote.lines" size="lg" />
 
             <p v-if="quote.context" class="text-muted-foreground italic">
@@ -65,6 +96,44 @@ const editedAt = new Intl.DateTimeFormat(undefined, {
                     </dd>
                 </div>
             </dl>
+
+            <div v-if="quote.can.update || quote.can.delete" class="flex gap-2">
+                <Button
+                    v-if="quote.can.update"
+                    variant="outline"
+                    size="sm"
+                    @click="editing = true"
+                >
+                    <Pencil class="size-4" />
+                    Edit
+                </Button>
+                <Dialog v-if="quote.can.delete">
+                    <DialogTrigger as-child>
+                        <Button variant="ghost" size="sm">
+                            <Trash2 class="size-4" />
+                            Remove
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Remove this quote?</DialogTitle>
+                            <DialogDescription>
+                                It disappears from the site, Discord commands
+                                and top lists. The original Discord message
+                                stays.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogClose as-child>
+                                <Button variant="ghost">Keep it</Button>
+                            </DialogClose>
+                            <Button variant="destructive" @click="remove">
+                                Remove quote
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </section>
 
         <section v-if="revisions.length > 1" aria-labelledby="history">

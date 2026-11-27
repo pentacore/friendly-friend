@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Shares the light/dark/system appearance cookie with the Blade root view (starter kit).
+ */
 class HandleAppearance
 {
     /**

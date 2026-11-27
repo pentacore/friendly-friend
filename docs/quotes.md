@@ -96,3 +96,8 @@ vendor/bin/sail artisan quotes:import <server id> <channel id> --as=<your discor
     - delete and review imports: that server's admins
 - **`AccessSnapshot`:** computes the user's visible and moderated servers once per request (cached on the Request), so lists don't re-check access per quote.
 - **Search:** `quotes.search_text` (speakers, lines and context) is rebuilt on every content change (`Quote::refreshSearchText`). `search_vector` is a generated `tsvector` (`simple` config, which suits mixed Swedish and English) with a GIN index.
+
+## Editing and removing on the website
+
+- **Edit** (quote page, the submitter or that server's admins): change the lines, context and date. `EditQuote` rewrites the lines, gives every speaker a person (`EnsureLinePeople`, the same as saving in Discord), rebuilds the search text and records a revision, which shows under _Edit history_.
+- **Remove** (that server's admins): `RemoveQuote` sets the status to `removed`. The quote disappears everywhere but isn't deleted, so its source message can't be quoted again by accident.

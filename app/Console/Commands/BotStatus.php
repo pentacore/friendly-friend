@@ -10,6 +10,9 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
+/**
+ * `bot:status`: whether the Discord bot is connected, from its heartbeat.
+ */
 #[Signature('bot:status')]
 #[Description('Show whether the Discord bot is online (heartbeat)')]
 final class BotStatus extends Command

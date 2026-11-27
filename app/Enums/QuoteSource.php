@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+/**
+ * How a quote was captured from Discord.
+ */
 enum QuoteSource: string
 {
     case ReplyMention = 'reply_mention';

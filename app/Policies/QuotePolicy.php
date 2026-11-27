@@ -9,6 +9,9 @@ use App\Models\Quote;
 use App\Models\User;
 use App\Quotes\QuoteRules;
 
+/**
+ * Quote permissions for gates and form requests; the rules live in App\Quotes\QuoteRules.
+ */
 final class QuotePolicy
 {
     public function view(User $user, Quote $quote): bool
