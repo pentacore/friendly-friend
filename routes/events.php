@@ -17,6 +17,7 @@ Route::middleware(['auth', 'guild.access'])->group(function (): void {
     Route::post('events', [EventController::class, 'store'])->name('events.store');
     Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
     Route::get('events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
+    Route::get('events/{event}/calendar.ics', [EventController::class, 'calendar'])->name('events.calendar');
     Route::put('events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::post('events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::put('events/{event}/rsvp', [EventRsvpController::class, 'update'])->name('events.rsvp');

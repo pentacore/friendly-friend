@@ -2,6 +2,7 @@
 import { Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import {
+    CalendarPlus,
     CalendarX,
     ExternalLink,
     MapPin,
@@ -32,7 +33,7 @@ import {
 } from '@/components/ui/dialog';
 import { useLiveEvent } from '@/composables/useLiveEvent';
 import { formatEventWhen } from '@/lib/eventDates';
-import { edit, index, show } from '@/routes/events';
+import { calendar, edit, index, show } from '@/routes/events';
 import type { PageProps } from '@/typefinder';
 
 const props = defineProps<
@@ -156,49 +157,64 @@ function setCancelled(cancelled: boolean): void {
                     · {{ event.guild.name }}
                 </p>
             </div>
-            <div v-if="event.can.edit" class="flex gap-2">
-                <Button variant="outline" size="sm" as-child>
-                    <Link :href="edit(event.id)"
-                        ><Pencil class="size-4" />Edit</Link
+            <div class="flex flex-wrap gap-2">
+                <Button
+                    v-if="!event.date_polling && event.status === 'planned'"
+                    variant="outline"
+                    size="sm"
+                    as-child
+                >
+                    <a :href="calendar.url(event.id)" download
+                        ><CalendarPlus class="size-4" />Add to calendar</a
                     >
                 </Button>
-                <Dialog v-if="event.status === 'planned'">
-                    <DialogTrigger as-child>
-                        <Button variant="ghost" size="sm"
-                            ><CalendarX class="size-4" />Cancel event</Button
+                <template v-if="event.can.edit">
+                    <Button variant="outline" size="sm" as-child>
+                        <Link :href="edit(event.id)"
+                            ><Pencil class="size-4" />Edit</Link
                         >
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Cancel {{ event.title }}?</DialogTitle>
-                            <DialogDescription>
-                                Nobody can RSVP any more. The event stays here,
-                                so costs can still be settled, and you can call
-                                it back on.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <DialogClose as-child
-                                ><Button variant="ghost"
-                                    >Keep it</Button
-                                ></DialogClose
+                    </Button>
+                    <Dialog v-if="event.status === 'planned'">
+                        <DialogTrigger as-child>
+                            <Button variant="ghost" size="sm"
+                                ><CalendarX class="size-4" />Cancel
+                                event</Button
                             >
-                            <Button
-                                variant="destructive"
-                                @click="setCancelled(true)"
-                                >Cancel event</Button
-                            >
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-                <Button
-                    v-else
-                    variant="ghost"
-                    size="sm"
-                    @click="setCancelled(false)"
-                >
-                    <RotateCcw class="size-4" />It's back on
-                </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle
+                                    >Cancel {{ event.title }}?</DialogTitle
+                                >
+                                <DialogDescription>
+                                    Nobody can RSVP any more. The event stays
+                                    here, so costs can still be settled, and you
+                                    can call it back on.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <DialogClose as-child
+                                    ><Button variant="ghost"
+                                        >Keep it</Button
+                                    ></DialogClose
+                                >
+                                <Button
+                                    variant="destructive"
+                                    @click="setCancelled(true)"
+                                    >Cancel event</Button
+                                >
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                    <Button
+                        v-else
+                        variant="ghost"
+                        size="sm"
+                        @click="setCancelled(false)"
+                    >
+                        <RotateCcw class="size-4" />It's back on
+                    </Button>
+                </template>
             </div>
         </header>
 

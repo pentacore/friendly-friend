@@ -18,6 +18,7 @@ Cancelled events stay listed (with a "Cancelled" badge). Nobody can RSVP to them
     - **Plan ahead (optional):** questions, a bring list, shopping, meals, your own ride, and costs you paid. Each section opens with a button and can be removed again (×, or by removing its last row); rows left blank are skipped. Costs added here are split among **everyone going**.
 - **`/events/{id}`**: date, place, hosts, details, and who's going, maybe or can't make it, with guests, notes and who needs a ride. Your own answer (Going / Maybe / Can't, guests, a note, "I need a ride") is saved straight away.
 - **`/events/{id}/edit`**: the same form, for editors.
+- **Add to calendar** (`/events/{id}/calendar.ics`): the event as an iCalendar file (UTC times, 6 hours when there's no end, cancelled events marked as such). Not while the date is being voted on.
 
 ## Voting on the date
 

@@ -58,7 +58,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 - [ ] Let server admins (not only owners) manage their own server's settings
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)
-- [ ] Events: add an "Add to calendar" (.ics) link
+- [x] Events: "Add to calendar" (.ics download)
 - [ ] Events: edit an expense (now: remove and add again); link a shopping item to the expense that paid for it (spec §14 `expense_id`)
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
 - [x] Events: vote on dates from Discord (a "Vote on dates" button opening a private picker)

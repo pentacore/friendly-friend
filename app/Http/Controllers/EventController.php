@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Planning\Actions\CancelEvent;
 use App\Planning\Actions\CreateEvent;
 use App\Planning\Actions\UpdateEvent;
+use App\Planning\Calendar;
 use App\Planning\CostsPlan;
 use App\Planning\DatePollPlan;
 use App\Planning\FoodPlan;
@@ -26,7 +27,9 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use LogicException;
@@ -173,6 +176,21 @@ final class EventController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => $cancelled ? __('Event cancelled.') : __('Event is back on.')]);
 
         return back();
+    }
+
+    /**
+     * The event as an .ics file, for "Add to calendar". Not while the date is
+     * still being voted on.
+     */
+    public function calendar(Event $event): HttpResponse
+    {
+        Gate::authorize('view', $event);
+        abort_if($event->date_polling, 404);
+
+        return response(Calendar::ics($event), 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.Str::slug($event->title).'.ics"',
+        ]);
     }
 
     /**
