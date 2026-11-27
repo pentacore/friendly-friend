@@ -103,6 +103,8 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 
 ## Bugs found and fixed along the way
 
+- [x] Browser runs left Playwright servers and Chrome processes behind in the Sail container (744 zombies after a day of agent runs): orphaned servers are reaped at the start of every test run, `laravel.test` runs with `init: true` so PID 1 reaps exited processes, and agents clean up their processes, test databases, worktree and branch after a merge (`cleaning-up-after-a-merge` skill).
+
 - [x] Searching the quote feed (and admin people) never updated the page's `filters`: `reset: [...]` made the visit a partial reload of only the list, so the empty state said "No quotes yet" instead of "Nothing matches".
 
 Kept as a record of pitfalls. The lessons are also written into `.ai/rules/` (traps are in `general.md`).

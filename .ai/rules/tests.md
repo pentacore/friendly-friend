@@ -29,6 +29,10 @@ Postgres `jsonb` reorders keys, so compare stored JSON with `toEqual`, not `toBe
 
 `tests/Browser` is a separate suite, not part of the default run (`composer test:browser`). It renders the **built** assets (`npm run build` first). Cover light and dark mode, assert no JavaScript errors, and take screenshots.
 
+## Orphaned Playwright servers are reaped at bootstrap
+
+pest-plugin-browser starts `playwright run-server` as a child of the Pest process and only stops it when Pest ends normally, so a killed or timed-out run leaves it running under PID 1. `tests/Pest.php` calls `Tests\Support\OrphanedPlaywrightServers::reap()` on every run: it kills only `playwright run-server` processes whose parent is PID 1. A live run's server is always a child of its PHP process, so concurrent runs in other worktrees are never touched. `REAP_ORPHANED_PLAYWRIGHT=0` skips it. The Chrome processes those servers leave are reaped by PID 1 because `laravel.test` runs with `init: true` (`compose.yaml`); recreate the container after pulling that change.
+
 ## The layout gate covers every page
 
 `tests/Browser/LayoutGateTest.php` opens every page in `Tests\Support\LayoutGate::PAGES` on a phone (375×812) and a desktop (MacBook Air), in light and dark mode, and fails on JavaScript errors, content wider than the screen, the dark theme not following the browser, and a visible button or link without an accessible name. `LayoutGateRoutesTest` fails while a named GET page route is in neither `PAGES` nor `EXCLUDED` (with its reason), so add a row with the page. Give a detail page its fixture in `LayoutGate::seed()`. Fix the layout rather than loosen a check.
