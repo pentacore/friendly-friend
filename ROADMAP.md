@@ -54,7 +54,7 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 - [ ] Jev (TypeSafe) `Choice` to classify what an @mention wants (save quote, random quote, help) instead of always treating it as a capture
 - [ ] Jev to pick between ambiguous fuzzy person matches in `ResolvePerson`
-- [ ] Sync Discord's native event "Interested" back to RSVPs (needs the `GUILD_SCHEDULED_EVENTS` intent)
+- [x] Discord's native event "Interested" becomes a going RSVP; the event description shows the real counts (bots can't set Interested)
 - [ ] Let server admins (not only owners) manage their own server's settings
 - [ ] Per-server opt-in for posting `/quote random` publicly vs privately
 - [ ] Events: render the description as Markdown (plain text with line breaks for now; needs a Markdown library, which is a new dependency)

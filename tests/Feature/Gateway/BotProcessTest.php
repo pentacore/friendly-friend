@@ -47,7 +47,8 @@ it('requests exactly the intents the spec needs', function (): void {
         | Intents::MESSAGE_CONTENT
         | Intents::GUILD_MESSAGE_REACTIONS
         | Intents::GUILD_VOICE_STATES
-        | Intents::GUILD_PRESENCES,
+        | Intents::GUILD_PRESENCES
+        | Intents::GUILD_SCHEDULED_EVENTS,
     );
 });
 

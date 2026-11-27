@@ -18,6 +18,7 @@ use App\Discord\Jobs\MarkGuildLeft;
 use App\Discord\Jobs\RefreshGuild;
 use App\Discord\Jobs\RegisterGuild;
 use App\Planning\Jobs\HandleEventInteraction;
+use App\Planning\Jobs\SyncDiscordInterest;
 use App\Quotes\Jobs\CaptureFromMention;
 use App\Quotes\Jobs\HandleQuoteInteraction;
 use App\Quotes\Jobs\PickUpPostedQuote;
@@ -66,6 +67,8 @@ final readonly class GatewayEventRouter
             'MESSAGE_REACTION_ADD' => $this->reaction($payload),
             'VOICE_STATE_UPDATE' => $this->voiceState($payload),
             'PRESENCE_UPDATE' => $this->presence($payload),
+            'GUILD_SCHEDULED_EVENT_USER_ADD' => $this->interest($payload, interested: true),
+            'GUILD_SCHEDULED_EVENT_USER_REMOVE' => $this->interest($payload, interested: false),
             default => null,
         };
     }
@@ -335,6 +338,22 @@ final readonly class GatewayEventRouter
         $games = ($payload['status'] ?? null) === 'offline' ? [] : $this->playing($payload['activities'] ?? null);
 
         dispatch(new IngestPresence($guildId, $userId, $games, $this->now()));
+    }
+
+    /**
+     * "Interested" pressed or taken back on a native Discord event.
+     *
+     * @param  array<mixed>  $payload
+     */
+    private function interest(array $payload, bool $interested): void
+    {
+        $guildId = $this->string($payload, 'guild_id');
+        $eventId = $this->string($payload, 'guild_scheduled_event_id');
+        $userId = $this->string($payload, 'user_id');
+
+        if ($guildId !== null && $eventId !== null && $userId !== null) {
+            dispatch(new SyncDiscordInterest($guildId, $eventId, $userId, $interested));
+        }
     }
 
     /**

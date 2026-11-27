@@ -91,6 +91,18 @@ final class EventAnnouncement
     }
 
     /**
+     * "4 going (+1) · 1 maybe · 2 can't", from every RSVP. Load `rsvps`.
+     */
+    private static function counts(Event $event): string
+    {
+        $count = fn (RsvpStatus $status): int => $event->rsvps->filter(fn (EventRsvp $rsvp): bool => $rsvp->status === $status)->count();
+        $guests = $event->rsvps->filter(fn (EventRsvp $rsvp): bool => $rsvp->status === RsvpStatus::Going)->sum(fn (EventRsvp $rsvp): int => $rsvp->guests);
+
+        return $count(RsvpStatus::Going).' going'.($guests > 0 ? " (+{$guests})" : '')
+            .' · '.$count(RsvpStatus::Maybe).' maybe · '.$count(RsvpStatus::Declined)." can't";
+    }
+
+    /**
      * "Not decided yet" plus the proposed dates with their tallies. Load `dateOptions.votes`.
      */
     private static function candidates(Event $event): string
@@ -137,7 +149,8 @@ final class EventAnnouncement
             'scheduled_start_time' => $event->starts_at->toIso8601String(),
             'scheduled_end_time' => $endsAt->toIso8601String(),
             'entity_metadata' => ['location' => Str::limit($event->location ?? 'See the website', 100, '')],
-            'description' => Str::limit(trim(($event->description ?? '')."\n\n".route('events.show', $event)), 1000, ''),
+            // Discord's own "Interested" count only covers people who pressed it there; this shows everyone.
+            'description' => Str::limit(implode("\n\n", array_filter([self::counts($event), trim($event->description ?? ''), route('events.show', $event)])), 1000, ''),
         ];
 
         return $event->isCancelled() ? [...$payload, 'status' => self::CANCELLED] : $payload;

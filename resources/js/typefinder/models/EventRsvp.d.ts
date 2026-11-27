@@ -17,6 +17,7 @@ export type EventRsvp = {
   needs_ride: boolean;
   created_at: string | null;
   updated_at: string | null;
+  from_discord_interest: boolean;
   discord_user?: DiscordUser | null;
 };
 
@@ -27,6 +28,7 @@ export type EventRsvpCreate = {
   guests?: number;
   note?: string | null;
   needs_ride?: boolean;
+  from_discord_interest?: boolean;
 };
 
 export type EventRsvpUpdate = {
@@ -36,4 +38,5 @@ export type EventRsvpUpdate = {
   guests?: number;
   note?: string | null;
   needs_ride?: boolean;
+  from_discord_interest?: boolean;
 };

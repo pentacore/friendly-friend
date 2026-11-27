@@ -28,6 +28,8 @@ final readonly class RecordRsvp
                 'guests' => $coming ? max(0, $guests) : 0,
                 'note' => $note,
                 'needs_ride' => $coming && $needsRide,
+                // A real answer replaces one made by Discord's "Interested".
+                'from_discord_interest' => false,
             ],
         );
 

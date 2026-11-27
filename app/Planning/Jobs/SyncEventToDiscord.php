@@ -43,7 +43,8 @@ final class SyncEventToDiscord implements ShouldBeUniqueUntilProcessing, ShouldQ
 
         $this->announce($discord, $event);
 
-        if ($this->details) {
+        // Details change the whole native event; answers change the counts in its description.
+        if ($this->details || $event->discord_scheduled_event_id !== null) {
             $this->mirror($discord, $event);
         }
     }

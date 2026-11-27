@@ -32,17 +32,18 @@ Discord gateway ──raw dispatch──► RunBot ──► GatewayEventRouter:
 
 **Stats routes** ([stats.md](stats.md)). Events from bots and from members who opted out (the cached `OptedOutMembers` set) are dropped before queuing.
 
-| Event                                                | Job                            | Effect                                                                                       |
-| ---------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
-| `MESSAGE_CREATE` (server, by a person, type 0 or 19) | `Stats\Jobs\IngestMessage`     | +1 in that member's channel and hour. Content is never stored. Webhooks and notices skipped. |
-| `MESSAGE_REACTION_ADD`                               | `Stats\Jobs\IngestReaction`    | +1 for reactor, emoji, day, and the message's author (`message_author_id`)                   |
-| `VOICE_STATE_UPDATE`                                 | `Stats\Jobs\IngestVoiceState`  | Voice session closed, opened or moved                                                        |
-| `PRESENCE_UPDATE`                                    | `Stats\Jobs\IngestPresence`    | "Playing" sessions opened or closed                                                          |
-| `GUILD_CREATE` (also above)                          | `Stats\Jobs\SeedGuildSessions` | Sessions brought in line with the current voice states and games after a fresh connection    |
+| Event                                                | Job                                 | Effect                                                                                       |
+| ---------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `MESSAGE_CREATE` (server, by a person, type 0 or 19) | `Stats\Jobs\IngestMessage`          | +1 in that member's channel and hour. Content is never stored. Webhooks and notices skipped. |
+| `MESSAGE_REACTION_ADD`                               | `Stats\Jobs\IngestReaction`         | +1 for reactor, emoji, day, and the message's author (`message_author_id`)                   |
+| `VOICE_STATE_UPDATE`                                 | `Stats\Jobs\IngestVoiceState`       | Voice session closed, opened or moved                                                        |
+| `PRESENCE_UPDATE`                                    | `Stats\Jobs\IngestPresence`         | "Playing" sessions opened or closed                                                          |
+| `GUILD_CREATE` (also above)                          | `Stats\Jobs\SeedGuildSessions`      | Sessions brought in line with the current voice states and games after a fresh connection    |
+| `GUILD_SCHEDULED_EVENT_USER_ADD` / `_REMOVE`         | `Planning\Jobs\SyncDiscordInterest` | "Interested" on a mirrored event becomes (or stops being) a going RSVP                       |
 
 ## Intents
 
-`App\Discord\Gateway\GatewayIntents`: GUILDS, GUILD_MEMBERS\*, GUILD_MESSAGES, MESSAGE_CONTENT\*, GUILD_MESSAGE_REACTIONS, GUILD_VOICE_STATES, GUILD_PRESENCES\*.
+`App\Discord\Gateway\GatewayIntents`: GUILDS, GUILD_MEMBERS\*, GUILD_MESSAGES, MESSAGE_CONTENT\*, GUILD_MESSAGE_REACTIONS, GUILD_VOICE_STATES, GUILD_PRESENCES\*, GUILD_SCHEDULED_EVENTS.
 \* Privileged: turn these on in the developer portal ([discord-app.md](discord-app.md)), or Discord closes the connection with code 4014.
 
 ## Liveness and restarts

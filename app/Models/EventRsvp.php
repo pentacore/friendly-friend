@@ -20,11 +20,12 @@ use Illuminate\Support\Carbon;
  * @property int $guests
  * @property string|null $note
  * @property bool $needs_ride
+ * @property bool $from_discord_interest made by "Interested" on the native Discord event
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read DiscordUser $discordUser
  */
-#[Fillable(['event_id', 'discord_user_id', 'status', 'guests', 'note', 'needs_ride'])]
+#[Fillable(['event_id', 'discord_user_id', 'status', 'guests', 'note', 'needs_ride', 'from_discord_interest'])]
 class EventRsvp extends Model
 {
     /**
@@ -44,6 +45,7 @@ class EventRsvp extends Model
             'status' => RsvpStatus::class,
             'guests' => 'integer',
             'needs_ride' => 'boolean',
+            'from_discord_interest' => 'boolean',
         ];
     }
 }

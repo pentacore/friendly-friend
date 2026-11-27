@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Planning\Discord\EventInteractions;
 use App\Planning\Jobs\HandleEventInteraction;
 use App\Planning\Jobs\SendEventReminders;
+use App\Planning\Jobs\SyncDiscordInterest;
 use App\Planning\Jobs\SyncEventToDiscord;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\RequestException;
@@ -186,4 +187,66 @@ it('links the Discord event and announcement from the event page', function (): 
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('event.discord.event_url', "https://discord.com/events/555/{$event->discord_scheduled_event_id}")
             ->where('event.discord.message_url', "https://discord.com/channels/555/888/{$event->discord_message_id}"));
+});
+
+function mirroredEvent(Guild $guild, User $host): Event
+{
+    $event = plannedEvent($guild, $host);
+    dispatch_sync(new SyncEventToDiscord($event->id));
+
+    return $event->refresh();
+}
+
+it('routes Interested on the native event to a job', function (): void {
+    Queue::fake();
+
+    app(GatewayEventRouter::class)->route('GUILD_SCHEDULED_EVENT_USER_ADD', ['guild_scheduled_event_id' => '5000', 'user_id' => '42', 'guild_id' => '555']);
+    app(GatewayEventRouter::class)->route('GUILD_SCHEDULED_EVENT_USER_REMOVE', ['guild_scheduled_event_id' => '5000', 'user_id' => '42', 'guild_id' => '555']);
+
+    Queue::assertPushed(SyncDiscordInterest::class, fn (SyncDiscordInterest $job): bool => $job->interested && $job->scheduledEventId === '5000');
+    Queue::assertPushed(SyncDiscordInterest::class, fn (SyncDiscordInterest $job): bool => ! $job->interested);
+});
+
+it('makes Interested an RSVP, and taking it back removes only that', function (): void {
+    $event = mirroredEvent($this->guild, $this->host);
+    $fan = User::factory()->memberOf($this->guild)->create();
+    $sure = User::factory()->memberOf($this->guild)->create();
+    EventRsvp::query()->create(['event_id' => $event->id, 'discord_user_id' => $sure->discord_user_id, 'status' => 'maybe']);
+    $interest = fn (User $user, bool $on) => dispatch_sync(new SyncDiscordInterest('555', (string) $event->discord_scheduled_event_id, $user->discordUser->discord_id, $on));
+
+    $interest($fan, true);
+    $interest($sure, true);
+
+    expect(EventRsvp::query()->where('discord_user_id', $fan->discord_user_id)->sole())->status->toBe(RsvpStatus::Going)->from_discord_interest->toBeTrue()
+        ->and(EventRsvp::query()->where('discord_user_id', $sure->discord_user_id)->value('status'))->toBe(RsvpStatus::Maybe)
+        ->and($this->discord->scheduledEvents()[$event->discord_scheduled_event_id]['description'])->toStartWith("1 going · 1 maybe · 0 can't\n\nhttp");
+
+    $interest($fan, false);
+    $interest($sure, false);
+
+    expect(EventRsvp::query()->where('discord_user_id', $fan->discord_user_id)->exists())->toBeFalse()
+        ->and(EventRsvp::query()->where('discord_user_id', $sure->discord_user_id)->exists())->toBeTrue();
+});
+
+it('keeps an Interested RSVP once it is answered for real', function (): void {
+    $event = mirroredEvent($this->guild, $this->host);
+    $fan = User::factory()->memberOf($this->guild)->create();
+    dispatch_sync(new SyncDiscordInterest('555', (string) $event->discord_scheduled_event_id, $fan->discordUser->discord_id, true));
+
+    $this->actingAs($fan)->put(route('events.rsvp', $event), ['status' => 'going', 'guests' => 1]);
+    dispatch_sync(new SyncDiscordInterest('555', (string) $event->discord_scheduled_event_id, $fan->discordUser->discord_id, false));
+
+    expect(EventRsvp::query()->where('discord_user_id', $fan->discord_user_id)->sole()->from_discord_interest)->toBeFalse();
+});
+
+it('ignores Interested from people without access and after the deadline', function (): void {
+    $event = mirroredEvent($this->guild, $this->host);
+    $outsider = User::factory()->memberOf($this->guild, [])->create();
+    dispatch_sync(new SyncDiscordInterest('555', (string) $event->discord_scheduled_event_id, $outsider->discordUser->discord_id, true));
+
+    $event->update(['rsvp_by' => now()->subHour()]);
+    $late = User::factory()->memberOf($this->guild)->create();
+    dispatch_sync(new SyncDiscordInterest('555', (string) $event->discord_scheduled_event_id, $late->discordUser->discord_id, true));
+
+    expect(EventRsvp::query()->whereIn('discord_user_id', [$outsider->discord_user_id, $late->discord_user_id])->count())->toBe(0);
 });

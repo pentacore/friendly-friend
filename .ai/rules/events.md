@@ -60,3 +60,4 @@ paths:
 
 - The create form can plan questions, food, the creator's ride and costs in one go (`SaveEventRequest::plan()` → `EventPlan` → `CreateEvent`, which calls the same actions as the tabs). The frontend drops blank rows before sending (`lib/eventPlan.ts`), so plan-ahead inputs aren't `required` in the browser.
 - Event pages use the width: forms in two columns from `lg`, the event page up to `max-w-7xl` with extra columns at `xl`/`2xl`.
+- Bots can't add people to a Discord event's "Interested". So "Interested" flows one way into RSVPs (`ApplyDiscordInterest`, marked `from_discord_interest`; any real answer clears the mark, and only marked RSVPs are removed when interest is taken back), and the native event's description carries the real counts. `SyncEventToDiscord` re-mirrors on every answer once an event is mirrored.

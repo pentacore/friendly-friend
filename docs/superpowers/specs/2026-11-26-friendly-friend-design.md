@@ -168,7 +168,7 @@ All Inertia controller actions carry `#[TypefinderPage]` (kept current by Rector
 
 ## 8. Statistics and opt-out
 
-**Gateway intents:** GUILDS, GUILD_MEMBERS, GUILD_MESSAGES, MESSAGE_CONTENT (for mention-based capture only, never stored for stats), GUILD_MESSAGE_REACTIONS, GUILD_VOICE_STATES, GUILD_PRESENCES.
+**Gateway intents:** GUILDS, GUILD_MEMBERS, GUILD_MESSAGES, MESSAGE_CONTENT (for mention-based capture only, never stored for stats), GUILD_MESSAGE_REACTIONS, GUILD_VOICE_STATES, GUILD_PRESENCES, GUILD_SCHEDULED_EVENTS (Interested on mirrored events, §14).
 
 | Event                    | Job                | Write                                                                |
 | ------------------------ | ------------------ | -------------------------------------------------------------------- |
@@ -252,7 +252,7 @@ Approved 2026-11-27. It gets its own implementation plans when we start it.
 
 - Per-server `events_channel_id` (Servers page).
 - On create or update, the bot posts or edits an embed with **Going / Maybe / Can't** buttons and RSVP counts.
-- It mirrors the event as a native **Guild Scheduled Event** (external, with location). This is one-way: native "Interested" isn't synced. It needs the bot's Create/Manage Events permission.
+- It mirrors the event as a native **Guild Scheduled Event** (external, with location). _(Changed 2026-11-27: "Interested" now becomes a going RSVP, and the description carries the real counts, since bots can't add people to Interested.)_ It needs the bot's Create/Manage Events permission.
 - **Reminders** (a scheduled job every 5 minutes): a DM to `going` attendees 24 h and 2 h before. If their DMs are closed, it mentions them in the events channel instead.
 - **Interactions architecture** (also used by Phase 4): Discord requires an answer within 3 s. So the bot process sends the deferred acknowledgement itself, via DiscordPHP's async HTTP, which is its only allowed Discord call. It then routes the interaction to a queued job, which does the work and edits the response.
 
