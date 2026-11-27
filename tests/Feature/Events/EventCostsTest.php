@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\EventExpense;
 use App\Models\EventPayment;
 use App\Models\EventRsvp;
+use App\Models\EventShoppingItem;
 use App\Models\Guild;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -121,4 +122,34 @@ it('edits an expense, replacing how it is split', function (): void {
 
     expect($expense->fresh())->description->toBe('Food and drinks')->amount->toBe(20000)
         ->and($expense->shares()->orderBy('amount')->pluck('amount')->all())->toBe([5000, 15000]);
+});
+
+it('links shopping items to the expense that paid for them', function (): void {
+    [$milk, $bread, $other] = [
+        EventShoppingItem::query()->create(['event_id' => $this->event->id, 'label' => 'Milk', 'added_by_discord_user_id' => $this->anna->discord_user_id]),
+        EventShoppingItem::query()->create(['event_id' => $this->event->id, 'label' => 'Bread', 'added_by_discord_user_id' => $this->anna->discord_user_id]),
+        EventShoppingItem::query()->create(['event_id' => Event::factory()->create()->id, 'label' => 'Elsewhere', 'added_by_discord_user_id' => $this->anna->discord_user_id]),
+    ];
+    $groceries = ['description' => 'Groceries', 'amount' => '90', 'paid_by' => $this->bo->discord_user_id, 'split_mode' => 'attendees'];
+
+    $this->actingAs($this->bo)->post(route('events.costs.expenses.store', $this->event), [...$groceries, 'shopping_item_ids' => [$other->id]])
+        ->assertSessionHasErrors('shopping_item_ids.0');
+
+    $this->actingAs($this->bo)->post(route('events.costs.expenses.store', $this->event), [...$groceries, 'shopping_item_ids' => [$milk->id, $bread->id]])
+        ->assertSessionHasNoErrors();
+    $expense = EventExpense::query()->sole();
+    expect([$milk->fresh()?->expense_id, $bread->fresh()?->expense_id])->toBe([$expense->id, $expense->id]);
+
+    $this->actingAs($this->bo)->get(route('events.show', $this->event))
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('costs.expenses.0.shopping_item_ids', [$milk->id, $bread->id])
+            ->where('costs.shopping.0.label', 'Milk')
+            ->where('food.shopping.0.paid_in', 'Groceries'));
+
+    $this->actingAs($this->bo)->put(route('events.costs.expenses.update', [$this->event, $expense]), [...$groceries, 'shopping_item_ids' => [$bread->id]])
+        ->assertSessionHasNoErrors();
+    expect([$milk->fresh()?->expense_id, $bread->fresh()?->expense_id])->toBe([null, $expense->id]);
+
+    $this->actingAs($this->bo)->delete(route('events.costs.expenses.destroy', [$this->event, $expense]));
+    expect($bread->fresh()?->expense_id)->toBeNull();
 });

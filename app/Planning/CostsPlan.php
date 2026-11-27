@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\EventExpense;
 use App\Models\EventExpenseShare;
 use App\Models\EventPayment;
+use App\Models\EventShoppingItem;
 
 /**
  * The Costs tab: expenses, payments, everyone's balance and the transfers
@@ -24,14 +25,15 @@ final readonly class CostsPlan
     private const string MEMBER = '{ id: number; name: string; avatar_url: string }';
 
     /** Typefinder shape of {@see self::for()}. */
-    public const string TYPE = '{ currency: string; total: number; people: '.self::MEMBER.'[]; expenses: { id: number; description: string; amount: number; split_mode: '.SplitMode::class.'; paid_by: '.self::MEMBER.'; shares: { member: '.self::MEMBER.'; amount: number }[]; created_at: string | null; can_remove: boolean }[]; payments: { id: number; from: '.self::MEMBER.'; to: '.self::MEMBER.'; amount: number; settled_at: string; can_remove: boolean }[]; balances: { member: '.self::MEMBER.'; paid: number; share: number; balance: number }[]; settle_up: { from: '.self::MEMBER.'; to: '.self::MEMBER.'; amount: number }[] }';
+    public const string TYPE = '{ currency: string; total: number; people: '.self::MEMBER.'[]; expenses: { id: number; description: string; amount: number; split_mode: '.SplitMode::class.'; paid_by: '.self::MEMBER.'; shares: { member: '.self::MEMBER.'; amount: number }[]; created_at: string | null; can_remove: boolean; shopping_item_ids: number[] }[]; shopping: { id: number; label: string; quantity: string | null; expense_id: number | null }[]; payments: { id: number; from: '.self::MEMBER.'; to: '.self::MEMBER.'; amount: number; settled_at: string; can_remove: boolean }[]; balances: { member: '.self::MEMBER.'; paid: number; share: number; balance: number }[]; settle_up: { from: '.self::MEMBER.'; to: '.self::MEMBER.'; amount: number }[] }';
 
     /**
      * @return array{
      *     currency: string,
      *     total: int,
      *     people: list<Member>,
-     *     expenses: list<array{id: int, description: string, amount: int, split_mode: SplitMode, paid_by: Member, shares: list<array{member: Member, amount: int}>, created_at: string|null, can_remove: bool}>,
+     *     expenses: list<array{id: int, description: string, amount: int, split_mode: SplitMode, paid_by: Member, shares: list<array{member: Member, amount: int}>, created_at: string|null, can_remove: bool, shopping_item_ids: list<int>}>,
+     *     shopping: list<array{id: int, label: string, quantity: string|null, expense_id: int|null}>,
      *     payments: list<array{id: int, from: Member, to: Member, amount: int, settled_at: string, can_remove: bool}>,
      *     balances: list<array{member: Member, paid: int, share: int, balance: int}>,
      *     settle_up: list<array{from: Member, to: Member, amount: int}>,
@@ -39,7 +41,7 @@ final readonly class CostsPlan
      */
     public static function for(Event $event, AccessSnapshot $access): array
     {
-        $event->load(['expenses.paidBy', 'expenses.shares.discordUser', 'payments.from', 'payments.to', 'hosts', 'rsvps']);
+        $event->load(['expenses.paidBy', 'expenses.shares.discordUser', 'expenses.shoppingItems', 'shoppingItems', 'payments.from', 'payments.to', 'hosts', 'rsvps']);
         $organiser = EventRules::canEdit($access, $event);
         $people = DiscordUser::query()->whereIn('id', $event->costPeopleIds())->get()
             ->sortBy(fn (DiscordUser $user): string => mb_strtolower($user->display_name))
@@ -67,6 +69,13 @@ final readonly class CostsPlan
                 ),
                 'created_at' => $expense->created_at?->toIso8601String(),
                 'can_remove' => $ownsOrOrganises($expense->added_by_discord_user_id) || $expense->paid_by_discord_user_id === $access->discordUserId,
+                'shopping_item_ids' => array_values($expense->shoppingItems->sortBy('id')->map(fn (EventShoppingItem $item): int => $item->id)->all()),
+            ])->all()),
+            'shopping' => array_values($event->shoppingItems->sortBy('id')->map(fn (EventShoppingItem $item): array => [
+                'id' => $item->id,
+                'label' => $item->label,
+                'quantity' => $item->quantity,
+                'expense_id' => $item->expense_id,
             ])->all()),
             'payments' => array_values($event->payments->sortByDesc('id')->map(fn (EventPayment $payment): array => [
                 'id' => $payment->id,

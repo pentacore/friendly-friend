@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\EventQuestionAnswer;
 use App\Models\EventRide;
 use App\Models\EventRsvp;
+use App\Models\EventShoppingItem;
 use App\Models\Guild;
 use App\Models\User;
 
@@ -168,6 +169,7 @@ it('arranges rides', function (bool $dark): void {
 
 it('splits costs and settles up', function (bool $dark): void {
     EventRsvp::query()->create(['event_id' => $this->event->id, 'discord_user_id' => $this->user->discord_user_id, 'status' => 'going']);
+    $crayfish = EventShoppingItem::query()->create(['event_id' => $this->event->id, 'label' => 'Crayfish', 'added_by_discord_user_id' => $this->user->discord_user_id]);
     $this->actingAs($this->user);
 
     $page = visit("/events/{$this->event->id}");
@@ -178,8 +180,10 @@ it('splits costs and settles up', function (bool $dark): void {
         ->click('Add an expense')
         ->fill('#expense-description', 'Crayfish, 3 kg')
         ->fill('#expense-amount', '450')
+        ->click('[data-test="expense-shopping"] button[role="checkbox"]')
         ->click('[data-test="costs"] form button[type="submit"]')
         ->assertSee('Split 4 ways')
+        ->assertSee('Paid for: Crayfish')
         ->assertSee("You're owed")
         ->assertSee('Mark as paid')
         ->assertNoJavaScriptErrors();
@@ -188,6 +192,8 @@ it('splits costs and settles up', function (bool $dark): void {
     $page->screenshot(fullPage: true, filename: 'events-costs-'.($dark ? 'dark' : 'light'));
 
     $page->click('Mark as paid')->assertSee('Paid back')->assertNoJavaScriptErrors();
+
+    expect($crayfish->fresh()?->expense_id)->not->toBeNull();
 })->with(['light' => false, 'dark' => true]);
 
 it('asks questions and shows the answers', function (bool $dark): void {

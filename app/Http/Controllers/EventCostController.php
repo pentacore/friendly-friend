@@ -12,6 +12,7 @@ use App\Models\EventExpense;
 use App\Models\EventPayment;
 use App\Models\User;
 use App\Planning\Actions\Costs\AddExpense;
+use App\Planning\Actions\Costs\CoverShoppingItems;
 use App\Planning\Actions\Costs\RecordPayment;
 use App\Planning\Actions\Costs\RemoveExpense;
 use App\Planning\Actions\Costs\RemovePayment;
@@ -27,9 +28,9 @@ use LogicException;
  */
 final class EventCostController extends Controller
 {
-    public function storeExpense(ExpenseRequest $request, Event $event, AddExpense $add): RedirectResponse
+    public function storeExpense(ExpenseRequest $request, Event $event, AddExpense $add, CoverShoppingItems $cover): RedirectResponse
     {
-        $add->handle(
+        $expense = $add->handle(
             $event,
             $this->member($request),
             $request->integer('paid_by'),
@@ -38,11 +39,12 @@ final class EventCostController extends Controller
             $request->mode(),
             $request->shares(),
         );
+        $cover->handle($expense, $request->shoppingItemIds());
 
         return back();
     }
 
-    public function updateExpense(ExpenseRequest $request, Event $event, EventExpense $expense, UpdateExpense $update): RedirectResponse
+    public function updateExpense(ExpenseRequest $request, Event $event, EventExpense $expense, UpdateExpense $update, CoverShoppingItems $cover): RedirectResponse
     {
         $this->authorizeExpense($request, $event, $expense);
 
@@ -54,6 +56,7 @@ final class EventCostController extends Controller
             $request->mode(),
             $request->shares(),
         );
+        $cover->handle($expense, $request->shoppingItemIds());
 
         return back();
     }

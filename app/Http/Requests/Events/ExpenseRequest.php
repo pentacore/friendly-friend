@@ -14,7 +14,8 @@ use Illuminate\Validation\Validator;
 
 /**
  * An expense: what, how much (as typed, "120,50"), who paid, and who
- * shares it (equally, or exact amounts that add up).
+ * shares it (equally, or exact amounts that add up), and which shopping
+ * list items it paid for.
  */
 final class ExpenseRequest extends FormRequest
 {
@@ -32,6 +33,7 @@ final class ExpenseRequest extends FormRequest
     {
         $event = $this->route('event');
         $people = $event instanceof Event ? $event->costPeopleIds() : [];
+        $shoppingItemIds = $event instanceof Event ? $event->shoppingItems()->pluck('id')->all() : [];
 
         return [
             'description' => ['required', 'string', 'max:120'],
@@ -42,6 +44,8 @@ final class ExpenseRequest extends FormRequest
             'people.*' => ['exclude_if:split_mode,'.SplitMode::Attendees->value, 'integer', 'distinct', Rule::in($people)],
             'exact' => ['array'],
             'exact.*' => ['nullable', 'string', 'regex:'.Money::PATTERN],
+            'shopping_item_ids' => ['array'],
+            'shopping_item_ids.*' => ['integer', 'distinct', Rule::in($shoppingItemIds)],
         ];
     }
 
@@ -70,6 +74,14 @@ final class ExpenseRequest extends FormRequest
     public function amount(): int
     {
         return Money::toMinor($this->string('amount')->value());
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function shoppingItemIds(): array
+    {
+        return array_values(array_map(intval(...), array_filter($this->array('shopping_item_ids'), is_numeric(...))));
     }
 
     public function mode(): SplitMode

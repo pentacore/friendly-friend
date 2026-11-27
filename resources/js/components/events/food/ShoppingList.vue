@@ -70,9 +70,16 @@ function add(): void {
                     >
                 </span>
                 <span
-                    v-if="item.checked_by"
+                    v-if="item.checked_by || item.paid_in"
                     class="shrink-0 text-xs text-muted-foreground"
-                    >{{ item.checked_by.name }} got it</span
+                    >{{
+                        [
+                            item.checked_by && `${item.checked_by.name} got it`,
+                            item.paid_in && `paid in ${item.paid_in}`,
+                        ]
+                            .filter(Boolean)
+                            .join(' · ')
+                    }}</span
                 >
                 <Button
                     v-if="item.can_remove"

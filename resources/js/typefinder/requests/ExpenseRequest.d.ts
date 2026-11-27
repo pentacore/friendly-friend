@@ -13,4 +13,5 @@ export type ExpenseRequest = {
   split_mode: SplitMode;
   people: number[];
   exact?: (string | null)[];
+  shopping_item_ids?: number[];
 };

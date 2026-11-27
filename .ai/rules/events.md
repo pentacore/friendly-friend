@@ -33,6 +33,7 @@ paths:
 - `starts_at` and `ends_at` are `timestamptz`. Forms send local `Y-m-d\TH:i` in the event's `timezone` (`SaveEventRequest::details()` converts). The edit form gets local strings back. The frontend formats with `lib/eventDates.ts` in the event's timezone, never the browser's.
 - Event times (start, proposed dates, answer by) must be in the future when set or changed (`SaveEventRequest::after()`); unchanged times on a past event are fine.
 - Without `ends_at`, an event counts as "coming up" until 6 hours after it starts.
+- A shopping item links to at most one expense (`expense_id`, null on delete). Links are replaced as a whole by `CoverShoppingItems` after the expense is saved, and only items of the same event can be linked (`ExpenseRequest`).
 - Money is integer minor units (öre, cents) in the event's `currency` (`App\Enums\Currency`, all two-decimal). The currency is locked once the event `hasCosts()` (checked in `SaveEventRequest::after()`), because amounts are never converted. Balances are computed, never stored.
 
 ## Changes and live updates

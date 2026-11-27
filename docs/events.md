@@ -52,7 +52,7 @@ Organisers can ask everyone coming something, on the Overview tab:
 
 - **Dietary needs** (organisers only): the notes of everyone going or maybe going. People write them once in **Settings → Food** (`/settings/food`, `discord_users.dietary_notes`).
 - **Bring list:** organisers add items with how many are needed (6 chairs). Anyone claims some (`- 1 +`), and the list shows "5 / 6" and who brings what.
-- **Shopping list:** anyone adds items with an amount. Tick when bought; it shows who got it, and bought items sink to the bottom.
+- **Shopping list:** anyone adds items with an amount. Tick when bought; it shows who got it, and bought items sink to the bottom. An expense can say which items it **paid for** (a checklist in the expense form, `CoverShoppingItems`); the item then shows "paid in …" and the expense "Paid for: …". An item belongs to one expense at most; removing the expense unlinks it.
 - **Meal plan:** organisers add meals by day and slot (breakfast, lunch, dinner, snack). Anyone volunteers to cook ("I'll cook").
 
 ## Transport tab
@@ -88,7 +88,7 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 - `event_hosts`: co-hosts.
 - `event_rsvps`: one per person and event: status (`going`/`maybe`/`declined`), guests, note, needs_ride.
 - `event_bring_items` (label, quantity_needed) and `event_bring_claims` (one per person and item: quantity, note).
-- `event_shopping_items`: label, quantity (free text), added_by, checked_by, checked_at.
+- `event_shopping_items`: label, quantity (free text), added_by, checked_by, checked_at, expense_id (the expense that paid for it, null on delete).
 - `event_meals` (date, slot, title, notes) and `event_meal_cooks`.
 - `discord_users.dietary_notes`.
 - `event_expenses` (paid_by, added_by, description, amount, split_mode `equal`/`exact`), `event_expense_shares` (person, amount) and `event_payments` (from, to, recorded_by, amount, settled_at).

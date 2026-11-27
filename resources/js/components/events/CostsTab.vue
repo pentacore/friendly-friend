@@ -37,6 +37,7 @@ const draft = ref({
     split_mode: 'equal' as SplitMode,
     people: props.costs.people.map((p) => p.id),
     exact: {} as Record<number, string>,
+    shopping_item_ids: [] as number[],
 });
 const adding = ref(false);
 /** The expense being edited, or null when adding one. */
@@ -60,6 +61,7 @@ function startEdit(expense: Costs['expenses'][number]): void {
                 (s.amount / 100).toFixed(2),
             ]),
         ),
+        shopping_item_ids: [...expense.shopping_item_ids],
     };
     adding.value = true;
     nextTick(() =>
@@ -78,6 +80,7 @@ function closeForm(): void {
         description: '',
         amount: '',
         exact: {},
+        shopping_item_ids: [],
         paid_by: props.me,
         split_mode: 'equal',
         people: props.costs.people.map((p) => p.id),
@@ -89,6 +92,31 @@ function togglePerson(id: number, on: boolean | 'indeterminate'): void {
         on === true
             ? [...new Set([...draft.value.people, id])]
             : draft.value.people.filter((p) => p !== id);
+}
+
+function toggleShoppingItem(id: number, on: boolean | 'indeterminate'): void {
+    draft.value.shopping_item_ids =
+        on === true
+            ? [...new Set([...draft.value.shopping_item_ids, id])]
+            : draft.value.shopping_item_ids.filter((i) => i !== id);
+}
+
+/** "in Groceries" for items another expense already paid for. */
+function paidElsewhere(item: Costs['shopping'][number]): string | null {
+    if (item.expense_id === null || item.expense_id === editingId.value) {
+        return null;
+    }
+
+    const expense = props.costs.expenses.find((e) => e.id === item.expense_id);
+
+    return expense ? `in ${expense.description}` : null;
+}
+
+function coveredItems(expense: Costs['expenses'][number]): string {
+    return props.costs.shopping
+        .filter((item) => expense.shopping_item_ids.includes(item.id))
+        .map((item) => item.label)
+        .join(', ');
 }
 
 function saveExpense(): void {
@@ -188,6 +216,12 @@ const field =
                                             .join(', ')
                                     }}
                                 </template>
+                            </p>
+                            <p
+                                v-if="expense.shopping_item_ids.length"
+                                class="text-xs text-muted-foreground"
+                            >
+                                Paid for: {{ coveredItems(expense) }}
                             </p>
                         </div>
                         <span class="text-sm font-medium tabular-nums">{{
@@ -336,6 +370,45 @@ const field =
                             </div>
                         </div>
                         <InputError :message="errors.people || errors.exact" />
+                    </fieldset>
+                    <fieldset
+                        v-if="costs.shopping.length"
+                        class="grid gap-1.5"
+                        data-test="expense-shopping"
+                    >
+                        <legend class="mb-1 text-sm font-medium">
+                            Paid for from the shopping list
+                            <span class="font-normal text-muted-foreground"
+                                >(optional)</span
+                            >
+                        </legend>
+                        <div
+                            class="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2"
+                        >
+                            <label
+                                v-for="item in costs.shopping"
+                                :key="item.id"
+                                class="flex min-w-0 items-center gap-2 text-sm"
+                            >
+                                <Checkbox
+                                    :model-value="
+                                        draft.shopping_item_ids.includes(
+                                            item.id,
+                                        )
+                                    "
+                                    @update:model-value="
+                                        toggleShoppingItem(item.id, $event)
+                                    "
+                                />
+                                <span class="truncate">{{ item.label }}</span>
+                                <span
+                                    v-if="paidElsewhere(item)"
+                                    class="shrink-0 text-xs text-muted-foreground"
+                                    >{{ paidElsewhere(item) }}</span
+                                >
+                            </label>
+                        </div>
+                        <InputError :message="errors.shopping_item_ids" />
                     </fieldset>
                     <div class="flex justify-end gap-2">
                         <Button type="button" variant="ghost" @click="closeForm"

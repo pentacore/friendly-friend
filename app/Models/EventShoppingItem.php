@@ -19,12 +19,14 @@ use Illuminate\Support\Carbon;
  * @property int $added_by_discord_user_id
  * @property int|null $checked_by_discord_user_id
  * @property Carbon|null $checked_at
+ * @property int|null $expense_id the expense that paid for it
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read DiscordUser $addedBy
  * @property-read DiscordUser|null $checkedBy
+ * @property-read EventExpense|null $expense
  */
-#[Fillable(['event_id', 'label', 'quantity', 'added_by_discord_user_id', 'checked_by_discord_user_id', 'checked_at'])]
+#[Fillable(['event_id', 'label', 'quantity', 'added_by_discord_user_id', 'checked_by_discord_user_id', 'checked_at', 'expense_id'])]
 class EventShoppingItem extends Model
 {
     /**
@@ -41,6 +43,14 @@ class EventShoppingItem extends Model
     public function checkedBy(): BelongsTo
     {
         return $this->belongsTo(DiscordUser::class, 'checked_by_discord_user_id');
+    }
+
+    /**
+     * @return BelongsTo<EventExpense, $this>
+     */
+    public function expense(): BelongsTo
+    {
+        return $this->belongsTo(EventExpense::class, 'expense_id');
     }
 
     /**

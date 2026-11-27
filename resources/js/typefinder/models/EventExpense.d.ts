@@ -6,6 +6,7 @@
 
 import type { DiscordUser } from './DiscordUser';
 import type { EventExpenseShare } from './EventExpenseShare';
+import type { EventShoppingItem } from './EventShoppingItem';
 import type { SplitMode } from '../enums';
 
 export type EventExpense = {
@@ -19,6 +20,7 @@ export type EventExpense = {
   created_at: string | null;
   updated_at: string | null;
   paid_by?: DiscordUser | null;
+  shopping_items?: EventShoppingItem[];
   shares?: EventExpenseShare[];
 };
 

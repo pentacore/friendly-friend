@@ -75,6 +75,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] Stats records on /stats: longest voice session, most messages in a day, longest streak of active days.
 - [x] Events: organisers reorder questions (↑/↓).
 - [x] Events: a currency per event (SEK, NOK, DKK, EUR, GBP, USD), fixed once there are costs.
+- [x] Events: an expense can say which shopping list items it paid for (spec §14 `expense_id`).
 
 ## Bugs found and fixed along the way
 

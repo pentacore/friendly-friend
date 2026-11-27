@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read DiscordUser $paidBy
  * @property-read Collection<int, EventExpenseShare> $shares
+ * @property-read Collection<int, EventShoppingItem> $shoppingItems what it paid for
  */
 #[Fillable(['event_id', 'paid_by_discord_user_id', 'added_by_discord_user_id', 'description', 'amount', 'split_mode'])]
 class EventExpense extends Model
@@ -37,6 +38,14 @@ class EventExpense extends Model
     public function paidBy(): BelongsTo
     {
         return $this->belongsTo(DiscordUser::class, 'paid_by_discord_user_id');
+    }
+
+    /**
+     * @return HasMany<EventShoppingItem, $this>
+     */
+    public function shoppingItems(): HasMany
+    {
+        return $this->hasMany(EventShoppingItem::class, 'expense_id');
     }
 
     /**

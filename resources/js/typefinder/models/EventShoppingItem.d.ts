@@ -6,6 +6,7 @@
 
 import type { DiscordUser } from './DiscordUser';
 import type { Event } from './Event';
+import type { EventExpense } from './EventExpense';
 
 export type EventShoppingItem = {
   id: number;
@@ -17,8 +18,10 @@ export type EventShoppingItem = {
   checked_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  expense_id: number | null;
   added_by?: DiscordUser | null;
   checked_by?: DiscordUser | null;
+  expense?: EventExpense | null;
   event?: Event | null;
 };
 
@@ -29,6 +32,7 @@ export type EventShoppingItemCreate = {
   added_by_discord_user_id: number;
   checked_by_discord_user_id?: number | null;
   checked_at?: string | null;
+  expense_id?: number | null;
 };
 
 export type EventShoppingItemUpdate = {
@@ -38,4 +42,5 @@ export type EventShoppingItemUpdate = {
   added_by_discord_user_id?: number;
   checked_by_discord_user_id?: number | null;
   checked_at?: string | null;
+  expense_id?: number | null;
 };
