@@ -1,0 +1,118 @@
+<!doctype html>
+<!-- Bot profile banner (rendered at 1200x480, shown at 600x240). The avatar overlaps the lower left, so that corner stays quiet. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link
+            href="https://fonts.bunny.net/css?family=bricolage-grotesque:800"
+            rel="stylesheet"
+        />
+        <style>
+            html,
+            body {
+                margin: 0;
+            }
+            .banner {
+                position: relative;
+                width: 1200px;
+                height: 480px;
+                overflow: hidden;
+                background: #141414;
+            }
+            .line {
+                position: absolute;
+                height: 18px;
+                border-radius: 9px;
+                background: #262626;
+            }
+            .swipe {
+                position: absolute;
+                left: 330px;
+                top: 150px;
+                width: 826px;
+                height: 156px;
+                border-radius: 22px;
+                background: #fdec4f;
+                transform: rotate(-3deg);
+            }
+            .title {
+                position: absolute;
+                left: 380px;
+                top: 160px;
+                height: 136px;
+                display: flex;
+                align-items: center;
+                gap: 26px;
+                transform: rotate(-3deg);
+            }
+            .title svg {
+                width: 92px;
+                height: 92px;
+                flex: none;
+            }
+            .title span {
+                font-family: 'Bricolage Grotesque', sans-serif;
+                font-weight: 800;
+                font-size: 84px;
+                letter-spacing: -2px;
+                color: #000;
+                line-height: 1;
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="banner">
+            <!-- Faint chat lines: the conversation quotes are lifted from. -->
+            <div class="line" style="left: 60px; top: 50px; width: 420px"></div>
+            <div
+                class="line"
+                style="left: 520px; top: 50px; width: 260px"
+            ></div>
+            <div
+                class="line"
+                style="left: 820px; top: 50px; width: 320px"
+            ></div>
+            <div class="line" style="left: 60px; top: 96px; width: 220px"></div>
+            <div
+                class="line"
+                style="left: 320px; top: 96px; width: 540px"
+            ></div>
+            <div
+                class="line"
+                style="left: 60px; top: 344px; width: 160px; opacity: 0.5"
+            ></div>
+            <div
+                class="line"
+                style="left: 420px; top: 344px; width: 380px"
+            ></div>
+            <div
+                class="line"
+                style="left: 840px; top: 344px; width: 300px"
+            ></div>
+            <div
+                class="line"
+                style="left: 420px; top: 390px; width: 220px"
+            ></div>
+            <div
+                class="line"
+                style="left: 680px; top: 390px; width: 460px"
+            ></div>
+            <div
+                class="line"
+                style="left: 420px; top: 436px; width: 500px"
+            ></div>
+
+            <div class="swipe"></div>
+            <div class="title">
+                <svg viewBox="7 14 22 17" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        fill="#000"
+                        d="M11 30c-2.2 0-3.6-1.7-3.6-4.3 0-5 3.3-9.4 8-11.2l1 1.8c-2.6 1.4-4.2 3.5-4.5 5.6.4-.2.9-.3 1.4-.3 2.3 0 4 1.6 4 4s-1.9 4.4-4.3 4.4Zm13 0c-2.2 0-3.6-1.7-3.6-4.3 0-5 3.3-9.4 8-11.2l1 1.8c-2.6 1.4-4.2 3.5-4.5 5.6.4-.2.9-.3 1.4-.3 2.3 0 4 1.6 4 4S26.4 30 24 30Z"
+                    />
+                </svg>
+                <span>Friendly Friend</span>
+            </div>
+        </div>
+    </body>
+</html>

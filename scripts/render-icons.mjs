@@ -1,4 +1,4 @@
-// Renders the icons in public/ from resources/icons/*.svg with Playwright's Chromium.
+// Renders the icons in public/ and the Discord avatar and banner from resources/icons/ with Playwright's Chromium.
 // Run: vendor/bin/sail node scripts/render-icons.mjs
 import { chromium } from 'playwright';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -59,7 +59,18 @@ writeFileSync(
     await render(tile, 1024, false),
 );
 
+// Bot profile banner (5:2), with the quote font loaded from Bunny Fonts.
+await page.setViewportSize({ width: 1200, height: 480 });
+await page.setContent(readFileSync('resources/icons/banner.html', 'utf8'), {
+    waitUntil: 'networkidle',
+});
+await page.evaluate(() => document.fonts.ready);
+writeFileSync(
+    'resources/icons/build/discord-banner.png',
+    await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 480 } }),
+);
+
 await browser.close();
 console.log(
-    'Icons written to public/ and resources/icons/build/discord-avatar.png',
+    'Icons written to public/; Discord avatar and banner to resources/icons/build/',
 );
