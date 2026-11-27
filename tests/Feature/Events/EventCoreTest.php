@@ -68,7 +68,7 @@ it('lists upcoming and past events of your servers', function (): void {
     $this->actingAs($this->user)->get(route('events.index'))
         ->assertInertia(fn (Assert $page): Assert => $page->component('events/Index')
             ->where('upcoming.0.title', 'Soon')->has('upcoming', 1)
-            ->where('past.0.title', 'Ages ago')->has('past', 1));
+            ->where('past.data.0.title', 'Ages ago')->has('past.data', 1));
 });
 
 it('hides events of servers you cannot see', function (): void {
@@ -151,4 +151,33 @@ it('does not let non-members be co-hosts', function (): void {
     ]);
 
     expect(Event::query()->sole()->hosts)->toBeEmpty();
+});
+
+it('searches events by title or place, literally', function (): void {
+    eventIn($this->guild, ['title' => 'Crayfish party', 'location' => 'The cabin']);
+    eventIn($this->guild, ['title' => 'Board games', 'location' => 'Kim’s place']);
+    eventIn($this->guild, ['title' => '100% fun', 'location' => null, 'starts_at' => now()->subMonth(), 'ends_at' => null]);
+    eventIn($this->guild, ['title' => 'Old crayfish', 'location' => null, 'starts_at' => now()->subMonth(), 'ends_at' => null]);
+    $titles = fn (array $query): array => [
+        collect($this->actingAs($this->user)->get(route('events.index', $query))->viewData('page')['props']['upcoming'])->pluck('title')->all(),
+        collect($this->actingAs($this->user)->get(route('events.index', $query))->viewData('page')['props']['past']['data'])->pluck('title')->all(),
+    ];
+
+    expect($titles(['q' => 'crayfish']))->toBe([['Crayfish party'], ['Old crayfish']])
+        ->and($titles(['q' => 'cabin']))->toBe([['Crayfish party'], []])
+        ->and($titles(['q' => '%']))->toBe([[], ['100% fun']]);
+
+    $this->actingAs($this->user)->get(route('events.index', ['q' => 'crayfish']))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('filters.q', 'crayfish'));
+});
+
+it('pages through past events', function (): void {
+    foreach (range(1, 25) as $weeksAgo) {
+        eventIn($this->guild, ['title' => "Week {$weeksAgo}", 'starts_at' => now()->subWeeks($weeksAgo), 'ends_at' => null]);
+    }
+
+    $this->actingAs($this->user)->get(route('events.index'))
+        ->assertInertia(fn (Assert $page): Assert => $page->has('past.data', 20)->where('past.data.0.title', 'Week 1'));
+    $this->actingAs($this->user)->get(route('events.index', ['page' => 2]))
+        ->assertInertia(fn (Assert $page): Assert => $page->has('past.data', 5)->where('past.data.4.title', 'Week 25'));
 });

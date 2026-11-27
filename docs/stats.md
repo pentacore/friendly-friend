@@ -62,3 +62,7 @@ Opting out sets `discord_users.tracking_opted_out_at`, refreshes the cached opte
 - their name on other people's reactions (those reactions stay, without a target)
 
 Opting back in only counts new activity. Quotes are never affected.
+
+## Download my data
+
+**Settings → Privacy → Download my data** (`/settings/privacy/download`, throttled to 6 a minute) gives a JSON file with everything stored about you (`App\Access\PersonalData`): account and dietary notes, server memberships, your person and nicknames, the quotes you said and saved, your votes and edits, your event RSVPs, answers, date votes, bring list claims, rides, expenses, shares and payments, and your stats (messages per local day, reactions given, voice and game sessions). Only rows about you are included: other people's notes and answers on the same events are left out. Amounts are minor units of the event's currency.

@@ -10,6 +10,7 @@ use App\Enums\QuoteSource;
 use App\Models\DiscordUser;
 use App\Models\Guild;
 use App\Models\Person;
+use App\Models\PersonAlias;
 use App\Models\Quote;
 use App\Quotes\Jobs\CaptureFromMention;
 use Laravel\Ai\Classification;
@@ -170,4 +171,30 @@ it('always saves the replied-to message, without asking Jev', function (): void 
 
     Classification::assertNothingClassified();
     expect(Quote::query()->sole()->source)->toBe(QuoteSource::ReplyMention);
+});
+
+it('picks the random quote from a person named in the text, not on Discord', function (string $text): void {
+    $uncle = Person::createNamed('Uncle Rolf');
+    PersonAlias::query()->create(['person_id' => $uncle->id, 'alias' => 'Rolle']);
+    Quote::factory()->for($this->guild)->withLine('Ann', 'not this one')->create();
+    $quote = Quote::factory()->for($this->guild)->withLine('Uncle Rolf', 'back in my day')->create();
+    $quote->lines()->update(['person_id' => $uncle->id]);
+    jevSaysIntent('random_quote');
+
+    dispatch_sync(new CaptureFromMention(mentionMessage("<@1000> {$text}")));
+
+    $this->discord->assertSent('777', 'back in my day');
+})->with([
+    'name' => 'a quote from Uncle Rolf please',
+    'nickname, Swedish' => 'ge mig ett citat från rolle!',
+    'by' => 'random quote by uncle rolf',
+]);
+
+it('falls back to anyone when the named person is unknown', function (): void {
+    Quote::factory()->for($this->guild)->withLine('Ann', 'only one')->create();
+    jevSaysIntent('random_quote');
+
+    dispatch_sync(new CaptureFromMention(mentionMessage('<@1000> a quote from last summer')));
+
+    $this->discord->assertSent('777', 'only one');
 });

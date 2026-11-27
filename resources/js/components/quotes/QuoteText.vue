@@ -2,14 +2,17 @@
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { show as showPerson } from '@/routes/people';
+import { highlightParts } from '@/lib/searchHighlight';
 import type { QuoteResource } from '@/typefinder';
 
 const props = withDefaults(
     defineProps<{
         lines: QuoteResource['lines'];
         size?: 'md' | 'lg';
+        /** Search words to mark in the text. */
+        highlight?: string[];
     }>(),
-    { size: 'md' },
+    { size: 'md', highlight: () => [] },
 );
 
 /** One speaker: `"text" - Person`. Several: a small conversation. */
@@ -33,7 +36,15 @@ const text = computed(() => props.lines.map((line) => line.text).join('\n'));
                     aria-hidden="true"
                     class="relative mr-[0.08em] inline-block font-bold text-black before:absolute before:inset-x-[-0.22em] before:top-[0.18em] before:bottom-[0.12em] before:-z-10 before:-rotate-6 before:rounded-[0.18em] before:bg-highlight"
                     >“</span
-                >{{ text }}<span aria-hidden="true" class="font-bold">”</span>
+                ><template
+                    v-for="(part, i) in highlightParts(text, highlight)"
+                    :key="i"
+                    ><mark
+                        v-if="part.match"
+                        class="rounded-sm bg-highlight/50 text-inherit"
+                        >{{ part.text }}</mark
+                    ><template v-else>{{ part.text }}</template></template
+                ><span aria-hidden="true" class="font-bold">”</span>
             </blockquote>
             <figcaption
                 class="mt-3 text-sm font-medium text-muted-foreground"
@@ -74,7 +85,18 @@ const text = computed(() => props.lines.map((line) => line.text).join('\n'));
                 <dd
                     class="font-quote leading-snug font-medium tracking-tight whitespace-pre-line text-foreground"
                 >
-                    {{ line.text }}
+                    <template
+                        v-for="(part, i) in highlightParts(
+                            line.text,
+                            highlight,
+                        )"
+                        :key="i"
+                        ><mark
+                            v-if="part.match"
+                            class="rounded-sm bg-highlight/50 text-inherit"
+                            >{{ part.text }}</mark
+                        ><template v-else>{{ part.text }}</template></template
+                    >
                 </dd>
             </template>
         </dl>

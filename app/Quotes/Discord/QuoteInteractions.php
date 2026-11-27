@@ -28,6 +28,7 @@ use App\Quotes\Actions\DraftQuote;
 use App\Quotes\Actions\PublishQuote;
 use App\Quotes\Actions\UpdateDraft;
 use App\Quotes\Data\NormalizedLine;
+use App\Quotes\Data\ResolvedSpeaker;
 use App\Quotes\Data\SourceMessage;
 use App\Quotes\Exceptions\AlreadyQuotedException;
 use App\Quotes\Imports\StartChannelImport;
@@ -182,6 +183,7 @@ final readonly class QuoteInteractions
         return match ($subcommand['name'] ?? null) {
             QuoteCommands::ADD => $this->addCommand($guild, $actor, $options, $resolvedUsers),
             QuoteCommands::RANDOM => $this->randomQuote($guild, $options['person'] ?? null),
+            QuoteCommands::SEARCH => $this->searchCommand($guild, $options['text'] ?? '', $options['person'] ?? null),
             QuoteCommands::IMPORT => $this->importCommand($guild, $actor, $options),
             default => QuoteMessages::notice('Unknown command.'),
         };
@@ -235,12 +237,13 @@ final readonly class QuoteInteractions
     }
 
     /**
-     * A random published quote from this server, optionally by one person (a
-     * Discord user ID). Used by `/quote random` and by mentions asking for one.
+     * A random published quote from this server, optionally by one person: a
+     * Discord user ID, or a resolved speaker (a person, or a Discord member
+     * without a person yet). Used by `/quote random` and by mentions asking for one.
      *
      * @return array<string, mixed>
      */
-    public function randomQuote(Guild $guild, ?string $personDiscordId = null): array
+    public function randomQuote(Guild $guild, ?string $personDiscordId = null, ?ResolvedSpeaker $speaker = null): array
     {
         $quote = Quote::query()
             ->whereBelongsTo($guild)
@@ -249,6 +252,12 @@ final readonly class QuoteInteractions
                 'lines.person.discordUser',
                 fn (Builder $user) => $user->where('discord_id', $discordId),
             ))
+            ->when($speaker, fn (Builder $query, ResolvedSpeaker $speaker) => $query->whereHas(
+                'lines',
+                fn (Builder $lines) => $speaker->personId !== null
+                    ? $lines->where('person_id', $speaker->personId)
+                    : $lines->whereHas('person', fn (Builder $person) => $person->where('discord_user_id', $speaker->discordUserId)),
+            ))
             ->inRandomOrder()
             ->with(['lines', 'submittedBy'])
             ->first();
@@ -256,6 +265,29 @@ final readonly class QuoteInteractions
         return $quote !== null
             ? QuoteMessages::published($quote, '— quote #'.$quote->id)
             : QuoteMessages::notice('No quotes yet. Save one with /quote add or right-click a message → Apps → Save quote.');
+    }
+
+    /**
+     * Up to five of this server's quotes matching the text (`Quote::search`),
+     * best match first, each with a link to its page.
+     *
+     * @return array<string, mixed>
+     */
+    private function searchCommand(Guild $guild, string $text, ?string $personDiscordId): array
+    {
+        $matches = Quote::query()
+            ->whereBelongsTo($guild)
+            ->where('status', QuoteStatus::Published)
+            ->search($text)
+            ->when($personDiscordId, fn (Builder $query, string $discordId) => $query->whereHas(
+                'lines.person.discordUser',
+                fn (Builder $user) => $user->where('discord_id', $discordId),
+            ));
+
+        $total = $matches->clone()->count();
+        $quotes = $matches->orderByRelevance($text)->orderByDesc('published_at')->with('lines')->limit(QuoteMessages::SEARCH_RESULTS)->get();
+
+        return QuoteMessages::searchResults($text, $quotes, $total);
     }
 
     /**

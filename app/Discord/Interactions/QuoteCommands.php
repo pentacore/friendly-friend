@@ -15,6 +15,8 @@ final class QuoteCommands
 
     public const string RANDOM = 'random';
 
+    public const string SEARCH = 'search';
+
     public const string IMPORT = 'import';
 
     public const string SAVE_MESSAGE = 'Save quote';
@@ -63,6 +65,15 @@ final class QuoteCommands
                         'name' => self::RANDOM,
                         'description' => 'Post a random quote',
                         'options' => [
+                            ['type' => self::USER, 'name' => 'person', 'description' => 'Only quotes by this person'],
+                        ],
+                    ],
+                    [
+                        'type' => self::SUB_COMMAND,
+                        'name' => self::SEARCH,
+                        'description' => 'Find quotes (only you see the results)',
+                        'options' => [
+                            ['type' => self::STRING, 'name' => 'text', 'description' => 'Words in the quote, or a name', 'required' => true, 'max_length' => 100],
                             ['type' => self::USER, 'name' => 'person', 'description' => 'Only quotes by this person'],
                         ],
                     ],

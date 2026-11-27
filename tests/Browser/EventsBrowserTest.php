@@ -51,6 +51,13 @@ it('renders the events list', function (bool $dark): void {
     $page->assertSee('Crayfish party')->assertSee('Midsummer')->assertSee('Together')->assertNoJavaScriptErrors();
     $page->script('document.fonts.ready');
     $page->screenshot(filename: 'events-index-'.($dark ? 'dark' : 'light'));
+
+    $page->type('[aria-label="Search events"]', 'midsum')
+        ->wait(1)
+        ->assertDontSee('Crayfish party')
+        ->assertSee('Midsummer')
+        ->assertSee('Nothing coming up matches “midsum”')
+        ->assertNoJavaScriptErrors();
 })->with(['light' => false, 'dark' => true]);
 
 it('renders an event and takes an RSVP', function (bool $dark): void {
@@ -138,6 +145,22 @@ it('renders the food settings', function (): void {
 
     expect($this->user->discordUser->fresh()?->dietary_notes)->toBe('Vegetarian');
 });
+
+it('creates a personal calendar link', function (bool $dark): void {
+    $this->actingAs($this->user);
+
+    $page = visit('/settings/calendar');
+    $page = $dark ? $page->inDarkMode() : $page;
+
+    $page->press('Create my calendar link')
+        ->assertSee('New calendar link created.')
+        ->assertSee('Make a new link')
+        ->assertNoJavaScriptErrors()
+        ->screenshot(filename: 'settings-calendar-'.($dark ? 'dark' : 'light'));
+
+    expect($this->user->fresh()?->calendar_token)->toHaveLength(40)
+        ->and($page->script('document.getElementById("feed-url").value'))->toBe(route('calendar.feed', $this->user->fresh()?->calendar_token));
+})->with(['light' => false, 'dark' => true]);
 
 it('arranges rides', function (bool $dark): void {
     $driver = DiscordUser::factory()->create(['global_name' => 'Robin']);

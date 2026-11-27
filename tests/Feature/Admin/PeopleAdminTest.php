@@ -78,3 +78,16 @@ it('refuses to merge a person into themselves', function (): void {
     $this->actingAs($this->admin)->post(route('admin.people.merge', $martin), ['into_person_id' => $martin->id])
         ->assertSessionHasErrors('into_person_id');
 });
+
+it('searches names and nicknames literally, closest match first', function (): void {
+    Person::createNamed('Martin');
+    Person::createNamed('Martina Svensson');
+    PersonAlias::query()->create(['person_id' => Person::createNamed('Bo')->id, 'alias' => '100% Bo']);
+    $names = fn (string $q): array => collect($this->actingAs($this->admin)->get(route('admin.people.index', ['q' => $q]))
+        ->viewData('page')['props']['people']['data'])->pluck('display_name')->all();
+
+    expect($names('%'))->toBe(['Bo'])
+        ->and($names('_'))->toBe([])
+        ->and($names('martin'))->toBe(['Martin', 'Martina Svensson'])
+        ->and($names('100%'))->toBe(['Bo']);
+});

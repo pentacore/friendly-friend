@@ -34,7 +34,7 @@ it('lists visible quotes newest first with the filters', function (): void {
             ->has('quotes.data', 2)
             ->where('quotes.data.0.id', $new->id)
             ->where('quotes.data.1.id', $old->id)
-            ->where('filters', ['q' => '', 'guild' => null, 'person' => null])
+            ->where('filters', ['q' => '', 'guild' => null, 'person' => null, 'sort' => 'newest'])
             ->where('guilds', [['id' => $this->guild->id, 'name' => 'Friends']]));
 });
 

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
+import { InfiniteScroll, Link, router } from '@inertiajs/vue3';
 import { Plus } from '@lucide/vue';
+import { useDebounceFn } from '@vueuse/core';
 import { ref } from 'vue';
 import EventCard from '@/components/events/EventCard.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { create, index } from '@/routes/events';
 import type { PageProps } from '@/typefinder';
 
@@ -15,13 +17,27 @@ defineOptions({
 });
 
 const guild = ref<number | null>(props.filters.guild);
+const search = ref(props.filters.q);
 
 function filter(): void {
-    router.visit(index({ query: { guild: guild.value ?? undefined } }), {
-        preserveState: true,
-        replace: true,
-    });
+    router.visit(
+        index({
+            query: {
+                q: search.value || undefined,
+                guild: guild.value ?? undefined,
+            },
+        }),
+        {
+            preserveState: true,
+            replace: true,
+            // `reset` alone would reload only `past`.
+            only: ['upcoming', 'past', 'filters'],
+            reset: ['past'],
+        },
+    );
 }
+
+const searchSoon = useDebounceFn(filter, 300);
 </script>
 
 <template>
@@ -52,6 +68,14 @@ function filter(): void {
             </div>
         </div>
 
+        <Input
+            v-model="search"
+            type="search"
+            placeholder="Search by name or place…"
+            aria-label="Search events"
+            @input="searchSoon"
+        />
+
         <section class="grid gap-3 lg:grid-cols-2">
             <h2 class="text-sm font-medium text-muted-foreground lg:col-span-2">
                 Coming up
@@ -63,7 +87,13 @@ function filter(): void {
                 :show-server="guilds.length > 1"
             />
             <p
-                v-if="upcoming.length === 0"
+                v-if="upcoming.length === 0 && filters.q"
+                class="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground lg:col-span-2"
+            >
+                Nothing coming up matches “{{ filters.q }}”.
+            </p>
+            <p
+                v-else-if="upcoming.length === 0"
                 class="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground lg:col-span-2"
             >
                 Nothing planned yet. Start something:
@@ -75,16 +105,25 @@ function filter(): void {
             </p>
         </section>
 
-        <section v-if="past.length" class="grid gap-3 lg:grid-cols-2">
-            <h2 class="text-sm font-medium text-muted-foreground lg:col-span-2">
+        <section v-if="past.data.length" class="flex flex-col gap-3">
+            <h2 class="text-sm font-medium text-muted-foreground">
                 Been and gone
             </h2>
-            <EventCard
-                v-for="event in past"
-                :key="event.id"
-                :event="event"
-                :show-server="guilds.length > 1"
-            />
+            <InfiniteScroll data="past" class="grid gap-3 lg:grid-cols-2">
+                <EventCard
+                    v-for="event in past.data"
+                    :key="event.id"
+                    :event="event"
+                    :show-server="guilds.length > 1"
+                />
+
+                <template #loading>
+                    <div
+                        class="h-24 animate-pulse rounded-xl border bg-muted/40"
+                        aria-label="Loading more events"
+                    />
+                </template>
+            </InfiniteScroll>
         </section>
     </div>
 </template>

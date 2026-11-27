@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Access\AccessSnapshot;
 use App\Enums\Currency;
 use App\Enums\RsvpStatus;
+use App\Http\Requests\Events\EventIndexRequest;
 use App\Http\Requests\Events\SaveEventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
@@ -46,25 +47,33 @@ final class EventController extends Controller
     /** Without an end time, an event counts as upcoming until this long after it starts. */
     private const int ASSUMED_HOURS = 6;
 
+    private const int PAST_PER_PAGE = 20;
+
     #[TypefinderPage(component: 'events/Index', props: [
         'upcoming' => EventResource::class.'[]',
-        'past' => EventResource::class.'[]',
-        'filters' => '{ guild: number | null }',
+        'past' => 'SimplePaginatedResourceCollection<'.EventResource::class.'>',
+        'filters' => '{ q: string; guild: number | null }',
         'guilds' => '{ id: number; name: string }[]',
     ])]
-    public function index(Request $request): Response
+    public function index(EventIndexRequest $request): Response
     {
         $access = $this->access($request);
         $guildId = $access->canSeeGuild($request->integer('guild')) ? $request->integer('guild') : null;
+        $pattern = $request->searchPattern();
         $events = fn (): Builder => Event::query()
             ->whereIn('guild_id', $guildId !== null ? [$guildId] : $access->guildIds)
+            ->when($pattern, fn (Builder $query, string $pattern) => $query->where(fn (Builder $matches) => $matches
+                ->whereRaw('title ilike ?', [$pattern])
+                ->orWhereRaw('location ilike ?', [$pattern])))
             ->with(['guild', 'createdBy', 'hosts', 'rsvps']);
         $stillOn = 'coalesce(ends_at, starts_at + interval \''.self::ASSUMED_HOURS.' hours\')';
 
         return Inertia::render('events/Index', [
             'upcoming' => EventResource::collection($events()->whereRaw("{$stillOn} >= ?", [now()])->orderBy('starts_at')->get()),
-            'past' => EventResource::collection($events()->whereRaw("{$stillOn} < ?", [now()])->orderByDesc('starts_at')->limit(30)->get()),
-            'filters' => ['guild' => $guildId],
+            'past' => Inertia::scroll(EventResource::collection(
+                $events()->whereRaw("{$stillOn} < ?", [now()])->orderByDesc('starts_at')->orderByDesc('id')->simplePaginate(self::PAST_PER_PAGE)->withQueryString(),
+            )),
+            'filters' => ['q' => trim($request->string('q')->value()), 'guild' => $guildId],
             'guilds' => $this->guilds($access),
         ]);
     }
