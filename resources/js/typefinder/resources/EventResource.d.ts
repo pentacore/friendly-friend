@@ -4,7 +4,7 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
-import type { EventStatus, RsvpStatus } from '../enums';
+import type { Currency, EventStatus, RsvpStatus } from '../enums';
 
 export type EventResource = {
   id: number;
@@ -21,7 +21,7 @@ export type EventResource = {
   discord: { event_url: string | null; message_url: string | null };
   timezone: string;
   status: EventStatus;
-  currency: string;
+  currency: Currency;
   created_by: { id: number; name: string; avatar_url: string };
   hosts: { id: number; name: string; avatar_url: string }[];
   counts: { going: number; maybe: number; declined: number; guests: number };

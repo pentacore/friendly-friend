@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Currency;
 use App\Enums\EventStatus;
 use App\Enums\RsvpStatus;
 use Database\Factories\EventFactory;
@@ -32,7 +33,7 @@ use Illuminate\Support\Carbon;
  * @property bool $date_polling the date is still being voted on (starts_at holds the earliest candidate)
  * @property string $timezone
  * @property EventStatus $status
- * @property string $currency
+ * @property Currency $currency
  * @property string|null $announce_channel_id
  * @property string|null $discord_message_id
  * @property string|null $discord_scheduled_event_id
@@ -133,6 +134,12 @@ class Event extends Model
         return $this->hasMany(EventPayment::class);
     }
 
+    /** Any expense or payment: amounts are then tied to the currency. */
+    public function hasCosts(): bool
+    {
+        return $this->expenses()->exists() || $this->payments()->exists();
+    }
+
     /**
      * Who can be in the costs: anyone going or maybe, the hosts, and
      * anyone already in an expense or payment.
@@ -192,6 +199,7 @@ class Event extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'status' => EventStatus::class,
+            'currency' => Currency::class,
             'reminded_day_at' => 'datetime',
             'reminded_hours_at' => 'datetime',
             'rsvp_by' => 'datetime',

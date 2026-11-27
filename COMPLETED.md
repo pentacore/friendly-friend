@@ -74,6 +74,7 @@ Everything that is done, moved here from `ROADMAP.md` (which keeps only what is 
 - [x] `/quote random` can answer privately, per server (Servers page).
 - [x] Stats records on /stats: longest voice session, most messages in a day, longest streak of active days.
 - [x] Events: organisers reorder questions (↑/↓).
+- [x] Events: a currency per event (SEK, NOK, DKK, EUR, GBP, USD), fixed once there are costs.
 
 ## Bugs found and fixed along the way
 

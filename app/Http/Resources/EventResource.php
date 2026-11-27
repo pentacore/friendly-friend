@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Access\AccessSnapshot;
+use App\Enums\Currency;
 use App\Enums\EventStatus;
 use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
@@ -42,7 +43,7 @@ final class EventResource extends JsonResource
      *     discord: array{event_url: string|null, message_url: string|null},
      *     timezone: string,
      *     status: EventStatus,
-     *     currency: string,
+     *     currency: Currency,
      *     created_by: array{id: int, name: string, avatar_url: string},
      *     hosts: list<array{id: int, name: string, avatar_url: string}>,
      *     counts: array{going: int, maybe: int, declined: int, guests: int},

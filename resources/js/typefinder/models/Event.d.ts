@@ -4,6 +4,7 @@
 // https://github.com/pentacore/laravel-typefinder
 // ───────────────────────────────────────────────────────────────────────
 
+import type { Currency, EventStatus } from '../enums';
 import type { DiscordUser } from './DiscordUser';
 import type { EventBringItem } from './EventBringItem';
 import type { EventDateOption } from './EventDateOption';
@@ -15,7 +16,6 @@ import type { EventQuestion } from './EventQuestion';
 import type { EventRide } from './EventRide';
 import type { EventRsvp } from './EventRsvp';
 import type { EventShoppingItem } from './EventShoppingItem';
-import type { EventStatus } from '../enums';
 import type { Guild } from './Guild';
 
 export type Event = {
@@ -30,7 +30,7 @@ export type Event = {
   ends_at: string | null;
   timezone: string;
   status: EventStatus;
-  currency: string;
+  currency: Currency;
   created_at: string | null;
   updated_at: string | null;
   announce_channel_id: string | null;
@@ -67,7 +67,7 @@ export type EventCreate = {
   ends_at?: string | null;
   timezone: string;
   status?: EventStatus;
-  currency?: string;
+  currency?: Currency;
   announce_channel_id?: string | null;
   discord_message_id?: string | null;
   discord_scheduled_event_id?: string | null;
@@ -90,7 +90,7 @@ export type EventUpdate = {
   ends_at?: string | null;
   timezone?: string;
   status?: EventStatus;
-  currency?: string;
+  currency?: Currency;
   announce_channel_id?: string | null;
   discord_message_id?: string | null;
   discord_scheduled_event_id?: string | null;

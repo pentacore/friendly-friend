@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\Currency;
 use App\Enums\EventStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
@@ -33,7 +34,7 @@ class EventFactory extends Factory
             'ends_at' => $startsAt->copy()->addHours(6),
             'timezone' => 'Europe/Stockholm',
             'status' => EventStatus::Planned,
-            'currency' => 'SEK',
+            'currency' => Currency::Sek,
         ];
     }
 

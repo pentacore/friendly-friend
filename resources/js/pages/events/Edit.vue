@@ -40,6 +40,7 @@ function submit(): void {
             :members="members"
             :exclude-host-id="event.created_by.id"
             :dates-locked="event.date_polling"
+            :currency-locked="currency_locked"
             submit-label="Save changes"
             @submit="submit"
         >

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Events;
 
 use App\Access\AccessSnapshot;
+use App\Enums\Currency;
 use App\Enums\MealSlot;
 use App\Enums\QuestionKind;
 use App\Enums\RideDirection;
@@ -50,6 +51,7 @@ final class SaveEventRequest extends FormRequest
             'ends_at' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'after:starts_at'],
             'rsvp_by' => ['nullable', 'date_format:'.self::LOCAL_TIME, 'before_or_equal:starts_at'],
             'timezone' => ['required', 'timezone:all'],
+            'currency' => ['sometimes', Rule::enum(Currency::class)],
             // Creating with a date vote instead of a fixed date (2 to 10 proposed dates).
             'date_options' => ['nullable', 'array', 'min:2', 'max:10'],
             'date_options.*.starts_at' => ['required', 'date_format:'.self::LOCAL_TIME],
@@ -110,6 +112,11 @@ final class SaveEventRequest extends FormRequest
                 if (is_array($option) && is_string($option['starts_at'] ?? null) && is_string($option['ends_at'] ?? null) && $option['ends_at'] <= $option['starts_at']) {
                     $validator->errors()->add("date_options.{$index}.ends_at", __('The end must be after the start.'));
                 }
+            }
+
+            // Amounts are stored in the event's currency, so it's fixed once there are costs.
+            if ($event instanceof Event && $this->filled('currency') && $this->input('currency') !== $event->currency->value && $event->hasCosts()) {
+                $validator->errors()->add('currency', __('The currency can\'t change once there are costs.'));
             }
 
             foreach ($this->array('questions') as $index => $question) {
@@ -201,6 +208,7 @@ final class SaveEventRequest extends FormRequest
             timezone: $timezone,
             hostIds: array_values(array_map(intval(...), array_filter($this->array('host_ids'), is_numeric(...)))),
             dateOptions: $options,
+            currency: $this->enum('currency', Currency::class),
         );
     }
 }

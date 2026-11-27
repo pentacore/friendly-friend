@@ -67,7 +67,7 @@ Organisers can ask everyone coming something, on the Overview tab:
 - **Expenses:** what, how much (type `450` or `120,50`), who paid, and who shares it: **equally** (leftover öre go to the first people, so it always adds up), **exact amounts** (they must add up to the total), or **everyone going**: worked out whenever the costs are shown, from who's going right now, with each guest as an extra share (if nobody is going, the payer carries it). The people to choose from are everyone going or maybe, the hosts, and anyone already in the costs.
 - **Settle up:** everyone's balance (paid minus share, adjusted by payments) and the transfers that square it: the biggest debtor pays the biggest creditor, repeated. Expenses can be edited (pencil) by whoever added them, whoever paid, or an organiser. **Mark as paid** records the payment; anyone can do it, and the person who recorded it (or an organiser) can undo it.
 - **Balances** table: paid, share and balance per person.
-- Money is stored as integer minor units in the event's currency (`SEK`).
+- Money is stored as integer minor units in the event's currency, picked on the event form (**Currency for costs**: SEK by default, or NOK, DKK, EUR, GBP, USD; enum `App\Enums\Currency`). It can only change while the event has no expenses or payments (`Event::hasCosts()`), since stored amounts would otherwise mean something else.
 
 ## Discord
 
@@ -84,7 +84,7 @@ Every change broadcasts `event.changed` (`{ event_id, section }`) on the private
 
 ## Schema
 
-- `events`: guild, creator, title, description (plain text), location, location_url, starts_at, ends_at, timezone, status (`planned`/`cancelled`), currency (`SEK`).
+- `events`: guild, creator, title, description (plain text), location, location_url, starts_at, ends_at, timezone, status (`planned`/`cancelled`), currency (`App\Enums\Currency`, default `SEK`).
 - `event_hosts`: co-hosts.
 - `event_rsvps`: one per person and event: status (`going`/`maybe`/`declined`), guests, note, needs_ride.
 - `event_bring_items` (label, quantity_needed) and `event_bring_claims` (one per person and item: quantity, note).

@@ -13,7 +13,6 @@ All seven build phases are done (see `COMPLETED.md`).
 - [ ] Events: link a shopping item to the expense that paid for it (spec §14 `expense_id`)
 - [ ] Events: give the bot **Create Events / Manage Events** on your servers (mirroring is skipped and logged without it), and pick an events channel on the Servers page
 - [ ] Events: make a question required, ask questions from the Discord RSVP reply
-- [ ] Events: per-event currency picker (always SEK for now)
 - [ ] Stats: weekly recap post in Discord (busiest hour, top talker, longest voice hangout)
 - [ ] Quotes: "Who said it?" game, in Discord and on the web (show a quote, everyone guesses the person, running scores)
 - [ ] Yearly recap ("Wrapped") per server and per person: top quotes, most quoted, voice nights, events attended, money spent

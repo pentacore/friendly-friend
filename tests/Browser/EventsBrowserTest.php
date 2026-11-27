@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Currency;
 use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
@@ -74,11 +75,14 @@ it('creates an event', function (): void {
         ->fill('title', 'Board game night')
         ->fill('starts_at', now()->addDays(15)->format('Y-m-d').'T19:00')
         ->fill('location', 'Kim’s place')
+        ->select('currency', 'EUR')
         ->screenshot(filename: 'events-create-light')
         ->press('Create event')
         ->assertSee('Board game night')
         ->assertSee('Going · 1')
         ->assertNoJavaScriptErrors();
+
+    expect(Event::query()->where('title', 'Board game night')->sole()->currency)->toBe(Currency::Eur);
 });
 
 it('renders an event on a phone', function (): void {

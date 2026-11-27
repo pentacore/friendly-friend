@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Planning\Actions;
 
+use App\Enums\Currency;
 use App\Enums\RsvpStatus;
 use App\Enums\SplitMode;
 use App\Models\DiscordUser;
@@ -45,7 +46,7 @@ final readonly class CreateEvent
             $event = Event::query()->create([
                 'guild_id' => $guild->id,
                 'created_by_discord_user_id' => $creator->id,
-                'currency' => 'SEK',
+                'currency' => Currency::Sek,
                 ...$this->attributes->columns($details),
                 'date_polling' => count($details->dateOptions) >= 2,
             ]);

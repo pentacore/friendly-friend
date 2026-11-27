@@ -605,6 +605,9 @@ const field =
                         class="flex flex-1 items-center gap-2 text-sm font-medium"
                     >
                         <Coins class="size-4" />Costs
+                        <span class="font-normal text-muted-foreground">
+                            in {{ form.currency ?? 'SEK' }}
+                        </span>
                     </h3>
                     <Button
                         type="button"

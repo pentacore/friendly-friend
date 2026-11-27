@@ -33,6 +33,7 @@ const form = useForm<SaveEventRequest>({
     rsvp_by: null,
     date_options: null,
     timezone: props.default_timezone,
+    currency: 'SEK',
     host_ids: [],
     questions: null,
     bring: null,

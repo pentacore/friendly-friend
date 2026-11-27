@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Access\AccessSnapshot;
+use App\Enums\Currency;
 use App\Enums\RsvpStatus;
 use App\Http\Requests\Events\SaveEventRequest;
 use App\Http\Resources\EventResource;
@@ -132,7 +133,8 @@ final class EventController extends Controller
 
     #[TypefinderPage(component: 'events/Edit', props: [
         'event' => EventResource::class,
-        'form' => '{ title: string; description: string; location: string; location_url: string; starts_at: string; ends_at: string; rsvp_by: string; timezone: string; host_ids: number[] }',
+        'form' => '{ title: string; description: string; location: string; location_url: string; starts_at: string; ends_at: string; rsvp_by: string; timezone: string; currency: '.Currency::class.'; host_ids: number[] }',
+        'currency_locked' => 'boolean',
         'members' => self::MEMBER.'[]',
     ])]
     public function edit(Event $event): Response
@@ -152,8 +154,10 @@ final class EventController extends Controller
                 'ends_at' => $local($event->ends_at),
                 'rsvp_by' => $local($event->rsvp_by),
                 'timezone' => $event->timezone,
+                'currency' => $event->currency,
                 'host_ids' => array_values($event->hosts->modelKeys()),
             ],
+            'currency_locked' => $event->hasCosts(),
             'members' => $this->membersByGuild([$event->guild_id])[$event->guild_id] ?? [],
         ]);
     }

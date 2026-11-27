@@ -51,7 +51,7 @@ final readonly class CostsPlan
         $ownsOrOrganises = fn (int $creatorId): bool => $organiser || $creatorId === $access->discordUserId;
 
         return [
-            'currency' => $event->currency,
+            'currency' => $event->currency->value,
             'total' => array_sum($event->expenses->map(fn (EventExpense $expense): int => $expense->amount)->all()),
             'people' => array_values($people->map(fn (DiscordUser $user): array => $user->toMember())->all()),
             'expenses' => array_values($event->expenses->sortByDesc('id')->map(fn (EventExpense $expense): array => [

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Currency;
 use App\Enums\QuestionKind;
 use App\Enums\RideDirection;
 use App\Enums\SplitMode;
@@ -97,4 +98,32 @@ it('takes "everyone going" on the Costs tab without picking people', function ()
     ])->assertSessionHasNoErrors();
 
     expect(EventExpense::query()->sole()->shares()->count())->toBe(0);
+});
+
+it('plans an event in another currency, and changes it only while there are no costs', function (): void {
+    $this->actingAs($this->host)->post(route('events.store'), basics($this->guild, ['currency' => 'EUR', 'costs' => [['description' => 'Cabin', 'amount' => '120.50']]]))
+        ->assertSessionHasNoErrors();
+    $event = Event::query()->sole();
+    expect($event->currency)->toBe(Currency::Eur)
+        ->and(EventExpense::query()->sole()->amount)->toBe(12050);
+
+    $edit = ['title' => 'Crayfish party', 'starts_at' => '2026-12-05T18:00', 'timezone' => 'Europe/Stockholm'];
+    $this->actingAs($this->host)->put(route('events.update', $event), [...$edit, 'currency' => 'NOK'])->assertSessionHasErrors('currency');
+    $this->actingAs($this->host)->put(route('events.update', $event), [...$edit, 'currency' => 'EUR'])->assertSessionHasNoErrors();
+    $this->actingAs($this->host)->put(route('events.update', $event), $edit)->assertSessionHasNoErrors();
+    expect($event->refresh()->currency)->toBe(Currency::Eur);
+
+    EventExpense::query()->delete();
+    $this->actingAs($this->host)->put(route('events.update', $event), [...$edit, 'currency' => 'NOK'])->assertSessionHasNoErrors();
+    $this->actingAs($this->host)->put(route('events.update', $event), [...$edit, 'currency' => 'XYZ'])->assertSessionHasErrors('currency');
+    expect($event->refresh()->currency)->toBe(Currency::Nok);
+
+    $this->actingAs($this->host)->get(route('events.edit', $event))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('form.currency', 'NOK')->where('currency_locked', false));
+});
+
+it('plans in kronor by default', function (): void {
+    $this->actingAs($this->host)->post(route('events.store'), basics($this->guild))->assertSessionHasNoErrors();
+
+    expect(Event::query()->sole()->currency)->toBe(Currency::Sek);
 });

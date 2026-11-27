@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Planning;
 
+use App\Enums\Currency;
 use App\Models\Event;
 use App\Models\GuildMember;
 use App\Planning\Data\EventDetails;
@@ -28,6 +29,7 @@ final readonly class EventAttributes
             'ends_at' => $details->endsAt,
             'rsvp_by' => $details->rsvpBy,
             'timezone' => $details->timezone,
+            ...($details->currency instanceof Currency ? ['currency' => $details->currency] : []),
         ];
     }
 

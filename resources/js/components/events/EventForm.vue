@@ -17,6 +17,7 @@ import {
     nextDay,
 } from '@/lib/eventDates';
 import type { SaveEventRequest } from '@/typefinder';
+import { Currency } from '@/typefinder/enums/Currency';
 
 type Member = { id: number; name: string; avatar_url: string };
 
@@ -31,6 +32,8 @@ const props = defineProps<{
     allowDatePoll?: boolean;
     /** The date is being voted on: dates are set on the event page. */
     datesLocked?: boolean;
+    /** There are costs already, so their currency stays. */
+    currencyLocked?: boolean;
 }>();
 
 defineEmits<{ submit: [] }>();
@@ -461,6 +464,35 @@ const field =
                         "
                     />
                     <InputError :message="form.errors.description" />
+                </div>
+
+                <div class="grid gap-2 sm:max-w-56">
+                    <Label for="currency">Currency for costs</Label>
+                    <select
+                        id="currency"
+                        v-model="form.currency"
+                        :class="field"
+                        :disabled="currencyLocked"
+                        :aria-describedby="
+                            currencyLocked ? 'currency-locked' : undefined
+                        "
+                    >
+                        <option
+                            v-for="code in Object.values(Currency)"
+                            :key="code"
+                            :value="code"
+                        >
+                            {{ code }}
+                        </option>
+                    </select>
+                    <p
+                        v-if="currencyLocked"
+                        id="currency-locked"
+                        class="text-xs text-muted-foreground"
+                    >
+                        Fixed now that there are costs.
+                    </p>
+                    <InputError :message="form.errors.currency" />
                 </div>
 
                 <fieldset v-if="hostChoices.length" class="grid gap-2">
