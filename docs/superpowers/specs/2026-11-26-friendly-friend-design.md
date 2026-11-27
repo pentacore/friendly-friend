@@ -19,6 +19,9 @@ A private website and Discord bot for a group of friends across **one or more Di
 - Opt-out of statistics tracking, available on the web and in Discord, which deletes past stats.
 - Everything typed end to end (Typefinder and Wayfinder). AI rules and docs are updated in every commit.
 
+- **Event planning** (§14): events per server with RSVP, food (bring list, shopping list, meal plan, dietary needs), transport (carpools) and costs (expenses with settle-up), plus Discord announcements, RSVP buttons, native scheduled-event mirroring and reminders.
+- **Dark mode everywhere:** the appearance default stays "system", and every page and component must be correct in both light and dark (checked with browser tests).
+
 **Non-goals (YAGNI)**
 
 - Fully separate per-server spaces. Data is shared and tagged, never siloed.
@@ -211,6 +214,44 @@ Each phase ends with passing CI, a commit, and rules and docs updated.
 4. **Quotes in Discord**: `people`/aliases, quotes schema, `QuoteNormalizer`, the four input methods, preview, edit and save, the quotes channel post, `/quote random`, channel import job.
 5. **Quotes on the web**: feed, search, quote page and edit history, voting with Reverb, this or that, top lists, people pages, admin (including the import review queue).
 6. **Stats**: ingest jobs, sessions, rollups, dashboards, opt-out on the web and in Discord, purge.
+7. **Events** (§14), in slices: core + RSVP, food, transport, costs, Discord (announce, buttons, mirror, reminders).
+
+## 14. Event planning (Phase 7, after quotes)
+
+Approved 2026-11-27. It gets its own implementation plans when we start it.
+
+**Scope and permissions**
+
+- An event belongs to one server (`guild_id`). It's visible to users with access through that server, and to owners and admins.
+- Any user with access through the server can create an event. The creator, co-hosts (`event_hosts`) and admins can edit it.
+- Attendees can RSVP, claim bring-list items, tick shopping items, offer or claim rides, and add expenses.
+
+**Data**
+
+- `events`: guild_id, created_by_discord_user_id, title, description (markdown), location, location_url, starts_at, ends_at, timezone (default Europe/Stockholm), status (`planned`/`cancelled`), currency (default `SEK`), announce_channel_id, discord_message_id, discord_scheduled_event_id, reminded_day_at, reminded_hours_at.
+- `event_hosts` (event_id, discord_user_id).
+- `event_rsvps`: event_id, discord_user_id, status (`going`/`maybe`/`declined`), guests (int), note, needs_ride (bool).
+- Dietary needs live on the person (`discord_users.dietary_notes`), are set once in Settings, and are summarised per event for the organisers.
+- Food:
+    - `event_bring_items` (label, quantity_needed) and `event_bring_claims` (item, person, quantity, note)
+    - `event_shopping_items` (label, quantity, checked_by, checked_at, expense_id)
+    - `event_meals` (date, slot `breakfast`/`lunch`/`dinner`/`snack`, title, notes) with cooks in `event_meal_cooks`
+- Transport: `event_rides` (driver, direction `to`/`from`/`both`, departs_from, departs_at, seats) and `event_ride_passengers` (ride, person, pickup_note).
+- Costs:
+    - `event_expenses` (paid_by, amount in minor units, description, split_mode `equal`/`exact`)
+    - `event_expense_shares` (expense, person, amount)
+    - `event_payments` (from, to, amount, settled_at)
+    - Balances are computed from these. "Settle up" proposes the minimal set of transfers (greedy largest-debtor ↔ largest-creditor).
+
+**Website:** `/events` (upcoming and past, filter by server) and `/events/{id}`, with tabs Overview (RSVP, attendees, dietary summary), Food, Transport and Costs. Updates are live over a private Reverb channel per event.
+
+**Discord**
+
+- Per-server `events_channel_id` (Servers page).
+- On create or update, the bot posts or edits an embed with **Going / Maybe / Can't** buttons and RSVP counts.
+- It mirrors the event as a native **Guild Scheduled Event** (external, with location). This is one-way: native "Interested" isn't synced. It needs the bot's Create/Manage Events permission.
+- **Reminders** (a scheduled job every 5 minutes): a DM to `going` attendees 24 h and 2 h before. If their DMs are closed, it mentions them in the events channel instead.
+- **Interactions architecture** (also used by Phase 4): Discord requires an answer within 3 s. So the bot process sends the deferred acknowledgement itself, via DiscordPHP's async HTTP, which is its only allowed Discord call. It then routes the interaction to a queued job, which does the work and edits the response.
 
 ## 13. Owner setup (not code)
 

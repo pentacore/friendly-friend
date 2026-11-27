@@ -29,10 +29,11 @@ Laravel 13 on PHP 8.5, Inertia 3 + Vue 3 + TypeScript (vite-plus), PostgreSQL, R
 Dev (Sail, `compose.yaml`): `laravel.test`, `horizon`, `reverb`, `pgsql`, `redis`, `mailpit`.
 Dev also has `bot` behind the compose profile `bot` (`COMPOSE_PROFILES=bot`).
 Prod (`compose.prod.yaml`, one FrankenPHP PHP 8.5 image): one-shot `migrate` (all app services wait for it), then `web`, `horizon`, `scheduler`, `reverb`, `bot`, plus `postgres` and `redis`. App containers log to stderr (`LOG_CHANNEL=stderr`).
+
 - Reverb has **two** endpoints: `REVERB_*` is where the app publishes (inside Docker: `reverb:8080`, never `localhost`), and `VITE_REVERB_*` is where browsers connect (public host, compiled in at build time via compose build args). Never derive one from the other.
 - `env()` only in `config/*.php`. Runtime code reads `config()` (e.g. `app.trusted_proxies`, applied in `AppServiceProvider`), because config is cached in production.
-The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
-Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
+  The bot and Horizon are long-running: restart them after code changes (`sail restart bot horizon`).
+  Docs: `docs/architecture.md`, `docs/deployment.md`. The prod image (`Dockerfile`) builds the frontend with `TYPEFINDER_SKIP_BUILD=1`, because the types are committed and there is no DB at build time.
 
 ## Dashboards
 
@@ -105,6 +106,7 @@ Horizon and Telescope are open in `local`. Outside `local`, Horizon needs the `a
 - Tests use Pest. Write the failing test first (TDD). Feature tests use Postgres via `RefreshDatabase`, configured in `tests/Pest.php`.
 - Use conventional commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `refactor:`, `test:`).
 - The design spec lives in `docs/superpowers/specs/` and the phase plans in `docs/superpowers/plans/`. When the implementation deliberately departs from the spec, update the spec too.
+- **Dark mode is required.** Every page and component must look right in light and dark (the default appearance is "system"). Use the theme tokens (`bg-background`, `text-muted-foreground`, `border`…) and `dark:` variants instead of fixed colours. New pages get a Pest browser test that also renders them in dark mode.
 
 === foundation rules ===
 
