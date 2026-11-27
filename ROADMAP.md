@@ -4,16 +4,16 @@ Everything that is planned, known to be missing, or was found along the way. **K
 
 ## Status
 
-| Phase | What                                                                                                                              | State          |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| 1     | Foundation: Laravel 13, Sail PHP 8.5, Postgres, tooling, Typefinder, Boost, CI, prod image                                        | ✅ done        |
-| 2     | Discord-only login, access by server roles                                                                                        | ✅ done        |
-| 3     | Bot core: gateway process, event router, member sync, watchdog                                                                    | ✅ done        |
-| 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                                               | ✅ done        |
-| 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done        |
-| 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done        |
-| 6     | Server stats with opt-out: messages, reactions, voice, games, rollups, `/stats`, person stats, `/settings/privacy`, `/privacy`    | ✅ done        |
-| 7     | Event planning                                                                                                                    | 🚧 in progress |
+| Phase | What                                                                                                                              | State   |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1     | Foundation: Laravel 13, Sail PHP 8.5, Postgres, tooling, Typefinder, Boost, CI, prod image                                        | ✅ done |
+| 2     | Discord-only login, access by server roles                                                                                        | ✅ done |
+| 3     | Bot core: gateway process, event router, member sync, watchdog                                                                    | ✅ done |
+| 3b    | Multiple servers, owners in `.env`, `/admin/guilds`                                                                               | ✅ done |
+| 4     | Quotes in Discord: capture (4 ways), AI cleanup, preview/edit/save, `/quote random`, channel import                               | ✅ done |
+| 5     | Quotes on the website: feed, search, pages, editing, live voting, this-or-that, top lists, people tools, import review, dashboard | ✅ done |
+| 6     | Server stats with opt-out: messages, reactions, voice, games, rollups, `/stats`, person stats, `/settings/privacy`, `/privacy`    | ✅ done |
+| 7     | Event planning: RSVP, food, transport, costs with settle-up, Discord announcements, native events and reminders                   | ✅ done |
 
 ## Planned features
 

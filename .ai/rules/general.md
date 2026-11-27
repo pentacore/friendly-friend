@@ -11,7 +11,7 @@ A private website and Discord bot for a group of friends across **one or more Di
 
 - quotes captured from Discord, tidied up by AI, browsed, voted on and ranked on the site
 - server activity stats (messages, reactions, voice, games) with an opt-out
-- event planning: RSVP, food, transport, costs, Discord announcements (Phase 7)
+- event planning: RSVP, food, transport, costs, Discord announcements and reminders
 
 The spec is `docs/superpowers/specs/2026-11-26-friendly-friend-design.md`, phase plans are in `docs/superpowers/plans/`, and the backlog is `ROADMAP.md`.
 
