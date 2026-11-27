@@ -7,8 +7,10 @@ namespace App\Quotes\Jobs;
 use App\Discord\DiscordClient;
 use App\Enums\QuoteStatus;
 use App\Models\Quote;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -17,7 +19,8 @@ use Throwable;
  * after turning their private preview into "expired" (no buttons): the
  * interaction reply while its token still works, or the DM.
  */
-final class PruneExpiredDrafts implements ShouldQueue
+#[UniqueFor(120)]
+final class PruneExpiredDrafts implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 

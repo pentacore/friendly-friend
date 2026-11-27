@@ -10,12 +10,18 @@
 - A commit that introduces or changes a convention, a design decision or a trap updates the matching `.ai/rules/*.md` file. New areas get a new rule file with `paths` frontmatter, then run `vendor/bin/sail artisan boost:index-rules`.
 - A commit that changes commands, schema, config, architecture or a feature updates `docs/**`.
 - Bugs, follow-ups, upstream issues and ideas go into `ROADMAP.md` (open items only). Done items move to `COMPLETED.md` in the same commit.
+- A change in behaviour updates **every description of it** in the same commit: `docs/**`, rules, UI copy and help text, and the AI agents' instructions and tool descriptions (the models read those, so a stale one changes what they do). Treat a stale description as a review finding.
 - After changing anything in `.ai/`, run `vendor/bin/sail artisan boost:update` so `AGENTS.md`/`CLAUDE.md` are regenerated. CI warns on PRs that change code without docs or rules.
 
 ## Commands
 
 - Run **every** PHP, Composer, artisan and npm command through Sail (`vendor/bin/sail …`). Host PHP is 8.3, but the project needs PHP 8.5.
 - After backend changes that affect types (models, enums, requests, resources, Inertia actions, broadcast events): `vendor/bin/sail artisan typefinder:generate`, and commit `resources/js/typefinder/`.
+
+## Skills for procedures
+
+- Formatting or cleaning up code: the `formatting-project` skill (Rector, then Vite+, then Pint, keeping every change they make).
+- Running browser tests: the `running-browser-tests` skill.
 
 ## Before every commit
 

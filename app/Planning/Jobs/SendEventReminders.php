@@ -11,9 +11,11 @@ use App\Enums\RsvpStatus;
 use App\Models\DiscordUser;
 use App\Models\Event;
 use App\Models\EventRsvp;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -26,7 +28,8 @@ use Throwable;
  * people on Maybe a day before the "answer by" time, and refreshes the
  * announcement once answers close.
  */
-final class SendEventReminders implements ShouldQueue
+#[UniqueFor(240)]
+final class SendEventReminders implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
